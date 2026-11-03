@@ -48,7 +48,6 @@ const WIRE_ERROR_CODES: readonly WireErrorCode[] = [
   "forbidden",
   "no_session",
   "rate_limited",
-  "budget_exceeded",
   "refusal",
   "upstream_error",
   "misconfigured",

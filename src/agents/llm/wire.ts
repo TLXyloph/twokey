@@ -10,6 +10,7 @@
  *           exactly ONE terminal line: `complete` or `error`.
  *           A stream that ends without a terminal line is a transport failure.
  * Non-200:  JSON `{ "error": WireError }` (origin, session, validation, rate limit, misconfiguration).
+ *           A used-up budget is not an error: it is answered with a replay or one plain message.
  *
  * The browser never chooses the model, token limits or provider parameters: the server fixes them.
  * Both sides import this file; change it only together with both implementations.
@@ -34,8 +35,7 @@ export type WireErrorCode =
   | "bad_request" // body failed validation (shape, size, counts)
   | "forbidden" // the request did not come from this site (Origin / Sec-Fetch-Site)
   | "no_session" // no valid judge-session cookie: POST the session endpoint, then retry
-  | "rate_limited" // too many turns from this session
-  | "budget_exceeded" // the server-side spend cap is used up
+  | "rate_limited" // too many turns from this session, or too many new sessions from this IP
   | "refusal" // the model declined (stop_reason "refusal")
   | "upstream_error" // Anthropic API error
   | "misconfigured" // e.g. missing TWOKEY_SESSION_SECRET or the DB binding

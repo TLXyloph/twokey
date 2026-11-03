@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { parseUsdToMicro, RATE_WINDOW_MS, resolveSessionConfig, resolveTurnConfig, type AiConfigEnv } from "@/agents/llm/turn-config";
+import {
+  parseUsdToMicro,
+  RATE_WINDOW_MS,
+  resolveSessionConfig,
+  resolveSessionIssueConfig,
+  resolveTurnConfig,
+  SESSION_IP_WINDOW_MS,
+  type AiConfigEnv,
+} from "@/agents/llm/turn-config";
 
 const SECRET = "test-session-secret-not-real-0123456789abcdef";
 const env = (over: Partial<AiConfigEnv> = {}): AiConfigEnv => ({
@@ -51,6 +59,32 @@ describe("resolveSessionConfig", () => {
 
   it("requires the session secret everywhere", () => {
     expect(resolveSessionConfig(env({ TWOKEY_SESSION_SECRET: undefined }), true)).toEqual({ ok: false, problems: ["TWOKEY_SESSION_SECRET:unset"] });
+  });
+});
+
+describe("resolveSessionIssueConfig", () => {
+  it("adds the per-IP cap over a rolling hour", () => {
+    expect(resolveSessionIssueConfig(env({ TWOKEY_AI_SESSIONS_PER_IP_PER_HOUR: "5" }), false)).toMatchObject({
+      ok: true,
+      value: { sessionSecret: SECRET, ipLimit: { perWindow: 5, windowMs: SESSION_IP_WINDOW_MS } },
+    });
+    expect(SESSION_IP_WINDOW_MS).toBe(3_600_000);
+  });
+
+  it("refuses a missing or malformed cap instead of using a built-in number", () => {
+    for (const value of [undefined, "", "five", "2.5", "-1"]) {
+      expect(resolveSessionIssueConfig(env({ TWOKEY_AI_SESSIONS_PER_IP_PER_HOUR: value }), false)).toEqual({
+        ok: false,
+        problems: ["TWOKEY_AI_SESSIONS_PER_IP_PER_HOUR:invalid"],
+      });
+    }
+  });
+
+  it("includes the session problems too", () => {
+    expect(resolveSessionIssueConfig(env({ TWOKEY_SESSION_SECRET: undefined, TWOKEY_AI_SESSIONS_PER_IP_PER_HOUR: "5" }), false)).toEqual({
+      ok: false,
+      problems: ["TWOKEY_SESSION_SECRET:unset"],
+    });
   });
 });
 

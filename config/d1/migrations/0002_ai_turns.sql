@@ -1,6 +1,7 @@
 -- Migration number: 0002 	 2026-11-03
--- The AI route's event-sourced spend and rate state (src/agents/llm/d1-ai-turn-log.ts), and the
--- recorded answers it replays when the live AI is unavailable. Both tables are append-only.
+-- The AI route's event-sourced spend and rate state (src/agents/llm/d1-ai-turn-log.ts), the
+-- recorded answers it replays when the live AI is unavailable, and the log of judge sessions
+-- issued per client IP (src/agents/llm/d1-session-issuance-log.ts). All three are append-only.
 --
 -- ai_turn_events: one row per event; every limit is derived from it, never kept as a counter.
 --   reserved  the turn's worst-case cost, appended BEFORE the model is called, and only if the
@@ -79,4 +80,28 @@ CREATE TRIGGER ai_turn_recordings_no_delete
 BEFORE DELETE ON ai_turn_recordings
 BEGIN
   SELECT RAISE(ABORT, 'ai_turn_recordings is append-only');
+END;
+
+-- One row per judge session issued. `ip_hmac` is HMAC-SHA256 of the client IP keyed with the
+-- Worker secret TWOKEY_SESSION_SECRET (hex); the raw IP is never stored. The per-IP cap is a
+-- COUNT over a rolling window, checked and appended in one INSERT ... SELECT ... WHERE.
+CREATE TABLE ai_session_issuances (
+  seq        INTEGER PRIMARY KEY,
+  session_id TEXT NOT NULL UNIQUE,
+  ip_hmac    TEXT NOT NULL,
+  issued_at  INTEGER NOT NULL  -- ms since epoch
+);
+
+CREATE INDEX ai_session_issuances_ip_time ON ai_session_issuances (ip_hmac, issued_at);
+
+CREATE TRIGGER ai_session_issuances_no_update
+BEFORE UPDATE ON ai_session_issuances
+BEGIN
+  SELECT RAISE(ABORT, 'ai_session_issuances is append-only');
+END;
+
+CREATE TRIGGER ai_session_issuances_no_delete
+BEFORE DELETE ON ai_session_issuances
+BEGIN
+  SELECT RAISE(ABORT, 'ai_session_issuances is append-only');
 END;

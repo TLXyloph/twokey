@@ -9,6 +9,8 @@
  *   TWOKEY_AI_BUDGET_USD                hard total budget for the live AI, across all sessions
  *   TWOKEY_AI_SESSION_BUDGET_USD        each judge session's share of it
  *   TWOKEY_AI_SESSION_TURNS_PER_MINUTE  turns (live or replayed) per session per minute
+ *   TWOKEY_AI_SESSIONS_PER_IP_PER_HOUR  new judge sessions per client IP per rolling hour
+ *                                       (read by the session route only)
  *   ANTHROPIC_API_KEY                   secret; absent means "live AI off": replays only
  *   TWOKEY_AI_MODEL                     optional override of the server-fixed model
  *
@@ -17,9 +19,11 @@
 import type { OriginPolicy } from "./origin";
 import { normalizeOrigin } from "./origin";
 import { isUsableSessionSecret } from "./judge-session";
+import type { SessionIssueLimit } from "./session-issuance-log";
 import { resolveModel } from "./translate-request";
 
 export const RATE_WINDOW_MS = 60_000;
+export const SESSION_IP_WINDOW_MS = 60 * 60_000;
 
 export interface AiConfigEnv {
   ANTHROPIC_API_KEY?: string;
@@ -28,6 +32,7 @@ export interface AiConfigEnv {
   TWOKEY_AI_BUDGET_USD?: string;
   TWOKEY_AI_SESSION_BUDGET_USD?: string;
   TWOKEY_AI_SESSION_TURNS_PER_MINUTE?: string;
+  TWOKEY_AI_SESSIONS_PER_IP_PER_HOUR?: string;
   TWOKEY_AI_MODEL?: string;
 }
 
@@ -42,6 +47,11 @@ export interface AiLimits {
 export interface SessionConfig {
   sessionSecret: string;
   origin: OriginPolicy;
+}
+
+/** What the session route needs: the session config plus the per-IP cap on new sessions. */
+export interface SessionIssueConfig extends SessionConfig {
+  ipLimit: SessionIssueLimit;
 }
 
 export interface TurnConfig extends SessionConfig {
@@ -80,6 +90,15 @@ export function resolveSessionConfig(env: AiConfigEnv, development: boolean): Co
   else if (!rawOrigin && !development) problems.push("TWOKEY_SITE_ORIGIN:unset");
   if (problems.length > 0 || !isUsableSessionSecret(secret)) return { ok: false, problems };
   return { ok: true, value: { sessionSecret: secret.trim(), origin: { siteOrigin, development } } };
+}
+
+export function resolveSessionIssueConfig(env: AiConfigEnv, development: boolean): ConfigCheck<SessionIssueConfig> {
+  const session = resolveSessionConfig(env, development);
+  const problems = session.ok ? [] : [...session.problems];
+  const perWindow = parseCount(env.TWOKEY_AI_SESSIONS_PER_IP_PER_HOUR);
+  if (perWindow === undefined) problems.push("TWOKEY_AI_SESSIONS_PER_IP_PER_HOUR:invalid");
+  if (!session.ok || perWindow === undefined) return { ok: false, problems };
+  return { ok: true, value: { ...session.value, ipLimit: { perWindow, windowMs: SESSION_IP_WINDOW_MS } } };
 }
 
 export function resolveTurnConfig(env: AiConfigEnv, development: boolean): ConfigCheck<TurnConfig> {

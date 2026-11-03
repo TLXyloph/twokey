@@ -29,11 +29,14 @@
   //   budget below that admits no live turn at all.
   // - TWOKEY_AI_SESSION_BUDGET_USD: each judge session's share of the total.
   // - TWOKEY_AI_SESSION_TURNS_PER_MINUTE: turns (live or replayed) per session per minute.
+  // - TWOKEY_AI_SESSIONS_PER_IP_PER_HOUR: new judge sessions per client IP (cf-connecting-ip,
+  //   stored only as an HMAC) per rolling hour.
   // - TWOKEY_SITE_ORIGIN: the only Origin the AI routes accept (localhost only under `next dev`).
   "vars": {
-    "TWOKEY_AI_BUDGET_USD": "1",
+    "TWOKEY_AI_BUDGET_USD": "10",
     "TWOKEY_AI_SESSION_BUDGET_USD": "3",
     "TWOKEY_AI_SESSION_TURNS_PER_MINUTE": "20",
+    "TWOKEY_AI_SESSIONS_PER_IP_PER_HOUR": "5",
     "TWOKEY_SITE_ORIGIN": "https://twokey.afterscroll.workers.dev"
   }
 }

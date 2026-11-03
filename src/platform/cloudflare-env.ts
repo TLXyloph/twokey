@@ -53,6 +53,7 @@ declare global {
     TWOKEY_AI_BUDGET_USD?: string;
     TWOKEY_AI_SESSION_BUDGET_USD?: string;
     TWOKEY_AI_SESSION_TURNS_PER_MINUTE?: string;
+    TWOKEY_AI_SESSIONS_PER_IP_PER_HOUR?: string;
     TWOKEY_AI_MODEL?: string;
   }
 }

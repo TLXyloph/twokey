@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  clientIpHmac,
   issueSession,
   isUsableSessionSecret,
   readCookie,
@@ -85,6 +86,21 @@ describe("isUsableSessionSecret", () => {
     expect(isUsableSessionSecret("x".repeat(31))).toBe(false);
     expect(isUsableSessionSecret(undefined)).toBe(false);
     expect(isUsableSessionSecret("   ")).toBe(false);
+  });
+});
+
+describe("clientIpHmac", () => {
+  it("is a stable hex HMAC that never contains the IP", async () => {
+    const hmac = await clientIpHmac(SECRET, "203.0.113.9");
+    expect(hmac).toMatch(/^[0-9a-f]{64}$/);
+    expect(hmac).not.toContain("203.0.113.9");
+    expect(await clientIpHmac(SECRET, "203.0.113.9")).toBe(hmac);
+  });
+
+  it("differs by IP and by secret", async () => {
+    const hmac = await clientIpHmac(SECRET, "203.0.113.9");
+    expect(await clientIpHmac(SECRET, "203.0.113.10")).not.toBe(hmac);
+    expect(await clientIpHmac(OTHER_SECRET, "203.0.113.9")).not.toBe(hmac);
   });
 });
 

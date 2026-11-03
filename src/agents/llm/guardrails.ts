@@ -3,11 +3,9 @@
  * and the per-turn spend meter. The route must not be an open proxy to the Anthropic API, so
  * everything the browser sends is validated here and nothing it sends picks the model or limits.
  *
- * The route's rate limit and spend cap now live in D1 (./ai-turn-log.ts, ./d1-ai-turn-log.ts),
- * so they hold across isolates and restarts. `clientKey`, `createRateLimiter`, `budgetUsd` and
- * `checkAdmission` below are the earlier in-memory versions (per instance, reset on restart). The
- * route no longer calls them; they are kept, with their tests, until their removal is agreed.
- * `createInMemorySpendLedger` is still used, as the meter that prices one turn's attempts.
+ * The route's rate limit and spend cap live in D1 (./ai-turn-log.ts, ./d1-ai-turn-log.ts), so
+ * they hold across isolates and restarts; the in-memory versions that used to be here are gone.
+ * `createInMemorySpendLedger` remains as the meter that prices one turn's attempts.
  */
 import { z } from "zod";
 import type { AgAiReasoningItem } from "ag-studio";
@@ -21,8 +19,6 @@ export const LIMITS = {
   maxInstructionsBytes: 100 * 1024,
   maxSchemaDepth: 64,
 } as const;
-export const RATE_LIMIT = { turns: 20, windowMs: 60_000 } as const;
-export const DEFAULT_BUDGET_USD = 5;
 
 export interface Rejection {
   status: number;
@@ -200,54 +196,7 @@ export async function readBodyText(request: Request, maxBytes: number = LIMITS.m
 }
 
 // ---------------------------------------------------------------------------------------------
-// Rate limit
-// ---------------------------------------------------------------------------------------------
-
-/**
- * The first `x-forwarded-for` address, else "local". The header is only trustworthy behind a proxy
- * that overwrites it (as Vercel does); elsewhere a client can choose its own key.
- */
-export function clientKey(headers: Headers): string {
-  const first = headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-  return first ? first.slice(0, 100) : "local";
-}
-
-export interface RateLimiter {
-  /** Records one turn for `key`; false when the key is over its limit (the turn is not recorded). */
-  take(key: string): boolean;
-}
-
-export interface RateLimiterOptions {
-  limit?: number;
-  windowMs?: number;
-  now?: () => number;
-  /** Least recently used keys beyond this are forgotten, bounding memory. */
-  maxKeys?: number;
-}
-
-/** Sliding-window log: at most `limit` turns in any `windowMs` per key. */
-export function createRateLimiter(options: RateLimiterOptions = {}): RateLimiter {
-  const { limit = RATE_LIMIT.turns, windowMs = RATE_LIMIT.windowMs, now = Date.now, maxKeys = 10_000 } = options;
-  const hits = new Map<string, number[]>();
-  return {
-    take(key) {
-      const at = now();
-      const recent = (hits.get(key) ?? []).filter((time) => time > at - windowMs);
-      hits.delete(key);
-      const allowed = recent.length < limit;
-      if (allowed) recent.push(at);
-      hits.set(key, recent);
-      if (hits.size > maxKeys) {
-        const oldest = hits.keys().next().value;
-        if (oldest !== undefined) hits.delete(oldest);
-      }
-      return allowed;
-    },
-  };
-}
-
-// ---------------------------------------------------------------------------------------------
-// Spend cap
+// Prices and the spend meter
 // ---------------------------------------------------------------------------------------------
 
 /** Anthropic-shaped token counts; `input_tokens` excludes cache reads and writes. */
@@ -318,36 +267,4 @@ export function createInMemorySpendLedger(): SpendLedger {
       return cost;
     },
   };
-}
-
-/** The cap from `TWOKEY_AI_BUDGET_USD`; a missing, malformed or negative value means the $5 default. */
-export function budgetUsd(env: Readonly<Record<string, string | undefined>>): number {
-  const raw = env.TWOKEY_AI_BUDGET_USD?.trim();
-  const value = raw ? Number(raw) : Number.NaN;
-  return Number.isFinite(value) && value >= 0 ? value : DEFAULT_BUDGET_USD;
-}
-
-// ---------------------------------------------------------------------------------------------
-// Admission
-// ---------------------------------------------------------------------------------------------
-
-export interface AdmissionInput {
-  apiKey: string | undefined;
-  clientKey: string;
-  limiter: RateLimiter;
-  ledger: SpendLedger;
-  budgetUsd: number;
-}
-
-/** The checks that run before the body is read: configuration, rate, then budget. Yields the API key. */
-export function checkAdmission(input: AdmissionInput): Checked<string> {
-  const refuse = (rejection: Rejection) => ({ ok: false as const, rejection });
-  if (!input.apiKey) return refuse(reject(503, "misconfigured", "The AI service is not configured on this server."));
-  if (!input.limiter.take(input.clientKey)) {
-    return refuse(reject(429, "rate_limited", "Too many AI turns from this client; wait a minute and try again."));
-  }
-  if (input.ledger.getSpentUsd() >= input.budgetUsd) {
-    return refuse(reject(402, "budget_exceeded", "The AI spend cap for this server has been reached."));
-  }
-  return { ok: true, value: input.apiKey };
 }

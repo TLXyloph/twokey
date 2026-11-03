@@ -8,19 +8,13 @@
  * Under plain `next dev` there is no Cloudflare context; there, and only there, the turn log is
  * in memory (per process, reset on restart). Anywhere else a missing DB binding answers 503.
  */
-import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { createInMemoryAiTurnStore, type AiTurnStore } from "@/agents/llm/ai-turn-log";
 import { handleAiTurn } from "@/agents/llm/ai-turn-handler";
 import { createD1AiTurnStore } from "@/agents/llm/d1-ai-turn-log";
 import { createAnthropicClient, type AnthropicLike } from "@/agents/llm/run-turn";
-import type {} from "@/platform/cloudflare-env"; // the CloudflareEnv bindings (DB, secrets, vars)
+import { workerContext } from "@/platform/worker-context";
 
 export const runtime = "nodejs";
-
-interface WorkerContext {
-  env: CloudflareEnv;
-  waitUntil?: (promise: Promise<unknown>) => void;
-}
 
 // Per isolate: the client is reused while the key is the same.
 let cachedClient: { apiKey: string; client: AnthropicLike } | undefined;
@@ -29,16 +23,6 @@ let devStore: AiTurnStore | undefined;
 function clientFor(apiKey: string): AnthropicLike {
   if (cachedClient?.apiKey !== apiKey) cachedClient = { apiKey, client: createAnthropicClient(apiKey) };
   return cachedClient.client;
-}
-
-function workerContext(): WorkerContext {
-  try {
-    const { env, ctx } = getCloudflareContext<Record<string, unknown>, { waitUntil(promise: Promise<unknown>): void }>();
-    return { env, waitUntil: (promise) => ctx.waitUntil(promise) };
-  } catch {
-    // No Cloudflare context (e.g. plain `next dev`): no bindings.
-    return { env: {} };
-  }
 }
 
 export async function POST(request: Request): Promise<Response> {

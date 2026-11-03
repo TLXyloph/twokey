@@ -81,6 +81,16 @@ export async function issueSession(secret: string, nowMs: number, randomBytes: R
   return { session, setCookie };
 }
 
+/**
+ * HMAC-SHA256 (hex) of a client IP, keyed with the session secret, for the per-IP session cap:
+ * the issuance log can count sessions per IP without ever storing the IP. The `twokey-ip-v1:`
+ * prefix keeps these MACs apart from session signatures made with the same key.
+ */
+export async function clientIpHmac(secret: string, ip: string): Promise<string> {
+  const mac = await crypto.subtle.sign("HMAC", await hmacKey(secret), new TextEncoder().encode(`twokey-ip-v1:${ip}`));
+  return Array.from(new Uint8Array(mac), (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
 /** The value of cookie `name` in a `Cookie` request header, if present. */
 export function readCookie(header: string | null, name: string): string | undefined {
   if (!header) return undefined;

@@ -1,18 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
-  budgetUsd,
-  checkAdmission,
-  clientKey,
   costUsd,
   createInMemorySpendLedger,
-  createRateLimiter,
   LIMITS,
   parseTurnBody,
   priceFor,
   PRICES_PER_MTOK,
   readBodyText,
-  type RateLimiter,
-  type SpendLedger,
 } from "@/agents/llm/guardrails";
 import { turnRequest, userMessage } from "./fixtures";
 
@@ -118,36 +112,6 @@ describe("readBodyText", () => {
   });
 });
 
-describe("clientKey", () => {
-  it("uses the first x-forwarded-for address, else 'local'", () => {
-    expect(clientKey(new Headers({ "x-forwarded-for": " 203.0.113.9 , 10.0.0.1" }))).toBe("203.0.113.9");
-    expect(clientKey(new Headers())).toBe("local");
-    expect(clientKey(new Headers({ "x-forwarded-for": " , " }))).toBe("local");
-  });
-});
-
-describe("createRateLimiter", () => {
-  it("allows 20 turns per minute per key, then refuses until the window slides", () => {
-    let now = 0;
-    const limiter = createRateLimiter({ now: () => now });
-    for (let i = 0; i < 20; i++) expect(limiter.take("a")).toBe(true);
-    expect(limiter.take("a")).toBe(false);
-    expect(limiter.take("b")).toBe(true);
-    now = 59_999;
-    expect(limiter.take("a")).toBe(false);
-    now = 60_001;
-    expect(limiter.take("a")).toBe(true);
-  });
-
-  it("bounds the number of keys it remembers", () => {
-    const limiter = createRateLimiter({ limit: 1, maxKeys: 2 });
-    expect(limiter.take("a")).toBe(true);
-    expect(limiter.take("b")).toBe(true);
-    expect(limiter.take("c")).toBe(true);
-    expect(limiter.take("a")).toBe(true);
-  });
-});
-
 describe("spend ledger", () => {
   it("prices Opus 5.5 and Sonnet 5.5 per million tokens", () => {
     const million = { input_tokens: 1e6, output_tokens: 1e6, cache_read_input_tokens: 1e6, cache_creation_input_tokens: 1e6 };
@@ -176,37 +140,4 @@ describe("spend ledger", () => {
     expect(ledger.getSpentUsd()).toBeCloseTo(0.028);
   });
 
-  it("reads the cap from TWOKEY_AI_BUDGET_USD, defaulting to $5", () => {
-    expect(budgetUsd({})).toBe(5);
-    expect(budgetUsd({ TWOKEY_AI_BUDGET_USD: "12.5" })).toBe(12.5);
-    expect(budgetUsd({ TWOKEY_AI_BUDGET_USD: "0" })).toBe(0);
-    expect(budgetUsd({ TWOKEY_AI_BUDGET_USD: "lots" })).toBe(5);
-    expect(budgetUsd({ TWOKEY_AI_BUDGET_USD: "-1" })).toBe(5);
-  });
-});
-
-describe("checkAdmission", () => {
-  const limiter = (allow: boolean): RateLimiter => ({ take: () => allow });
-  const ledger = (spent: number): SpendLedger => ({ getSpentUsd: () => spent, record: () => 0 });
-  const base = { apiKey: "sk-test", clientKey: "local", limiter: limiter(true), ledger: ledger(0), budgetUsd: 5 };
-
-  const refused = (status: number, code: string) => ({ ok: false, rejection: { status, error: { code } } });
-
-  it("admits a configured, in-limit, in-budget turn and hands back the key", () => {
-    expect(checkAdmission(base)).toEqual({ ok: true, value: "sk-test" });
-  });
-
-  it("refuses with 503 when the API key is missing", () => {
-    expect(checkAdmission({ ...base, apiKey: undefined })).toMatchObject(refused(503, "misconfigured"));
-    expect(checkAdmission({ ...base, apiKey: "" })).toMatchObject(refused(503, "misconfigured"));
-  });
-
-  it("refuses with 429 when the client is over its rate", () => {
-    expect(checkAdmission({ ...base, limiter: limiter(false) })).toMatchObject(refused(429, "rate_limited"));
-  });
-
-  it("refuses with 402 once the spend cap is reached", () => {
-    expect(checkAdmission({ ...base, ledger: ledger(5) })).toMatchObject(refused(402, "budget_exceeded"));
-    expect(checkAdmission({ ...base, ledger: ledger(4.99) })).toMatchObject({ ok: true });
-  });
 });
