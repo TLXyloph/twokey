@@ -28,14 +28,16 @@
   //   reserves its worst case (about $0.87 for the smallest turn, more for large ones), so a
   //   budget below that admits no live turn at all.
   // - TWOKEY_AI_SESSION_BUDGET_USD: each judge session's share of the total.
-  // - TWOKEY_AI_SESSION_TURNS_PER_MINUTE: turns (live or replayed) per session per minute.
+  // - TWOKEY_AI_SESSION_TURNS_PER_MINUTE: turns (live or replayed) per session per minute. 60, not
+  //   20: one replayed multi-agent starter streams about 15 turns in seconds (measured 2026-11-03),
+  //   and live spend is already bounded by the session share, since each live turn reserves ~$0.93.
   // - TWOKEY_AI_SESSIONS_PER_IP_PER_HOUR: new judge sessions per client IP (cf-connecting-ip,
   //   stored only as an HMAC) per rolling hour.
   // - TWOKEY_SITE_ORIGIN: the only Origin the AI routes accept (localhost only under `next dev`).
   "vars": {
     "TWOKEY_AI_BUDGET_USD": "10",
     "TWOKEY_AI_SESSION_BUDGET_USD": "3",
-    "TWOKEY_AI_SESSION_TURNS_PER_MINUTE": "20",
+    "TWOKEY_AI_SESSION_TURNS_PER_MINUTE": "60",
     "TWOKEY_AI_SESSIONS_PER_IP_PER_HOUR": "5",
     "TWOKEY_SITE_ORIGIN": "https://twokey.afterscroll.workers.dev"
   }
