@@ -13,9 +13,19 @@ export interface D1RunResult {
   meta: { changes: number };
 }
 
+export interface D1AllResult<Row> {
+  results: Row[];
+}
+
 export interface D1PreparedStatementLike {
   bind(...values: D1Value[]): D1PreparedStatementLike;
   run(): Promise<D1RunResult>;
+  /**
+   * The rows of a query. On the real binding `run()` may not return rows, so reads use `all()`.
+   * Optional here only so that fakes for write-only stores need not implement it; a reader must
+   * fail (throw) when it is missing, never treat that as "no rows".
+   */
+  all?<Row = Record<string, D1Value>>(): Promise<D1AllResult<Row>>;
 }
 
 export interface D1DatabaseLike {
@@ -34,5 +44,15 @@ declare global {
     PAYPAL_WEBHOOK_ID?: string;
     /** Optional; the sandbox endpoint when unset. Any other value is refused. */
     PAYPAL_API_BASE?: string;
+    /** Worker secret; absent means the live AI is off and /api/ai/turn serves replays only. */
+    ANTHROPIC_API_KEY?: string;
+    /** Worker secret (>= 32 chars) that signs the judge-session cookie. */
+    TWOKEY_SESSION_SECRET?: string;
+    /** wrangler.jsonc vars for the AI routes; see src/agents/llm/turn-config.ts. */
+    TWOKEY_SITE_ORIGIN?: string;
+    TWOKEY_AI_BUDGET_USD?: string;
+    TWOKEY_AI_SESSION_BUDGET_USD?: string;
+    TWOKEY_AI_SESSION_TURNS_PER_MINUTE?: string;
+    TWOKEY_AI_MODEL?: string;
   }
 }

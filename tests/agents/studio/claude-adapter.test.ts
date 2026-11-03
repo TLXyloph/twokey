@@ -1,7 +1,7 @@
 import type { AgAiEvent, AgLlmRequest, AgLlmResponse } from "ag-studio";
 import { describe, expect, it, vi } from "vitest";
 import { createClaudeAdapter, TurnError } from "@/agents/studio/claude-adapter";
-import { encodeLine, NDJSON_CONTENT_TYPE, TURN_ENDPOINT, type WireLine } from "@/agents/llm/wire";
+import { encodeLine, NDJSON_CONTENT_TYPE, REPLAY_LABEL, SESSION_ENDPOINT, TURN_ENDPOINT, type WireLine } from "@/agents/llm/wire";
 
 // --- Fixtures ---------------------------------------------------------------------------
 
@@ -277,5 +277,72 @@ describe("createClaudeAdapter", () => {
 
     await expect(handler.complete).resolves.toEqual(response);
     expect(await collect(handler.stream)).toEqual([]);
+  });
+});
+
+// --- Judge session ----------------------------------------------------------------------
+
+const jsonResponse = (status: number, body: unknown) =>
+  new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
+const noSession = () => jsonResponse(401, { error: { code: "no_session", message: "No demo session." } });
+
+describe("createClaudeAdapter: judge session", () => {
+  it("on 401 no_session, gets a session from the session endpoint and retries the turn once", async () => {
+    const replies = [noSession(), jsonResponse(200, { ok: true, session: "issued" }), ndjson([encodeLine(completeLine)])];
+    const fetchMock = vi.fn<typeof fetch>(async () => replies.shift()!);
+    await expect(createClaudeAdapter({ fetch: fetchMock }).executeTurn(request).complete).resolves.toEqual(response);
+
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([TURN_ENDPOINT, SESSION_ENDPOINT, TURN_ENDPOINT]);
+    const [, sessionInit] = fetchMock.mock.calls[1]!;
+    expect(sessionInit?.method).toBe("POST");
+    expect(sessionInit?.credentials).toBe("same-origin");
+    expect(fetchMock.mock.calls[2]![1]?.body).toBe(fetchMock.mock.calls[0]![1]?.body);
+  });
+
+  it("gives up after one retry, reporting no_session", async () => {
+    const replies = [noSession(), jsonResponse(200, { ok: true }), noSession()];
+    const fetchMock = vi.fn<typeof fetch>(async () => replies.shift()!);
+    await expect(createClaudeAdapter({ fetch: fetchMock }).executeTurn(request).complete).rejects.toMatchObject({ code: "no_session", status: 401 });
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("reports a refused session request with the server's code", async () => {
+    const replies = [noSession(), jsonResponse(403, { error: { code: "forbidden", message: "Not this site." } })];
+    const fetchMock = vi.fn<typeof fetch>(async () => replies.shift()!);
+    await expect(createClaudeAdapter({ fetch: fetchMock }).executeTurn(request).complete).rejects.toMatchObject({ code: "forbidden", status: 403 });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not ask for a session on any other refusal", async () => {
+    const fetchMock = fetchReturning(jsonResponse(401, { error: { code: "forbidden", message: "x" } }));
+    await expect(createClaudeAdapter({ fetch: fetchMock }).executeTurn(request).complete).rejects.toMatchObject({ code: "forbidden" });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+// --- Replays ----------------------------------------------------------------------------
+
+const replayLine: WireLine = { type: "replay", replay: { recordedAt: 1_790_000_000_000 } };
+
+describe("createClaudeAdapter: replayed answers", () => {
+  it("labels a replayed answer in the streamed text, and leaves the response Studio keeps unlabelled", async () => {
+    const fetchMock = fetchReturning(ndjson([replayLine, eventLine(start), eventLine(delta), eventLine(end), completeLine].map(encodeLine)));
+    const handler = createClaudeAdapter({ fetch: fetchMock }).executeTurn(request);
+
+    expect(await collect(handler.stream)).toEqual([start, { type: "TEXT_MESSAGE_CONTENT", messageId: "m1", delta: REPLAY_LABEL }, delta, end]);
+    await expect(handler.complete).resolves.toEqual(response);
+    expect(REPLAY_LABEL).toContain("Replay of a recorded answer");
+  });
+
+  it("labels only the first text message of a replayed turn", async () => {
+    const second: AgAiEvent = { type: "TEXT_MESSAGE_START", messageId: "m2", role: "assistant" };
+    const fetchMock = fetchReturning(ndjson([replayLine, eventLine(start), eventLine(end), eventLine(second), completeLine].map(encodeLine)));
+    const events = await collect(createClaudeAdapter({ fetch: fetchMock }).executeTurn(request).stream);
+    expect(events.filter((event) => event.type === "TEXT_MESSAGE_CONTENT")).toHaveLength(1);
+  });
+
+  it("does not label a live answer", async () => {
+    const fetchMock = fetchReturning(ndjson([eventLine(start), eventLine(delta), completeLine].map(encodeLine)));
+    expect(await collect(createClaudeAdapter({ fetch: fetchMock }).executeTurn(request).stream)).toEqual([start, delta]);
   });
 });

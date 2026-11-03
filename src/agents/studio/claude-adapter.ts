@@ -11,11 +11,23 @@
  *   line, a non-200 response, an abort, a malformed line, or a stream with no terminal line.
  * - The stream always ends when `complete` settles. It never throws: a failed turn is reported
  *   once, through `complete`, which Studio awaits as soon as the stream ends.
+ *
+ * Judge session: the turn route needs the HttpOnly session cookie. A turn without one is answered
+ * 401 `no_session` (before the server reads the body or spends anything); the adapter then POSTs
+ * the session endpoint, which sets the cookie, and sends that turn once more.
+ *
+ * Replays: a stream that opens with a `replay` line is a recorded answer, not a live one. The
+ * adapter adds REPLAY_LABEL to the start of the turn's first text message, in the streamed events
+ * only, so the AI panel shows it. The `complete` response is passed on unchanged, so Studio's own
+ * history of the turn stays as recorded (and the server strips the label from later history).
+ * A replayed turn with no text (tool calls only) shows no label; its answer turn does.
  */
 import type { AgAiEvent, AgLlmAdapter, AgLlmExecuteTurnOptions, AgLlmRequest, AgLlmResponse, AgLlmResponseHandler } from "ag-studio";
 import {
   createLineDecoder,
   NDJSON_CONTENT_TYPE,
+  REPLAY_LABEL,
+  SESSION_ENDPOINT,
   TURN_ENDPOINT,
   type TurnRequest,
   type WireErrorCode,
@@ -25,12 +37,16 @@ import {
 export interface ClaudeAdapterOptions {
   /** Where turns are POSTed. Defaults to {@link TURN_ENDPOINT}. */
   endpoint?: string;
+  /** Where a judge session is requested after a 401 `no_session`. Defaults to {@link SESSION_ENDPOINT}. */
+  sessionEndpoint?: string;
   /** Injectable for tests. Defaults to the browser's `fetch`, resolved when a turn starts. */
   fetch?: typeof fetch;
 }
 
 const WIRE_ERROR_CODES: readonly WireErrorCode[] = [
   "bad_request",
+  "forbidden",
+  "no_session",
   "rate_limited",
   "budget_exceeded",
   "refusal",
@@ -56,10 +72,10 @@ export class TurnError extends Error {
 }
 
 export function createClaudeAdapter(options: ClaudeAdapterOptions = {}): AgLlmAdapter {
-  const endpoint = options.endpoint ?? TURN_ENDPOINT;
+  const endpoints: Endpoints = { turn: options.endpoint ?? TURN_ENDPOINT, session: options.sessionEndpoint ?? SESSION_ENDPOINT };
   return {
     executeTurn: (request: AgLlmRequest, turnOptions?: AgLlmExecuteTurnOptions) =>
-      runTurn(endpoint, options.fetch ?? globalThis.fetch.bind(globalThis), request, turnOptions?.signal),
+      runTurn(endpoints, options.fetch ?? globalThis.fetch.bind(globalThis), request, turnOptions?.signal),
   };
 }
 
@@ -75,9 +91,14 @@ export function toTurnRequest(request: AgLlmRequest): TurnRequest {
   };
 }
 
-function runTurn(endpoint: string, fetchImpl: typeof fetch, request: AgLlmRequest, signal?: AbortSignal): AgLlmResponseHandler {
+interface Endpoints {
+  turn: string;
+  session: string;
+}
+
+function runTurn(endpoints: Endpoints, fetchImpl: typeof fetch, request: AgLlmRequest, signal?: AbortSignal): AgLlmResponseHandler {
   const queue = createEventQueue<AgAiEvent>();
-  const complete = pumpTurn({ endpoint, fetchImpl, request, signal, onEvent: queue.push }).then(
+  const complete = pumpTurn({ endpoints, fetchImpl, request, signal, onEvent: queue.push }).then(
     (response) => {
       queue.close();
       return response;
@@ -95,24 +116,48 @@ function runTurn(endpoint: string, fetchImpl: typeof fetch, request: AgLlmReques
 }
 
 interface PumpParams {
-  endpoint: string;
+  endpoints: Endpoints;
   fetchImpl: typeof fetch;
   request: AgLlmRequest;
   signal?: AbortSignal;
   onEvent: (event: AgAiEvent) => void;
 }
 
-async function pumpTurn({ endpoint, fetchImpl, request, signal, onEvent }: PumpParams): Promise<AgLlmResponse> {
-  throwIfAborted(signal);
-  const response = await raceAbort(
-    fetchImpl(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Accept: NDJSON_CONTENT_TYPE },
-      body: JSON.stringify({ request: toTurnRequest(request) }),
+/** Per-turn stream state: whether this turn is a replay, and whether its label is shown yet. */
+interface ReplayState {
+  replay: boolean;
+  labelled: boolean;
+}
+
+/** POSTs the turn; on 401 `no_session`, gets a session cookie and POSTs the same turn once more. */
+async function sendTurn({ endpoints, fetchImpl, request, signal }: PumpParams): Promise<Response> {
+  const body = JSON.stringify({ request: toTurnRequest(request) });
+  const post = () =>
+    raceAbort(
+      fetchImpl(endpoints.turn, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: NDJSON_CONTENT_TYPE },
+        body,
+        signal,
+      }),
       signal,
-    }),
+    );
+  const first = await post();
+  if (first.status !== 401) return first;
+  const refusal = await httpError(first);
+  if (refusal.code !== "no_session") throw refusal;
+  const session = await raceAbort(
+    fetchImpl(endpoints.session, { method: "POST", headers: { Accept: "application/json" }, credentials: "same-origin", signal }),
     signal,
   );
+  if (!session.ok) throw await httpError(session);
+  return post();
+}
+
+async function pumpTurn(params: PumpParams): Promise<AgLlmResponse> {
+  const { signal, onEvent } = params;
+  throwIfAborted(signal);
+  const response = await sendTurn(params);
   if (!response.ok) {
     throw await httpError(response);
   }
@@ -125,12 +170,13 @@ async function pumpTurn({ endpoint, fetchImpl, request, signal, onEvent }: PumpP
   signal?.addEventListener("abort", cancelReader, { once: true });
   const lines = createLineDecoder();
   const text = new TextDecoder();
+  const replay: ReplayState = { replay: false, labelled: false };
   try {
     for (;;) {
       const { done, value } = await raceAbort(reader.read(), signal);
       const decoded = done ? [...lines.push(text.decode()), ...lines.flush()] : lines.push(text.decode(value, { stream: true }));
       for (const line of decoded) {
-        const terminal = handleLine(line, onEvent);
+        const terminal = handleLine(line, onEvent, replay);
         if (terminal) {
           cancelReader();
           return terminal;
@@ -145,14 +191,24 @@ async function pumpTurn({ endpoint, fetchImpl, request, signal, onEvent }: PumpP
   }
 }
 
-/** Queues an event line; returns the response for a `complete` line; throws for an `error` line. */
-function handleLine(line: WireLine, onEvent: (event: AgAiEvent) => void): AgLlmResponse | undefined {
+/**
+ * Queues an event line (labelling a replay's first text message); returns the response for a
+ * `complete` line; throws for an `error` line.
+ */
+function handleLine(line: WireLine, onEvent: (event: AgAiEvent) => void, state: ReplayState): AgLlmResponse | undefined {
   switch (line.type) {
+    case "replay":
+      state.replay = true;
+      return undefined;
     case "event":
       if (!isObject(line.event) || typeof line.event.type !== "string") {
         throw new TurnError("internal", "Malformed event line from the server.");
       }
       onEvent(line.event);
+      if (state.replay && !state.labelled && line.event.type === "TEXT_MESSAGE_START") {
+        state.labelled = true;
+        onEvent({ type: "TEXT_MESSAGE_CONTENT", messageId: line.event.messageId, delta: REPLAY_LABEL });
+      }
       return undefined;
     case "complete":
       if (!isObject(line.response) || !Array.isArray(line.response.output)) {

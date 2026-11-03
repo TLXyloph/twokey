@@ -26,7 +26,7 @@ import type {
   AgAiToolSchema,
   AgLlmRequest,
 } from "ag-studio";
-import type { TurnRequest } from "./wire";
+import { REPLAY_LABEL, type TurnRequest } from "./wire";
 
 export const DEFAULT_MODEL = "claude-opus-5-5";
 export const MAX_TOKENS = 16000;
@@ -292,9 +292,15 @@ function toImageBlock(url: string | undefined): BetaImageBlockParam | BetaTextBl
   return { type: "text", text: "[Image omitted: only PNG, JPEG, GIF or WebP data URLs and http(s) URLs are supported.]" };
 }
 
+/**
+ * Assistant text as the model wrote it. The replay label is UI chrome the browser adds to a
+ * replayed answer (wire.ts), so a leading copy is removed: the model never reads it, and a
+ * replayed history keys the same as the live one it was recorded from (replay-key.ts).
+ */
 function toAssistantBlocks(message: AgAiOutputMessage): BetaTextBlockParam[] {
   return message.content.flatMap((part): BetaTextBlockParam[] => {
-    const text = part.type === "text" ? part.text : part.refusal;
+    const raw = part.type === "text" ? part.text : part.refusal;
+    const text = part.type === "text" && raw.startsWith(REPLAY_LABEL) ? raw.slice(REPLAY_LABEL.length) : raw;
     return text ? [{ type: "text", text }] : [];
   });
 }

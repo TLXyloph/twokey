@@ -1,9 +1,13 @@
 /**
- * Server-side guardrails for `POST /api/ai/turn`: body validation and size limits, a per-client
- * rate limit, and a spend cap. The route must not be an open proxy to the Anthropic API, so
+ * Server-side guardrails for `POST /api/ai/turn`: body validation and size limits, model prices,
+ * and the per-turn spend meter. The route must not be an open proxy to the Anthropic API, so
  * everything the browser sends is validated here and nothing it sends picks the model or limits.
  *
- * The rate limiter and the spend ledger are in-memory: per server instance, reset on restart.
+ * The route's rate limit and spend cap now live in D1 (./ai-turn-log.ts, ./d1-ai-turn-log.ts),
+ * so they hold across isolates and restarts. `clientKey`, `createRateLimiter`, `budgetUsd` and
+ * `checkAdmission` below are the earlier in-memory versions (per instance, reset on restart). The
+ * route no longer calls them; they are kept, with their tests, until their removal is agreed.
+ * `createInMemorySpendLedger` is still used, as the meter that prices one turn's attempts.
  */
 import { z } from "zod";
 import type { AgAiReasoningItem } from "ag-studio";
@@ -268,16 +272,30 @@ export interface ModelPrice {
   cacheWrite: number;
 }
 
+/**
+ * From the claude-api skill's model table (cached 2026-10-06). Claude Opus 5 and Opus 4.8 are
+ * Opus 5.5's server-side fallback targets (`fallbacks: "default"`), and cost more than Opus 5.5;
+ * their cache rates follow the published multipliers (read 0.1x, 5-minute write 1.25x).
+ */
 export const PRICES_PER_MTOK: Readonly<Record<string, ModelPrice>> = {
   "claude-opus-5-5": { input: 4, output: 20, cacheRead: 0.2, cacheWrite: 5 },
   "claude-sonnet-5-5": { input: 2, output: 10, cacheRead: 0.2, cacheWrite: 2.5 },
+  "claude-opus-5": { input: 5, output: 25, cacheRead: 0.5, cacheWrite: 6.25 },
+  "claude-opus-4-8": { input: 5, output: 25, cacheRead: 0.5, cacheWrite: 6.25 },
 };
 const OPUS_PRICE: ModelPrice = { input: 4, output: 20, cacheRead: 0.2, cacheWrite: 5 };
 
-/** Exact or dated-snapshot match; anything else (e.g. a fallback model) is charged at Opus 5.5 rates. */
+/**
+ * Exact match first, then the longest dated-snapshot prefix (so `claude-opus-5` never prices
+ * `claude-opus-5-5`); anything else is charged at Opus 5.5 rates.
+ */
 export function priceFor(model: string): ModelPrice {
-  const key = Object.keys(PRICES_PER_MTOK).find((name) => model === name || model.startsWith(`${name}-`));
-  return (key && PRICES_PER_MTOK[key]) || OPUS_PRICE;
+  const exact = PRICES_PER_MTOK[model];
+  if (exact) return exact;
+  const prefix = Object.keys(PRICES_PER_MTOK)
+    .filter((name) => model.startsWith(`${name}-`))
+    .sort((a, b) => b.length - a.length)[0];
+  return (prefix && PRICES_PER_MTOK[prefix]) || OPUS_PRICE;
 }
 
 export function costUsd(usage: TokenUsage, model: string): number {

@@ -8,6 +8,8 @@ import {
   createRateLimiter,
   LIMITS,
   parseTurnBody,
+  priceFor,
+  PRICES_PER_MTOK,
   readBodyText,
   type RateLimiter,
   type SpendLedger,
@@ -152,6 +154,18 @@ describe("spend ledger", () => {
     expect(costUsd(million, "claude-opus-5-5")).toBeCloseTo(4 + 20 + 0.2 + 5);
     expect(costUsd(million, "claude-sonnet-5-5")).toBeCloseTo(2 + 10 + 0.2 + 2.5);
     expect(costUsd({ input_tokens: 1e6, output_tokens: 0 }, "claude-unknown-9")).toBeCloseTo(4);
+  });
+
+  it("prices Opus 5.5's server-side fallback targets at their own, higher rates", () => {
+    const million = { input_tokens: 1e6, output_tokens: 1e6, cache_read_input_tokens: 1e6, cache_creation_input_tokens: 1e6 };
+    expect(costUsd(million, "claude-opus-4-8")).toBeCloseTo(5 + 25 + 0.5 + 6.25);
+    expect(costUsd(million, "claude-opus-5")).toBeCloseTo(5 + 25 + 0.5 + 6.25);
+  });
+
+  it("matches a model exactly before any prefix, so claude-opus-5 never prices claude-opus-5-5", () => {
+    expect(priceFor("claude-opus-5-5")).toEqual(PRICES_PER_MTOK["claude-opus-5-5"]);
+    expect(priceFor("claude-opus-5")).toEqual(PRICES_PER_MTOK["claude-opus-5"]);
+    expect(priceFor("claude-opus-5-5-20261101")).toEqual(PRICES_PER_MTOK["claude-opus-5-5"]);
   });
 
   it("keeps a running total and returns each turn's cost", () => {
