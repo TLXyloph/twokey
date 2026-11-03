@@ -21,9 +21,22 @@
     }
   ],
   // Non-secret settings only. Secrets are set with `wrangler secret put`, never here.
-  // ANTHROPIC_API_KEY is deliberately NOT set on the hosted Worker yet: /api/ai/turn returns 503
-  // until it has an origin/session check and a spend cap that survives restarts (see docs/HANDOFF.md).
+  // /api/ai/turn (src/agents/llm/turn-config.ts) needs the secret TWOKEY_SESSION_SECRET, or it
+  // answers 503. Without the secret ANTHROPIC_API_KEY it serves recorded "replay" answers only.
+  // Its limits live in D1 (migration 0002) and are read from these vars; none has a code default:
+  // - TWOKEY_AI_BUDGET_USD: the hard total for live AI calls, across all sessions. A turn first
+  //   reserves its worst case (about $0.87 for the smallest turn, more for large ones), so a
+  //   budget below that admits no live turn at all.
+  // - TWOKEY_AI_SESSION_BUDGET_USD: each judge session's share of the total.
+  // - TWOKEY_AI_SESSION_TURNS_PER_MINUTE: turns (live or replayed) per session per minute.
+  // - TWOKEY_AI_SESSIONS_PER_IP_PER_HOUR: new judge sessions per client IP (cf-connecting-ip,
+  //   stored only as an HMAC) per rolling hour.
+  // - TWOKEY_SITE_ORIGIN: the only Origin the AI routes accept (localhost only under `next dev`).
   "vars": {
-    "TWOKEY_AI_BUDGET_USD": "1"
+    "TWOKEY_AI_BUDGET_USD": "10",
+    "TWOKEY_AI_SESSION_BUDGET_USD": "3",
+    "TWOKEY_AI_SESSION_TURNS_PER_MINUTE": "20",
+    "TWOKEY_AI_SESSIONS_PER_IP_PER_HOUR": "5",
+    "TWOKEY_SITE_ORIGIN": "https://twokey.afterscroll.workers.dev"
   }
 }

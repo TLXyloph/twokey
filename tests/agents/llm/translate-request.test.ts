@@ -21,7 +21,7 @@ import {
   toAnthropicTools,
   toToolChoice,
 } from "@/agents/llm/translate-request";
-import type { TurnRequest } from "@/agents/llm/wire";
+import { REPLAY_LABEL, type TurnRequest } from "@/agents/llm/wire";
 
 const user = (text: string, extra: AgAiInputContent[] = []): AgAiInputMessage => ({
   id: `u-${text}`,
@@ -174,6 +174,17 @@ describe("toAnthropicMessages: content mapping", () => {
   it("appends a minimal user turn when history ends on the assistant (no prefill)", () => {
     const messages = toAnthropicMessages([user("hi"), assistant("partial")]);
     expect(messages.at(-1)?.role).toBe("user");
+  });
+
+  it("strips the replay label the browser showed, so the model never reads it", () => {
+    const messages = toAnthropicMessages([user("hi"), assistant(`${REPLAY_LABEL}The answer.`), assistant(REPLAY_LABEL), user("more")]);
+    expect(messages[1]).toEqual({ role: "assistant", content: [{ type: "text", text: "The answer." }] });
+    expect(JSON.stringify(messages)).not.toContain("Replay of a recorded answer");
+  });
+
+  it("keeps the label's words when they are not the label prefix", () => {
+    const messages = toAnthropicMessages([user("hi"), assistant(`Quote: ${REPLAY_LABEL}`)]);
+    expect(messages[1]).toEqual({ role: "assistant", content: [{ type: "text", text: `Quote: ${REPLAY_LABEL}` }] });
   });
 });
 
