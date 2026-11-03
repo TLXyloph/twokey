@@ -31,8 +31,9 @@ export const PROMPT_STARTERS: AgAiPromptStarter[] = [
   { label: "Where did the car-wash money go?", prompt: "Where did the car-wash money go?" },
   { label: "Expected vs received", prompt: "Compare expected and received takings for every fundraising event." },
   { label: "What is still pending?", prompt: "Which payouts are still pending, and what would the balance be after them?" },
-  // Builds on a new page, so the designed Club account page is never rewritten by a starter.
-  { label: "Build a car-wash page", prompt: "Build a new page about the car wash: its expected and received takings, and every ledger row recorded against it." },
+  // Adds a new widget below the board, so a starter never rewrites the designed widgets (the built-in
+  // agents cannot create pages: measured on the live demo, 2026-11-03).
+  { label: "Show the car-wash rows", prompt: "Add a new widget below the board that lists every ledger row recorded against the car wash." },
 ];
 
 export function auditorInstructions(api: AgStudioApi): string {
@@ -60,7 +61,7 @@ careful, neutral auditor: precise, plain-spoken and brief.
   "Nov 3, 10:30 AM CST".
 - The "Club account" page is the board's designed view. Do not change its existing widgets (their
   series, order, colours or titles) unless the user asks to change that widget. When asked for a new
-  chart or page, add a new widget or a new page instead. In any chart comparing received with expected
+  chart or table, add a new widget below the existing ones instead (you cannot create pages). In any chart comparing received with expected
   takings, put received first, so it takes the club's colour.
 
 ## Tools

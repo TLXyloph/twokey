@@ -127,8 +127,8 @@ describe("buildHarnessConfig", () => {
   });
 
   it("builds something new from the building starter, never by editing the designed board", () => {
-    const building = PROMPT_STARTERS.find((p) => p.label === "Build a car-wash page");
-    expect(building?.prompt).toMatch(/new page/i);
+    const building = PROMPT_STARTERS.find((p) => p.label === "Show the car-wash rows");
+    expect(building?.prompt).toMatch(/new widget below the board/i);
     // A starter that asks for "a chart comparing expected and received" rewrote the board's own chart
     // on the live demo (2026-11-03): it swapped the series, so expected took the club maroon.
     for (const { prompt } of PROMPT_STARTERS) expect(prompt).not.toMatch(/add a chart comparing/i);
