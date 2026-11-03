@@ -125,6 +125,26 @@ describe("buildHarnessConfig", () => {
     expect(config.promptStarters).toBe(PROMPT_STARTERS);
     expect(PROMPT_STARTERS.map((p) => p.prompt)).toContain("Where did the car-wash money go?");
   });
+
+  it("builds something new from the building starter, never by editing the designed board", () => {
+    const building = PROMPT_STARTERS.find((p) => p.label === "Build a car-wash page");
+    expect(building?.prompt).toMatch(/new page/i);
+    // A starter that asks for "a chart comparing expected and received" rewrote the board's own chart
+    // on the live demo (2026-11-03): it swapped the series, so expected took the club maroon.
+    for (const { prompt } of PROMPT_STARTERS) expect(prompt).not.toMatch(/add a chart comparing/i);
+  });
+
+  it("keeps the designed board, the narrow panel and the club's time zone in the auditor's rules", () => {
+    const { ctx } = fakeBuilderContext();
+    const api = fakeApi();
+    const [auditor] = buildHarnessConfig(api, adapter, ctx, riverbend).agents;
+    const text = auditor?.instructions?.({ api } as unknown as AgAiAgentContext, undefined) ?? "";
+
+    expect(text).toMatch(/do not change .*existing widgets/i);
+    expect(text).toMatch(/received first/i);
+    expect(text).toMatch(/no tables/i);
+    expect(text).toContain("America/Chicago");
+  });
 });
 
 describe("createTwoKeyAi", () => {

@@ -18,7 +18,7 @@ import {
   type AgLlmAdapter,
   type AgStudioApi,
 } from "ag-studio";
-import { CLUB_NAME, riverbend, type ClubDemoData } from "@/demo/riverbend";
+import { CLUB_NAME, CLUB_TIME_ZONE, riverbend, type ClubDemoData } from "@/demo/riverbend";
 import { COMPARE_EVENT_TAKINGS_TOOL, createCompareEventTakingsTool } from "./auditor-tools";
 
 export const AUDITOR_AGENT_ID = "twokey-auditor";
@@ -31,7 +31,8 @@ export const PROMPT_STARTERS: AgAiPromptStarter[] = [
   { label: "Where did the car-wash money go?", prompt: "Where did the car-wash money go?" },
   { label: "Expected vs received", prompt: "Compare expected and received takings for every fundraising event." },
   { label: "What is still pending?", prompt: "Which payouts are still pending, and what would the balance be after them?" },
-  { label: "Chart event takings", prompt: "Add a chart comparing expected and received takings for each fundraising event." },
+  // Builds on a new page, so the designed Club account page is never rewritten by a starter.
+  { label: "Build a car-wash page", prompt: "Build a new page about the car wash: its expected and received takings, and every ledger row recorded against it." },
 ];
 
 export function auditorInstructions(api: AgStudioApi): string {
@@ -53,7 +54,14 @@ careful, neutral auditor: precise, plain-spoken and brief.
   of the other $1,290.00". Do not guess at causes, and do not speculate about any person.
 - Pending payouts are waiting for a second approver: they have not left the account yet.
 - This is demo data from a PayPal sandbox. Say so if anyone asks about a real account.
-- Lead with the finding, then the figures. Use short paragraphs or a short list.
+- Lead with the finding, then the figures. Use short paragraphs or a short list, and no tables: the
+  chat panel is about 300px wide, so a table's columns are cut off.
+- Give dates and times in the club's time zone (${CLUB_TIME_ZONE}), the way the board shows them, e.g.
+  "Nov 3, 10:30 AM CST".
+- The "Club account" page is the board's designed view. Do not change its existing widgets (their
+  series, order, colours or titles) unless the user asks to change that widget. When asked for a new
+  chart or page, add a new widget or a new page instead. In any chart comparing received with expected
+  takings, put received first, so it takes the club's colour.
 
 ## Tools
 - ${COMPARE_EVENT_TAKINGS_TOOL}: expected vs received takings for each fundraising event, with the ledger
