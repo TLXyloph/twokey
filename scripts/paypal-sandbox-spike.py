@@ -9,6 +9,9 @@ Commands:
   payout                    $1.00 payout to PayPal's simulator receiver + idempotency checks
   venmo                     Venmo-wallet payout (expected to fail in sandbox) + POSPYO003 simulation
   poll --minutes N --log F  poll balances + transaction search every 2 min, log when new debits appear
+  webhooks-list             the REST app's registered webhooks: id, url, event types
+  webhook-register --url U  register an https webhook for all events ("*"); prints its id
+  webhook-delete --id ID    delete one registered webhook
 """
 import argparse
 import base64
@@ -17,6 +20,7 @@ import re
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -276,13 +280,64 @@ def cmd_poll(env, minutes: int, log_path: Path, state_path: Path):
         out(f"POLL end; new/watched transactions seen: {len(seen)}")
 
 
+WEBHOOK_ID_RE = re.compile(r"^[A-Za-z0-9-]{1,50}$")
+
+
+def webhooks_url(env, webhook_id=None) -> str:
+    base = f"{env['PAYPAL_API_BASE']}/v1/notifications/webhooks"
+    return base if webhook_id is None else f"{base}/{urllib.parse.quote(webhook_id, safe='')}"
+
+
+def event_names(hook) -> str:
+    return ",".join(e.get("name", "?") for e in hook.get("event_types", [])) or "(none)"
+
+
+def cmd_webhooks_list(env):
+    token, _ = get_token(env)
+    st, data = request("GET", webhooks_url(env), headers=auth(token))
+    if st != 200:
+        sys.exit(f"WEBHOOKS list failed: HTTP {st} {err_summary(data)}")
+    hooks = data.get("webhooks", [])
+    print("WEBHOOKS:", len(hooks))
+    for hook in hooks:
+        print("  id:", hook.get("id"), "| url:", hook.get("url"), "| event_types:", event_names(hook))
+
+
+def cmd_webhook_register(env, url):
+    token, _ = get_token(env)
+    st, data = request("POST", webhooks_url(env), headers=auth(token),
+                       body={"url": url, "event_types": [{"name": "*"}]})
+    if st != 201:
+        sys.exit(f"WEBHOOK register failed: HTTP {st} {err_summary(data)}")
+    print("WEBHOOK registered: HTTP", st, "| id:", data.get("id"), "| url:", data.get("url"),
+          "| event_types:", event_names(data))
+
+
+def cmd_webhook_delete(env, webhook_id):
+    token, _ = get_token(env)
+    st, data = request("DELETE", webhooks_url(env, webhook_id), headers=auth(token))
+    if st != 204:
+        sys.exit(f"WEBHOOK delete failed: HTTP {st} {err_summary(data)}")
+    print("WEBHOOK deleted: HTTP", st, "| id:", webhook_id)
+
+
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("command", choices=["check", "payout", "venmo", "poll"])
+    p.add_argument("command", choices=["check", "payout", "venmo", "poll",
+                                        "webhooks-list", "webhook-register", "webhook-delete"])
     p.add_argument("--minutes", type=int, default=60)
     p.add_argument("--log", type=Path, default=Path("spike-poll.log"))
     p.add_argument("--state", type=Path, default=Path("spike-state.json"))
+    p.add_argument("--url", help="webhook-register: the https:// URL PayPal delivers to")
+    p.add_argument("--id", dest="webhook_id", help="webhook-delete: the webhook id to delete")
     a = p.parse_args()
+    # Argument checks come before .env is read, so a typo never touches credentials.
+    if a.command == "webhook-register":
+        parsed = urllib.parse.urlparse(a.url or "")
+        if parsed.scheme != "https" or not parsed.hostname:
+            p.error("webhook-register needs --url https://...")
+    if a.command == "webhook-delete" and not WEBHOOK_ID_RE.match(a.webhook_id or ""):
+        p.error("webhook-delete needs --id <webhook id> (letters, digits and dashes, up to 50)")
     env = load_env()
     if a.command == "check":
         cmd_check(env)
@@ -290,6 +345,12 @@ def main():
         cmd_payout(env, a.state)
     elif a.command == "venmo":
         cmd_venmo(env)
+    elif a.command == "webhooks-list":
+        cmd_webhooks_list(env)
+    elif a.command == "webhook-register":
+        cmd_webhook_register(env, a.url)
+    elif a.command == "webhook-delete":
+        cmd_webhook_delete(env, a.webhook_id)
     else:
         cmd_poll(env, a.minutes, a.log, a.state)
 
