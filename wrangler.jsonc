@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "twokey",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-10-27",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": true
+  },
+  // Non-secret settings only. Secrets are set with `wrangler secret put`, never here.
+  // ANTHROPIC_API_KEY is deliberately NOT set on the hosted Worker yet: /api/ai/turn returns 503
+  // until it has an origin/session check and a spend cap that survives restarts (see docs/HANDOFF.md).
+  "vars": {
+    "TWOKEY_AI_BUDGET_USD": "1"
+  }
+}
