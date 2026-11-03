@@ -1,53 +1,54 @@
+import { riverbend, type LedgerEntry } from "@/demo/riverbend";
+import { formatUSD } from "./ask-ledger";
+
 /**
- * A cropped fragment of TwoKey's two-key queue: the treasurer's own $480 reimbursement, refused
- * because the person who filed it is the payee. Sample request for the fictional demo club; it never
- * reached the ledger, because nothing was paid. Roles only, never people's names.
+ * A cropped fragment of TwoKey's two-key queue, set directly under the "Usually the same day" stage it
+ * explains: one real payout from the demo ledger, signed by two officers while the person who asked
+ * for it could not sign. The payout (amount, payee, date) is ledger row L03; the signing dates are
+ * sample details for the fictional demo club, because the demo ledger records payouts, not signatures.
+ * Roles only, never people's names.
  */
-const REQUEST = {
-  kind: "Reimbursement",
-  amount: "$480.00",
-  filed: "Nov 2",
-  facts: [
-    ["Filed by", "Treasurer"],
-    ["Pay to", "Treasurer, personal PayPal"],
-    ["Receipt", "Attached, checked by Claude"],
-  ],
-  finding: "Flagged by Claude: the person who filed it is also the payee.",
-  keys: [
-    { role: "Secretary", state: "Refused", when: "Nov 3", refused: true },
-    { role: "President", state: "Not signed", when: "—", refused: false },
-  ],
-} as const;
+export const PAYOUT_ROW_ID = "L03";
+
+export function payoutRow(ledger: readonly LedgerEntry[] = riverbend.ledger): LedgerEntry | undefined {
+  return ledger.find((row) => row.id === PAYOUT_ROW_ID && row.status === "completed" && row.direction === "out");
+}
+
+function shortDate(iso: string): string {
+  return new Date(`${iso}T12:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+}
 
 export function ApprovalCard() {
+  const row = payoutRow();
+  if (!row) return null; // tests guard the row; never render a card that disagrees with the ledger
+  const sentOn = shortDate(row.date);
+  const signers = [
+    { role: "Treasurer", key: "Asked for it", detail: "Can't sign", excluded: true },
+    { role: "Secretary", key: "First key", detail: "Signed Oct 4", excluded: false },
+    { role: "President", key: "Second key", detail: `Signed ${sentOn}`, excluded: false },
+  ];
+
   return (
-    <article className="ui-card" data-ui data-reveal="rise" aria-label="Example: a payout request refused by the second key">
+    <article className="ui-card ui-payout" data-ui data-reveal="rise" aria-label="Example: one payout, signed by two officers">
       <header className="ui-card__head">
         <p className="ui-card__kind">
-          {REQUEST.kind} <span className="ui-card__meta">· filed {REQUEST.filed}</span>
+          Payout <span className="ui-card__meta">· {row.counterparty}</span>
         </p>
-        <span className="ui-pill ui-pill--refused">Refused</span>
+        <span className="ui-pill ui-pill--sent">Sent {sentOn}</span>
       </header>
-      <p className="ui-card__amount">{REQUEST.amount}</p>
-      <dl className="ui-card__facts">
-        {REQUEST.facts.map(([label, value]) => (
-          <div key={label}>
-            <dt>{label}</dt>
-            <dd>{value}</dd>
-          </div>
-        ))}
-      </dl>
-      <p className="ui-card__finding">{REQUEST.finding}</p>
-      <ul className="ui-card__keys" aria-label="Signatures">
-        {REQUEST.keys.map((key) => (
-          <li key={key.role} data-refused={key.refused ? "" : undefined}>
-            <span className="ui-card__role">{key.role}</span>
-            <span className="ui-card__state">{key.state}</span>
-            <span className="ui-card__when">{key.when}</span>
+      <div className="ui-payout__body">
+        <p className="ui-card__amount">{formatUSD(Math.abs(row.amount))}</p>
+        <p className="ui-payout__what">{row.description}. The AI checked the receipt against the equipment budget.</p>
+      </div>
+      <ul className="ui-payout__keys" aria-label="Who signed">
+        {signers.map((signer) => (
+          <li key={signer.role} className="ui-payout__key" data-excluded={signer.excluded ? "" : undefined}>
+            <span className="ui-payout__role">{signer.role}</span>
+            <span className="ui-payout__label">{signer.key}</span>
+            <span className="ui-payout__detail">{signer.detail}</span>
           </li>
         ))}
       </ul>
-      <p className="ui-card__foot">No payout was sent. Nothing left the club&rsquo;s account.</p>
     </article>
   );
 }

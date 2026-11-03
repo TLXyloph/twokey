@@ -94,9 +94,9 @@ describe("compareEventTakings", () => {
       ...riverbend,
       events: [{ ...riverbend.events[0]!, id: "x", expected: 100, received: 100, unitsLogged: 5, unitPrice: 20 }],
       ledger: [
-        { id: "A", date: "2026-10-01", description: "in", counterparty: "c", category: "f", direction: "in", amount: 100, status: "completed", eventId: "x" },
-        { id: "B", date: "2026-10-01", description: "cost", counterparty: "c", category: "f", direction: "out", amount: -40, status: "completed", eventId: "x" },
-        { id: "C", date: "2026-10-01", description: "later", counterparty: "c", category: "f", direction: "in", amount: 9, status: "pending", eventId: "x" },
+        { id: "A", date: "2026-10-01", description: "in", counterparty: "c", category: "f", direction: "in", amount: 100, status: "completed", eventId: "x", requestedBy: null },
+        { id: "B", date: "2026-10-01", description: "cost", counterparty: "c", category: "f", direction: "out", amount: -40, status: "completed", eventId: "x", requestedBy: null },
+        { id: "C", date: "2026-10-01", description: "later", counterparty: "c", category: "f", direction: "in", amount: 9, status: "pending", eventId: "x", requestedBy: null },
       ],
     };
     const [event] = compareEventTakings(data).events;

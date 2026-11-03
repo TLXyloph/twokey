@@ -87,7 +87,7 @@ export interface Stage {
 export const STAGES: Stage[] = [
   {
     duration: "Two minutes",
-    clause: "First, the treasurer files the request with a receipt photo, and Claude checks it against the budget.",
+    clause: "First, the treasurer files the request with a receipt photo, and the AI checks it against the budget.",
     seconds: 120,
   },
   {
@@ -156,8 +156,8 @@ export const STATE_RULES: Rule[] = [
 export const ENFORCED: Rule[] = [
   { kind: "Two signatures", rule: "Two officers on every payout; the payee never signs" },
   { kind: "The club's own account", rule: "A PayPal Business account in the club's name" },
-  { kind: "Receipts", rule: "Claude checks each receipt before anyone can sign" },
-  { kind: "Monthly review", rule: "Claude drafts the reconciliation; a non-signer signs it" },
+  { kind: "Receipts", rule: "The AI checks each receipt before anyone can sign" },
+  { kind: "Monthly review", rule: "The AI drafts the reconciliation; a non-signer signs it" },
 ];
 
 export const FAQS: { q: string; a: string }[] = [
@@ -175,7 +175,7 @@ export const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "Does the AI approve payouts?",
-    a: "No. Claude checks receipts, drafts the monthly reconciliation and flags gaps. Officers sign every payout, and a person who isn't a signer signs the reconciliation, because insurers don't accept software as the reviewer.",
+    a: "No. The AI checks receipts, drafts the monthly reconciliation and flags gaps. Officers sign every payout, and a person who isn't a signer signs the reconciliation, because insurers don't accept software as the reviewer.",
   },
   {
     q: "Why not just use Venmo?",
@@ -194,7 +194,7 @@ export const CTA = {
 
 export const FOOTER_NOTES = [
   "An entry in the PayPal AI Hackathon, 2026.",
-  "Built on the PayPal sandbox with Claude and AG Studio.",
+  "Built on the PayPal sandbox and AG Studio, with an AI agent.",
   "Riverbend Youth Football League is fictional demo data.",
 ];
 

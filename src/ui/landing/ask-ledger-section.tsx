@@ -91,7 +91,7 @@ export function AskLedgerSection() {
             )}
           </div>
           <p className="lp-ask__note" id={noteId} data-reveal="rise">
-            Demo data from the fictional Riverbend Youth Football League. In TwoKey, Claude answers from PayPal&rsquo;s records.
+            Demo data from the fictional Riverbend Youth Football League. In TwoKey, an AI agent answers from PayPal&rsquo;s records.
           </p>
           <div className="lp-ask__examples" data-reveal="rise">
             {EXAMPLE_QUESTIONS.map((q) => (

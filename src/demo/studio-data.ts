@@ -11,10 +11,14 @@ import type {
   AgFormat,
   AgRelationDefinition,
 } from "ag-studio";
-import { CLUB_NAME, riverbend, type ClubDemoData } from "./riverbend";
+import { balanceMonth, isMoneyInThisMonth, stillToSign } from "./board-figures";
+import { CLUB_NAME, OFFICERS, riverbend, type ClubDemoData } from "./riverbend";
 
-/** Excel-style pattern; Studio's number formatter treats `$` as a literal. */
-const USD = { format: "$#,##0.00" };
+/**
+ * Excel-style patterns; Studio's number formatter treats `$` as a literal. A second section formats
+ * negatives, so a shortfall reads "−$1,290.00" with a true minus sign rather than a hyphen.
+ */
+const USD = { format: "$#,##0.00;\u2212$#,##0.00" };
 
 // [id, name, format, hide?]
 type FieldSpec = [id: string, name: string, format: AgFormat, hide?: boolean];
@@ -37,6 +41,24 @@ const manyToOne = (id: string, source: [string, string], target: [string, string
   type: "many-to-one",
 });
 
+/** Ledger rows plus the per-row helpers the balances strip and the second-key block aggregate. */
+export function ledgerRows(data: ClubDemoData = riverbend) {
+  const accountId = data.balances[0]?.id ?? null;
+  const month = balanceMonth(data);
+  return data.ledger.map(({ requestedBy, ...row }) => {
+    const waiting = row.status === "pending" && row.direction === "out" && requestedBy !== null;
+    return {
+      ...row,
+      accountId,
+      signedBy: requestedBy ? (OFFICERS.find((o) => o.role === requestedBy)?.title ?? null) : null,
+      stillToSign: requestedBy ? stillToSign(requestedBy) : null,
+      awaitingSecondKey: waiting ? 1 : 0,
+      pendingAmount: waiting ? roundCents(-row.amount) : 0,
+      moneyInThisMonth: isMoneyInThisMonth(row, month) ? row.amount : 0,
+    };
+  });
+}
+
 /** Generic over the Studio registry so the caller's widget registry types it; the data is the same. */
 export function buildStudioData<TRegistry extends AgBaseRegistry = AgDefaultRegistry>(
   data: ClubDemoData = riverbend,
@@ -53,8 +75,10 @@ export function buildStudioData<TRegistry extends AgBaseRegistry = AgDefaultRegi
       {
         id: "events",
         name: "Fundraising Events",
-        description: "One row per fundraising event (demo data). Gap is expected minus received takings.",
-        data: data.events.map((event) => ({ ...event, gap: roundCents(event.expected - event.received) })),
+        description:
+          "One row per fundraising event (demo data). Difference is received minus expected takings: " +
+          "negative when takings have no record.",
+        data: data.events.map((event) => ({ ...event, difference: roundCents(event.received - event.expected) })),
         fields: fields([
           ["id", "Event ID", "textFormat", true],
           ["name", "Event", "textFormat"],
@@ -64,7 +88,7 @@ export function buildStudioData<TRegistry extends AgBaseRegistry = AgDefaultRegi
           ["unitPrice", "Unit Price", "currencyFormat"],
           ["expected", "Expected Takings", "currencyFormat"],
           ["received", "Received Takings", "currencyFormat"],
-          ["gap", "Gap (Expected - Received)", "currencyFormat"],
+          ["difference", "Difference", "currencyFormat"],
           ["notes", "Event Notes", "textFormat"],
         ]),
       },
@@ -73,8 +97,10 @@ export function buildStudioData<TRegistry extends AgBaseRegistry = AgDefaultRegi
         name: "Ledger",
         description:
           "Money in and out of the club account, Oct-Nov 2026 (demo data). Amount is signed. " +
-          "Rows from a fundraiser carry its event id.",
-        data: data.ledger,
+          "Rows from a fundraiser carry its event id. A pending payout carries the officer who signed it " +
+          `first and the officers who may sign second (${OFFICERS.map((o) => o.title).join(", ")}; never the same officer). ` +
+          "Waiting for second key (1 or 0), Pending payout and Money in this month are per-row helpers: sum them.",
+        data: ledgerRows(data),
         fields: fields([
           ["id", "Ledger ID", "textFormat"],
           ["date", "Ledger Date", "dateFormat"],
@@ -85,6 +111,12 @@ export function buildStudioData<TRegistry extends AgBaseRegistry = AgDefaultRegi
           ["amount", "Amount", "currencyFormat"],
           ["status", "Ledger Status", "textFormat"],
           ["eventId", "Event ID", "textFormat", true],
+          ["accountId", "Account ID", "textFormat", true],
+          ["signedBy", "Signed By", "textFormat"],
+          ["stillToSign", "Still To Sign", "textFormat"],
+          ["awaitingSecondKey", "Waiting For Second Key", "integerFormat"],
+          ["pendingAmount", "Pending Payout", "currencyFormat"],
+          ["moneyInThisMonth", "Money In This Month", "currencyFormat"],
         ]),
       },
       {
@@ -101,6 +133,11 @@ export function buildStudioData<TRegistry extends AgBaseRegistry = AgDefaultRegi
         ]),
       },
     ],
-    relationships: [manyToOne("ledger-event", ["ledger", "eventId"], ["events", "id"])],
+    // The ledger is the fact table: each row belongs to the club account and, for a fundraiser, to
+    // its event. That keeps every table reachable from every other (one connected schema).
+    relationships: [
+      manyToOne("ledger-event", ["ledger", "eventId"], ["events", "id"]),
+      manyToOne("ledger-account", ["ledger", "accountId"], ["balances", "id"]),
+    ],
   };
 }

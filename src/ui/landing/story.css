@@ -143,7 +143,10 @@
   padding-right: 0.5rem;
 }
 
+/* The payout slip sits under the stage it explains ("Usually the same day": the two signatures) and
+   spans exactly that stage's track: shares are percentages of the bar's width minus its three 6px gaps. */
 .lp-how .ui-card {
+  width: calc(var(--second) * (100% - 18px));
   margin: 3rem 0 0 calc(var(--first) * (100% - 18px) + 6px);
 }
 
@@ -178,6 +181,7 @@
   }
 
   .lp-how .ui-card {
+    width: auto;
     margin: 2rem 0 0;
   }
 }

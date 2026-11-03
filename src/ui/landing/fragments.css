@@ -185,6 +185,73 @@
   color: var(--ink);
 }
 
+[data-ui] .ui-pill--sent {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+/* The payout slip under the signing stage: wide, so the two keys read side by side. */
+[data-ui].ui-payout {
+  max-width: none;
+}
+
+[data-ui] .ui-payout__body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 1.25rem;
+  margin-top: 0.25rem;
+}
+
+[data-ui] .ui-payout__what {
+  max-width: 48ch;
+  color: var(--muted);
+}
+
+[data-ui] .ui-payout__keys {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* A signed key is a filled tile (one tone step); the person who asked gets no tile: not a key. */
+[data-ui] .ui-payout__key {
+  display: grid;
+  gap: 0.125rem;
+  padding: 0.75rem 0.875rem;
+  border-radius: 6px;
+  background: var(--bg);
+}
+
+[data-ui] .ui-payout__key[data-excluded] {
+  background: transparent;
+}
+
+[data-ui] .ui-payout__role,
+[data-ui] .ui-payout__detail {
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+[data-ui] .ui-payout__label {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+[data-ui] .ui-payout__key[data-excluded] .ui-payout__label {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+@media (max-width: 560px) {
+  [data-ui] .ui-payout__keys {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 [data-ui] .ui-card__amount {
   margin-top: 0.5rem;
   font-size: 1.875rem;

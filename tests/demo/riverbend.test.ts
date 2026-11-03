@@ -87,9 +87,14 @@ describe("buildStudioData", () => {
     expect(studio.sources.map((s) => s.id)).toEqual(["events", "ledger", "balances"]);
   });
 
-  it("adds each event's gap (expected - received)", () => {
+  it("adds each event's difference (received - expected), negative when takings have no record", () => {
     const carWash = source("events").data.find((row: { id: string }) => row.id === "car-wash");
-    expect(carWash).toMatchObject({ expected: 1305, received: 15, gap: 1290 });
+    expect(carWash).toMatchObject({ expected: 1305, received: 15, difference: -1290 });
+  });
+
+  it("formats a negative difference with a true minus sign", () => {
+    const difference = (source("events").fields ?? []).find((f) => f.id === "difference");
+    expect(difference?.formatOptions).toEqual({ format: "$#,##0.00;\u2212$#,##0.00" });
   });
 
   it("formats the balance fields the Live Balance widget maps", () => {
@@ -106,6 +111,12 @@ describe("buildStudioData", () => {
         expect(declared.has(key), `${s.id}.${key}`).toBe(true);
       }
     }
+  });
+
+  it("relates ledger rows to their account, so the schema is one connected group", () => {
+    expect(studio.relationships).toContainEqual(
+      expect.objectContaining({ source: { tableId: "ledger", fieldId: "accountId" }, target: { tableId: "balances", fieldId: "id" } }),
+    );
   });
 
   it("relates ledger rows to their event", () => {

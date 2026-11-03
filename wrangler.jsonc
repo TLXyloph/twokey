@@ -11,6 +11,15 @@
   "observability": {
     "enabled": true
   },
+  // The ledger's event store. Append-only tables; schema in config/d1/migrations.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "twokey",
+      "database_id": "fc5a2bb3-3e03-4d29-8740-f1df6a034553",
+      "migrations_dir": "config/d1/migrations"
+    }
+  ],
   // Non-secret settings only. Secrets are set with `wrangler secret put`, never here.
   // ANTHROPIC_API_KEY is deliberately NOT set on the hosted Worker yet: /api/ai/turn returns 503
   // until it has an origin/session check and a spend cap that survives restarts (see docs/HANDOFF.md).

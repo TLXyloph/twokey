@@ -48,7 +48,7 @@ const initialState: AgReportState<TwoKeyRegistry> = {
               { id: "events.unitsLogged", aggregation: "sum" },
               { id: "events.expected", aggregation: "sum" },
               { id: "events.received", aggregation: "sum" },
-              { id: "events.gap", aggregation: "sum" },
+              { id: "events.difference", aggregation: "sum" },
             ],
           },
           sort: [{ field: { id: "events.date" }, direction: "asc" }],

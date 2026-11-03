@@ -1,76 +1,128 @@
 /**
- * PLACEHOLDER THEME, to be replaced in the design-tweakables pass. Do not polish it here.
- *
- * Calm and civic: navy and slate ink on white surfaces, a pale slate canvas, one blue accent and a
- * modest radius. Every widget, the Live Balance widget included, inherits these through Studio's
- * `--ag-*` CSS variables, so changing a value here restyles the whole dashboard.
+ * AG Studio's theme for the board: the achromatic ledger (see ./tokens.ts). No colour in the chrome:
+ * Studio's accent (selection, focus, checkboxes) is the ink, its panels sit on the stone ground split
+ * by hairlines, widgets are white cards with a 1px edge and no shadow, and the only hue is the club
+ * maroon on the first chart series.
  */
 import { studioTheme } from "ag-studio";
+import { radius, textFont, tokens as t } from "./tokens";
 
-const ink = "#1e293b"; // slate-800: body text
-const navy = "#14213d"; // headings, icons
-const muted = "#5b6676"; // secondary text
-const accent = "#1d4ed8"; // the one accent
-const highlight = "#e8eefc"; // accent at low strength, for hover and selection
-const surface = "#ffffff";
-const canvas = "#f4f6f9";
-const border = "#d6dce4";
-const gridline = "#e7ebf0";
-const font = 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
-
-const line = (color: string) => ({ width: 1, color });
+const hairline = (color: string) => ({ width: 1, color });
 
 export const twoKeyStudioTheme = studioTheme.withParams({
   // Shared by Studio's UI, grids and charts.
-  fontFamily: font,
+  fontFamily: textFont,
   fontSize: 14,
-  textColor: ink,
-  foregroundColor: ink,
-  subtleTextColor: muted,
-  backgroundColor: surface,
-  borderColor: border,
-  borderRadius: 6,
-  accentColor: accent,
-  iconColor: navy,
-  rowHoverColor: highlight,
+  textColor: t.text,
+  foregroundColor: t.text,
+  subtleTextColor: t.muted,
+  backgroundColor: t.surface,
+  borderColor: t.border,
+  borderRadius: radius.control,
+  accentColor: t.text,
+  iconColor: t.muted,
+  rowHoverColor: t.raised,
+  invalidColor: t.data,
+  menuBackgroundColor: t.surface,
+  tooltipBackgroundColor: t.text,
+  tooltipTextColor: t.surface,
 
-  // Canvas: a quiet page behind white widget cards.
-  studioWrapperBackgroundColor: canvas,
-  studioCanvasBackgroundColor: canvas,
-  studioCanvasFontFamily: font,
+  // Inputs: white with the control edge; focus darkens the edge to ink.
+  inputBackgroundColor: t.surface,
+  inputBorder: hairline(t.control),
+  inputBorderRadius: radius.control,
+  inputFocusBorder: hairline(t.text),
+  inputPlaceholderTextColor: t.faint,
+  inputIconColor: t.muted,
 
-  // Widgets: white cards, thin border, modest radius.
-  studioWidgetBackgroundColor: surface,
-  studioWidgetBorder: line(border),
-  studioWidgetBorderRadius: 8,
-  studioWidgetTitleFontFamily: font,
+  // The open plane: wrapper, canvas and panels all on the ground, no frame and no shadow.
+  studioWrapperBackgroundColor: t.ground,
+  studioWrapperBorder: false,
+  studioWrapperBorderRadius: 0,
+  studioWrapperSpacing: 0,
+  studioCanvasBackgroundColor: t.ground,
+  studioCanvasBorder: false,
+  studioCanvasBorderRadius: 0,
+  studioCanvasShadow: false,
+  studioCanvasPadding: 16,
+  studioCanvasRowHeight: 16,
+  studioCanvasFontFamily: textFont,
+  studioCanvasGridLineColor: t.rule,
+  studioPanelContainerBackgroundColor: t.ground,
+  studioPanelContainerBorder: false,
+  studioPanelContainerBorderRadius: 0,
+  studioPanelDividerColor: t.border,
+  studioPanelDividerActiveColor: t.control,
+  studioPanelSectionBorderColor: t.border,
+  studioPanelHeaderFontFamily: textFont,
+  studioPanelHeaderFontSize: 14,
+  studioPanelHeaderFontWeight: 600,
+  studioPanelChevronButtonHoverBackgroundColor: t.active,
+  studioPanelChevronButtonHoverColor: t.text,
+  studioToggleButtonActiveBackgroundColor: t.active,
+  studioToggleButtonActiveBorderColor: t.control,
+  studioToggleButtonActiveColor: t.text,
+  studioFormLabelColor: t.muted,
+  studioAiPanelInputMessageBackgroundColor: t.raised,
+  studioAiPanelButtonHoverBackgroundColor: t.active,
+  studioAiPanelRichTextAccentBackgroundColor: t.active,
+
+  // Widgets: white cards, 1px edge, 8px radius, no shadow at rest.
+  studioWidgetBackgroundColor: t.surface,
+  studioWidgetBorder: hairline(t.border),
+  studioWidgetBorderRadius: radius.card,
+  studioWidgetPadding: 12,
+  studioWidgetResizeBorderColor: t.text,
+  studioWidgetTitleFontFamily: textFont,
   studioWidgetTitleFontSize: 15,
   studioWidgetTitleFontWeight: 600,
-  studioWidgetTitleTextColor: navy,
-  studioWidgetSubtitleTextColor: muted,
-  studioWidgetCaptionTextColor: muted,
+  studioWidgetTitleTextColor: t.text,
+  studioWidgetSubtitleFontFamily: textFont,
+  studioWidgetSubtitleFontSize: 13,
+  studioWidgetSubtitleTextColor: t.muted,
+  studioWidgetCaptionFontFamily: textFont,
+  studioWidgetCaptionFontSize: 12,
+  studioWidgetCaptionTextColor: t.muted,
+  studioWidgetLoadingOverlayBackgroundColor: t.surface,
+  studioWidgetNoDataOverlayBackgroundColor: t.surface,
 
-  // Grids.
-  gridFontFamily: font,
-  gridCellTextColor: ink,
-  gridHeaderBackgroundColor: surface,
-  gridHeaderTextColor: muted,
-  gridHeaderFontWeight: 600,
-  gridRowBorder: line(gridline),
-  gridHeaderRowBorder: line(border),
-  gridRowHoverColor: highlight,
+  // Tables: rules and alignment. Grey sentence-case headers, no band, no zebra, row rules one step
+  // lighter than the card edge.
+  gridFontFamily: textFont,
+  gridFontSize: 14,
+  gridCellTextColor: t.text,
+  gridDataBackgroundColor: t.surface,
+  gridOddRowBackgroundColor: t.surface,
+  gridHeaderBackgroundColor: t.surface,
+  gridHeaderTextColor: t.muted,
+  gridHeaderFontWeight: 400,
+  gridHeaderFontSize: 12,
+  gridHeaderHeight: 36,
+  gridRowHeight: 40,
+  gridRowBorder: hairline(t.rule),
+  gridHeaderRowBorder: hairline(t.border),
+  gridColumnBorder: false,
+  gridRowHoverColor: t.raised,
   gridWrapperBorder: false,
+  gridIconColor: t.muted,
 
-  // Charts: the accent first, then navy and slate.
-  chartFontFamily: font,
-  chartTextColor: ink,
-  chartSubtleTextColor: muted,
-  chartAxisLineColor: border,
-  chartGridLineColor: gridline,
-  chartPaletteFills1Color: accent,
-  chartPaletteStrokes1Color: accent,
-  chartPaletteFills2Color: navy,
-  chartPaletteStrokes2Color: navy,
-  chartPaletteFills3Color: "#94a3b8",
-  chartPaletteStrokes3Color: "#94a3b8",
+  // Charts: the maroon on the first series (the main data element), the comparison grey second,
+  // ink and greys for anything an editor adds after.
+  chartFontFamily: textFont,
+  chartFontSize: 12,
+  chartTextColor: t.text,
+  chartSubtleTextColor: t.muted,
+  chartAxisLineColor: t.control,
+  chartGridLineColor: t.border,
+  chartTooltipBackgroundColor: t.surface,
+  chartTooltipTextColor: t.text,
+  chartTooltipBorder: hairline(t.border),
+  chartPaletteFills1Color: t.data,
+  chartPaletteStrokes1Color: t.data,
+  chartPaletteFills2Color: t.comparison,
+  chartPaletteStrokes2Color: t.comparison,
+  chartPaletteFills3Color: t.text,
+  chartPaletteStrokes3Color: t.text,
+  chartPaletteFills4Color: t.muted,
+  chartPaletteStrokes4Color: t.muted,
 });

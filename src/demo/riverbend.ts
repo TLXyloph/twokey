@@ -11,7 +11,19 @@
  */
 
 export const CLUB_NAME = "Riverbend Youth Football League (demo data)";
+/** The club's name as the board's header shows it, beside its "Demo data" chip. */
+export const CLUB_SHORT_NAME = "Riverbend Youth Football League";
 export const DEMO_DATA_LABEL = "demo data";
+/** Where the club is, so every time on the board reads the same on the server and in the browser. */
+export const CLUB_TIME_ZONE = "America/Chicago";
+
+/** The officers who hold a key. Roles only: a payout needs two different officers to sign. */
+export type OfficerRole = "treasurer" | "president" | "secretary";
+export const OFFICERS: { role: OfficerRole; title: string }[] = [
+  { role: "treasurer", title: "Treasurer" },
+  { role: "president", title: "President" },
+  { role: "secretary", title: "Secretary" },
+];
 
 export type LedgerDirection = "in" | "out";
 /** `pending` payouts are waiting for a second approver and are not yet out of the account. */
@@ -47,6 +59,8 @@ export interface LedgerEntry {
   status: LedgerStatus;
   /** The fundraising event this row belongs to, if any. */
   eventId: string | null;
+  /** For a pending payout: the officer who requested it, and so signed first. */
+  requestedBy: OfficerRole | null;
 }
 
 export interface AccountBalance {
@@ -115,6 +129,7 @@ const ledger: LedgerEntry[] = [
     amount: 2549,
     status: "completed",
     eventId: null,
+    requestedBy: null,
   },
   {
     id: "L02",
@@ -126,6 +141,7 @@ const ledger: LedgerEntry[] = [
     amount: 1800,
     status: "completed",
     eventId: null,
+    requestedBy: null,
   },
   {
     id: "L03",
@@ -137,6 +153,7 @@ const ledger: LedgerEntry[] = [
     amount: -412.5,
     status: "completed",
     eventId: null,
+    requestedBy: null,
   },
   {
     id: "L04",
@@ -148,6 +165,7 @@ const ledger: LedgerEntry[] = [
     amount: 1280,
     status: "completed",
     eventId: "fun-run",
+    requestedBy: null,
   },
   {
     id: "L05",
@@ -159,6 +177,7 @@ const ledger: LedgerEntry[] = [
     amount: -350,
     status: "completed",
     eventId: null,
+    requestedBy: null,
   },
   {
     id: "L06",
@@ -170,6 +189,7 @@ const ledger: LedgerEntry[] = [
     amount: -286,
     status: "completed",
     eventId: "fun-run",
+    requestedBy: null,
   },
   {
     id: "L07",
@@ -181,6 +201,7 @@ const ledger: LedgerEntry[] = [
     amount: 1080,
     status: "completed",
     eventId: "spirit-wear",
+    requestedBy: null,
   },
   {
     id: "L08",
@@ -192,6 +213,7 @@ const ledger: LedgerEntry[] = [
     amount: -624,
     status: "completed",
     eventId: "spirit-wear",
+    requestedBy: null,
   },
   {
     id: "L09",
@@ -203,6 +225,7 @@ const ledger: LedgerEntry[] = [
     amount: -480,
     status: "completed",
     eventId: null,
+    requestedBy: null,
   },
   {
     id: "L10",
@@ -214,6 +237,7 @@ const ledger: LedgerEntry[] = [
     amount: 15,
     status: "completed",
     eventId: "car-wash",
+    requestedBy: null,
   },
   {
     id: "L11",
@@ -225,6 +249,7 @@ const ledger: LedgerEntry[] = [
     amount: -38.75,
     status: "completed",
     eventId: "car-wash",
+    requestedBy: null,
   },
   {
     id: "L12",
@@ -236,6 +261,7 @@ const ledger: LedgerEntry[] = [
     amount: -164,
     status: "completed",
     eventId: null,
+    requestedBy: null,
   },
   {
     id: "L13",
@@ -247,28 +273,31 @@ const ledger: LedgerEntry[] = [
     amount: 630,
     status: "completed",
     eventId: null,
+    requestedBy: null,
   },
   {
     id: "L14",
     date: "2026-11-02",
-    description: "Goalkeeper gloves (awaiting second approver)",
+    description: "Goalkeeper gloves",
     counterparty: "Riverbend Team Supply",
     category: "equipment",
     direction: "out",
     amount: -129,
     status: "pending",
     eventId: null,
+    requestedBy: "treasurer",
   },
   {
     id: "L15",
     date: "2026-11-03",
-    description: "Referee fees, November (awaiting second approver)",
+    description: "Referee fees, November",
     counterparty: "Referee pool (league-appointed)",
     category: "officials",
     direction: "out",
     amount: -360,
     status: "pending",
     eventId: null,
+    requestedBy: "secretary",
   },
 ];
 

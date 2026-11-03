@@ -9,7 +9,12 @@ import { vars } from "./style-vars";
 export function HowItWorks() {
   const shares = stageShares(STAGES.map((s) => s.seconds));
   return (
-    <section id="how" className="lp-how" aria-labelledby="how-title" style={vars({ "--first": (shares[0] ?? 15) / 100 })}>
+    <section
+      id="how"
+      className="lp-how"
+      aria-labelledby="how-title"
+      style={vars({ "--first": (shares[0] ?? 15) / 100, "--second": (shares[1] ?? 15) / 100 })}
+    >
       <h2 id="how-title" className="lp-head" data-reveal="rise">
         One payout, start to finish
       </h2>
