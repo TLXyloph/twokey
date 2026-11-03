@@ -4,6 +4,7 @@ import {
   boardFinding,
   formatAsOf,
   formatEventDate,
+  monthNameOf,
   moneyInThisMonth,
   secondKeyQueue,
   stillToSign,
@@ -107,6 +108,23 @@ describe("the balance's as-of time", () => {
 
   it("prints nothing for a missing time rather than 'Invalid Date'", () => {
     expect(formatAsOf("")).toBe("");
+  });
+});
+
+describe("the month a time falls in", () => {
+  it("names the balance's month, the one the strip's money-in cell is labelled with", () => {
+    const asOf = riverbend.balances[0]!.asOf;
+    expect(monthNameOf(asOf)).toBe("November");
+    expect(monthNameOf(new Date(asOf))).toBe(moneyInThisMonth().monthName);
+  });
+
+  it("reads the month in the club's time zone, not UTC (04:30 UTC on Nov 1 is Oct 31 in Chicago)", () => {
+    expect(monthNameOf("2026-11-01T04:30:00Z")).toBe("October");
+  });
+
+  it("is empty for a missing or unreadable time", () => {
+    expect(monthNameOf("")).toBe("");
+    expect(monthNameOf("not a date")).toBe("");
   });
 });
 

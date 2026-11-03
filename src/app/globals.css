@@ -17,14 +17,11 @@ body {
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-.app-main {
-  height: 100dvh;
-  min-height: 0;
-}
-
+/* Studio's loading state, inside the board (src/ui/studio/board.css) so it takes the board's tokens. */
 .studio-loading {
   display: grid;
   place-items: center;
   height: 100%;
-  color: #5b6676;
+  color: var(--muted, #5f5a57);
+  font-size: 14px;
 }

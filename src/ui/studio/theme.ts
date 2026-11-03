@@ -39,7 +39,8 @@ export const twoKeyStudioTheme = studioTheme.withParams({
   studioWrapperBackgroundColor: t.ground,
   studioWrapperBorder: false,
   studioWrapperBorderRadius: 0,
-  studioWrapperSpacing: 0,
+  // A 12px inset puts the panels' 12px-padded text on the header's 24px page margin, both sides.
+  studioWrapperSpacing: 12,
   studioCanvasBackgroundColor: t.ground,
   studioCanvasBorder: false,
   studioCanvasBorderRadius: 0,
@@ -67,7 +68,7 @@ export const twoKeyStudioTheme = studioTheme.withParams({
   studioAiPanelButtonHoverBackgroundColor: t.active,
   studioAiPanelRichTextAccentBackgroundColor: t.active,
 
-  // Widgets: white cards, 1px edge, 8px radius, no shadow at rest.
+  // Widgets: white cards, 1px edge, 8px radius, flat at rest.
   studioWidgetBackgroundColor: t.surface,
   studioWidgetBorder: hairline(t.border),
   studioWidgetBorderRadius: radius.card,
@@ -98,7 +99,7 @@ export const twoKeyStudioTheme = studioTheme.withParams({
   gridHeaderFontWeight: 400,
   gridHeaderFontSize: 12,
   gridHeaderHeight: 36,
-  gridRowHeight: 40,
+  gridRowHeight: 44,
   gridRowBorder: hairline(t.rule),
   gridHeaderRowBorder: hairline(t.border),
   gridColumnBorder: false,
@@ -110,6 +111,8 @@ export const twoKeyStudioTheme = studioTheme.withParams({
   // ink and greys for anything an editor adds after.
   chartFontFamily: textFont,
   chartFontSize: 12,
+  // Half Studio's default inset, so a chart in a half-width card keeps a usable plot.
+  chartChartPadding: 8,
   chartTextColor: t.text,
   chartSubtleTextColor: t.muted,
   chartAxisLineColor: t.control,
@@ -125,4 +128,16 @@ export const twoKeyStudioTheme = studioTheme.withParams({
   chartPaletteStrokes3Color: t.text,
   chartPaletteFills4Color: t.muted,
   chartPaletteStrokes4Color: t.muted,
+});
+
+/**
+ * Below 900px the board opens read-only with no panels (./board-viewport.ts), so the canvas may run
+ * narrower than Studio's 720px default, and with no inset its 16px padding is the phone's margin.
+ */
+export const twoKeyCompactStudioTheme = twoKeyStudioTheme.withParams({
+  studioMinWidth: 320,
+  studioCanvasMinWidth: 320,
+  studioWrapperSpacing: 0,
+  // Studio adds a 12px margin around each widget, so a 4px pad lands the cards on the header's 16px.
+  studioCanvasPadding: 4,
 });

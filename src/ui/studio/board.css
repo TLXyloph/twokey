@@ -1,0 +1,198 @@
+/*
+ * The board view (/demo): the header above AG Studio. Achromatic ledger (design-taste-frontend,
+ * app style, seed 1298923909). Tokens come from boardCssVars (./tokens.ts) on .board, the same values
+ * Studio's theme uses, so the header and the canvas share one ground, one ink and one maroon.
+ *
+ * Open plane: the header sits straight on the stone ground, no bar and no rule; Studio fills the rest
+ * of the viewport. Type: 14 scope / 24 title / 16 finding / 14 button, Geist; Bricolage on the
+ * wordmark only.
+ */
+
+.board {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  min-height: 0;
+  background: var(--ground);
+  color: var(--text);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+
+.board__studio {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.board-header {
+  display: grid;
+  gap: 14px;
+  padding: 18px 24px 20px;
+}
+
+/* Product, then scope: "TwoKey / Riverbend Youth Football League [Demo data]". */
+.board-header__scope {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.board-wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border-radius: var(--radius-chip);
+  color: var(--text);
+  font-family: var(--font-wordmark);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+}
+
+.board-wordmark__mark {
+  flex: none;
+  color: var(--data);
+}
+
+.board-header__sep {
+  color: var(--faint);
+}
+
+.board-header__club {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.board-chip {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: var(--radius-chip);
+  background: var(--active);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.board-header__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.board-header__titles {
+  min-width: 0;
+}
+
+.board-header__title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+  letter-spacing: -0.01em;
+}
+
+.board-header__finding {
+  margin: 2px 0 0;
+  font-size: 16px;
+  line-height: 24px;
+  text-wrap: pretty;
+}
+
+/* The one primary: near-black fill, white label, 6px radius, the 36px control height. */
+.board-button {
+  flex: none;
+  height: 36px;
+  padding: 0 16px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  background: var(--primary);
+  color: var(--surface);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  cursor: pointer;
+  transition-property: background-color, scale;
+  transition-duration: 150ms;
+  transition-timing-function: ease-out;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.board-button[aria-disabled="true"] {
+  cursor: progress;
+}
+
+@media (hover: hover) {
+  .board-button:not([aria-disabled="true"]):hover {
+    background: color-mix(in oklab, var(--primary) 84%, var(--surface));
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .board-button:not([aria-disabled="true"]):active {
+    scale: 0.96;
+  }
+}
+
+.board-button:focus-visible,
+.board-wordmark:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
+.board-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Phone: the header folds. Scope wraps under the wordmark, the action goes under the finding. */
+@media (max-width: 640px) {
+  .board-header {
+    gap: 12px;
+    padding: 14px 16px 16px;
+  }
+
+  .board-header__sep {
+    display: none;
+  }
+
+  .board-header__scope {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .board-header__title-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .board-header__title {
+    font-size: 22px;
+    line-height: 28px;
+  }
+
+  .board-header__finding {
+    font-size: 15px;
+    line-height: 22px;
+  }
+
+  .board-button {
+    height: 44px;
+  }
+}

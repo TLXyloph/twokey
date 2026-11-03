@@ -107,7 +107,7 @@ export function AskLedgerSection() {
               src="/landing/img/demo-dashboard.png"
               width={1417}
               height={797}
-              alt="The TwoKey demo in AG Studio: the Riverbend club's live balance, $4,998.75 as of November 3 from the PayPal sandbox, above its table of fundraising events."
+              alt="The TwoKey board in AG Studio. Under the title, the finding: car wash, October 24, $1,290.00 of $1,305.00 expected has no record. A strip shows the $4,998.75 balance from the PayPal sandbox, $489.00 in two payouts waiting for a second key, and $630.00 in for November. A chart compares received against expected takings for each event, beside the events table, above the queue of payouts waiting for a second officer's signature."
               loading="lazy"
               decoding="async"
             />

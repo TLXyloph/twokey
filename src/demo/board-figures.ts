@@ -27,6 +27,14 @@ export function formatAsOf(value: string | number | Date): string {
   return Number.isNaN(date.getTime()) ? "" : asOfFormat.format(date);
 }
 
+const monthNameFormat = new Intl.DateTimeFormat("en-US", { month: "long", timeZone: CLUB_TIME_ZONE });
+
+/** "November": the month a time falls in, in the club's time zone. Empty for a missing time. */
+export function monthNameOf(value: string | number | Date): string {
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? "" : monthNameFormat.format(date);
+}
+
 /** "October 24" for an ISO date (YYYY-MM-DD). */
 export function formatEventDate(isoDate: string): string {
   return new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", timeZone: "UTC" }).format(new Date(`${isoDate}T00:00:00Z`));

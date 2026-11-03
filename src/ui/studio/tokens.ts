@@ -2,7 +2,8 @@
  * The board's tokens: the achromatic-ledger style (design-taste-frontend, seed 1298923909) with the
  * TwoKey brand mapped onto its light roles. Club maroon is the one chart hue and goes on the main
  * data element only (received takings) and on a shortfall's figure; every other colour is neutral,
- * warmed slightly to sit on the stone ground.
+ * warmed slightly to sit on the stone ground. The ground is the sheet's low-chroma stone (about 12%
+ * saturation): the earlier #f5f2ef measured 23% and read as cream in the inspector.
  *
  * One source for both consumers: `boardCssVars` puts them on the board's root as CSS custom
  * properties for our own markup, and theme.ts hands the literal values to AG Studio (its menus and
@@ -11,13 +12,13 @@
 import type { CSSProperties } from "react";
 
 export const tokens = {
-  ground: "#f5f2ef", // warm stone: the face
+  ground: "#f4f3f1", // stone: the face
   surface: "#ffffff",
-  raised: "#f9f7f5",
-  active: "#ebe7e3",
-  border: "#e7e2dd",
-  rule: "#f1edea",
-  control: "#d3cdc7",
+  raised: "#f9f9f8",
+  active: "#eae8e5",
+  border: "#e5e2df",
+  rule: "#f0eeec",
+  control: "#d1cdc9",
   text: "#1b1416",
   muted: "#5f5a57",
   faint: "#6b6562",
@@ -29,7 +30,7 @@ export const tokens = {
 
 export const radius = { card: 8, control: 6, chip: 4 } as const;
 
-/** Geist Sans everywhere in the app, from next/font in src/app/layout.tsx. No Geist Mono. */
+/** Geist Sans everywhere in the app (figures included), from next/font in src/app/layout.tsx. */
 export const textFont = 'var(--font-text), "Helvetica Neue", Arial, sans-serif';
 /** Bricolage Grotesque, on the wordmark only. */
 export const displayFont = 'var(--font-display), "Helvetica Neue", Arial, sans-serif';

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { secondKeyQueue } from "@/demo/board-figures";
 import { CLUB_NAME, riverbend } from "@/demo/riverbend";
 import { buildStudioData } from "@/demo/studio-data";
 
@@ -83,8 +84,40 @@ describe("buildStudioData", () => {
     expect(studio.description).toMatch(/demo data/i);
   });
 
-  it("exposes events, ledger and balances as sources", () => {
-    expect(studio.sources.map((s) => s.id)).toEqual(["events", "ledger", "balances"]);
+  it("exposes events, ledger, balances and the second-key queue as sources", () => {
+    expect(studio.sources.map((s) => s.id)).toEqual(["events", "ledger", "balances", "waiting"]);
+  });
+
+  it("lists exactly the payouts waiting for a second key, as the header counts them", () => {
+    const queue = secondKeyQueue(riverbend);
+    expect(source("waiting").data).toEqual(queue.payouts);
+    const pending = riverbend.ledger.filter((r) => r.status === "pending").map((r) => r.id);
+    expect(source("waiting").data.map((row: { id: string }) => row.id)).toEqual(pending);
+  });
+
+  it("names the queue's columns as the board's grid heads them", () => {
+    const names = (source("waiting").fields ?? []).filter((f) => !f.hide).map((f) => f.name);
+    expect(names).toEqual(["Requested", "Payee", "Description", "Amount", "Signed by", "Still to sign"]);
+  });
+
+  it("names the events' columns in sentence case, with no table prefix", () => {
+    const names = Object.fromEntries((source("events").fields ?? []).map((f) => [f.id, f.name]));
+    expect(names).toMatchObject({ name: "Event", date: "Date", expected: "Expected", received: "Received", difference: "Difference" });
+  });
+
+  it("prints dates short ('Oct 24'), never as 10/24/2026", () => {
+    for (const s of studio.sources) {
+      if (!("data" in s)) continue;
+      for (const f of (s.fields ?? []).filter((f) => f.format === "dateFormat")) {
+        expect(f.formatOptions, `${s.id}.${f.id}`).toEqual({ format: "mmm d" });
+      }
+    }
+  });
+
+  it("relates each waiting payout to its ledger row", () => {
+    expect(studio.relationships).toContainEqual(
+      expect.objectContaining({ source: { tableId: "waiting", fieldId: "id" }, target: { tableId: "ledger", fieldId: "id" } }),
+    );
   });
 
   it("adds each event's difference (received - expected), negative when takings have no record", () => {

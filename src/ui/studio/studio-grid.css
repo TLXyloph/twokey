@@ -1,0 +1,17 @@
+/*
+ * Studio sizes grid columns to their content with AG Grid's `autoSizePadding` fixed at 0, and AG Grid
+ * measures that content with `offsetWidth`, which rounds. A column can then end a fraction of a pixel
+ * short of its text, and the cell prints an ellipsis: "Spirit-wear sale" (101.09px) got a 101px box.
+ *
+ * Rendered cells sit in a row's `.ag-grid-scrolling-cells`; the clones AG Grid measures do not, so
+ * this pixel goes to the visible cell only and the measurement is unchanged. The pixel comes off the
+ * side the text does not touch, so text cells keep their left edge and money cells stay flush with
+ * their right-aligned headers.
+ */
+.ag-studio-layout-widget .ag-grid-scrolling-cells > .ag-cell:not(.ag-right-aligned-cell) {
+  padding-right: calc(var(--ag-cell-horizontal-padding, 8px) - 2px);
+}
+
+.ag-studio-layout-widget .ag-grid-scrolling-cells > .ag-cell.ag-right-aligned-cell {
+  padding-left: calc(var(--ag-cell-horizontal-padding, 8px) - 2px);
+}

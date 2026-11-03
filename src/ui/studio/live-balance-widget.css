@@ -1,41 +1,97 @@
 /*
- * Live Balance widget. Colours, type and radius come only from Studio's theme variables, so the
- * widget follows whatever theme is set on <AgStudio>. Fallbacks apply outside a themed Studio.
+ * The balances strip (Live Balance widget). Equal cells in one card, split by 1px dividers; each
+ * cell is a grey label over the figure in ink over a grey caption. A zero figure turns grey.
+ * Colours come from ./tokens.ts through the --tk-strip-* properties the component sets; the font
+ * is Studio's (the theme's Geist). No title: the cells carry their own labels.
  */
-.tk-live-balance {
+.tk-strip {
   box-sizing: border-box;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  height: 100%;
+  margin: 0;
+  font-family: var(--ag-font-family, inherit);
+  color: var(--tk-strip-text);
+}
+
+.tk-strip__cell {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: flex-start;
-  gap: calc(var(--ag-spacing, 8px) * 0.75);
-  height: 100%;
-  padding: 0 calc(var(--ag-spacing, 8px) * 2);
-  font-family: var(--ag-font-family, inherit);
-  color: var(--ag-text-color, inherit);
+  gap: 4px;
+  min-width: 0;
+  padding: 0 24px;
 }
 
-.tk-live-balance__value {
+/* The first cell's text starts on the line Studio insets every widget title and grid column to. */
+.tk-strip__cell:first-child {
+  padding-left: var(--ag-spacing, 8px);
+}
+
+.tk-strip__cell + .tk-strip__cell {
+  border-left: 1px solid var(--tk-strip-border);
+}
+
+.tk-strip__label,
+.tk-strip__value,
+.tk-strip__caption {
   margin: 0;
-  font-size: calc(var(--ag-font-size, 14px) * 2.6);
+  overflow: hidden;
+}
+
+.tk-strip__label,
+.tk-strip__value {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* A caption may take a second line (a 744px strip on a tablet), never a third. */
+.tk-strip__caption {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.tk-strip__label {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--tk-strip-muted);
+}
+
+.tk-strip__value {
+  font-size: 26px;
+  line-height: 32px;
   font-weight: 600;
-  line-height: 1.1;
   letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums;
 }
 
-.tk-live-balance__caption {
-  margin: 0;
-  font-size: calc(var(--ag-font-size, 14px) * 0.93);
-  color: var(--ag-subtle-text-color, inherit);
+.tk-strip__cell[data-zero] .tk-strip__value {
+  color: var(--tk-strip-muted);
 }
 
-.tk-live-balance__badge {
-  padding: 1px calc(var(--ag-spacing, 8px) * 0.75);
-  border: var(--ag-border-width, 1px) solid var(--ag-border-color, currentColor);
-  border-radius: var(--ag-border-radius, 4px);
-  font-size: calc(var(--ag-font-size, 14px) * 0.78);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--ag-subtle-text-color, inherit);
+.tk-strip__caption {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--tk-strip-muted);
+}
+
+/* Phone (./board-viewport.ts gives the strip 16 rows there): the three cells stack, split by rules. */
+@media (max-width: 639px) {
+  .tk-strip {
+    grid-auto-flow: row;
+    grid-auto-rows: minmax(0, 1fr);
+  }
+
+  .tk-strip__cell,
+  .tk-strip__cell:first-child {
+    padding: 12px var(--ag-spacing, 8px);
+  }
+
+  .tk-strip__cell + .tk-strip__cell {
+    border-left: 0;
+    border-top: 1px solid var(--tk-strip-border);
+  }
 }
