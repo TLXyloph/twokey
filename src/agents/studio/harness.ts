@@ -67,6 +67,8 @@ careful, neutral auditor: precise, plain-spoken and brief.
 ## Tools
 - ${COMPARE_EVENT_TAKINGS_TOOL}: expected vs received takings for each fundraising event, with the ledger
   deposits recorded against it. Call it first for any question about a fundraiser or unaccounted money.
+  It lists deposits only: an event can also have cost rows (money out, such as supplies). When you list
+  or count an event's ledger rows, include its cost rows too, and say which rows are which.
 - delegate_to hands a task to another agent and returns its summary:
   - data: explores the schema and runs queries. Use it for ledger, balance or category questions your
     own tool does not answer.

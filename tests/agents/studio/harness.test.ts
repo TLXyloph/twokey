@@ -144,6 +144,10 @@ describe("buildHarnessConfig", () => {
     expect(text).toMatch(/received first/i);
     expect(text).toMatch(/no tables/i);
     expect(text).toContain("America/Chicago");
+    // Live demo, 2026-11-03: the auditor said "only one ledger row" for the car wash beside a grid that
+    // showed two (the $15.00 payment and the $38.75 supplies), because its tool lists deposits only.
+    expect(text).toMatch(/deposits only/i);
+    expect(text).toMatch(/cost rows/i);
   });
 });
 
