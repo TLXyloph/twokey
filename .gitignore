@@ -1,0 +1,32 @@
+# Secrets
+.env
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
+
+# Build output and dependencies
+node_modules/
+.next/
+.open-next/
+.wrangler/
+__pycache__/
+
+# Next.js / TypeScript generated
+next-env.d.ts
+*.tsbuildinfo
+
+# Local Claude Code settings
+.claude/settings.local.json
+
+# Internal planning docs: stay local, out of git history.
+# They mention personal/employer details and real people from news reports.
+# Publish a cleaned-up set (names replaced by roles) before the repo goes public.
+docs/HANDOFF.md
+docs/twokey-concept.md
+docs/council/
+docs/research/*
+!docs/research/spike-poll-*.log
+
+# OS
+.DS_Store

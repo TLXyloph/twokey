@@ -1,0 +1,30 @@
+/* Minimal reset; AG Studio fills the page and themes itself (src/ui/studio/theme.ts). */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: #f4f6f9;
+  color: #1e293b;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.app-main {
+  height: 100dvh;
+  min-height: 0;
+}
+
+.studio-loading {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: #5b6676;
+}

@@ -1,0 +1,41 @@
+/*
+ * Live Balance widget. Colours, type and radius come only from Studio's theme variables, so the
+ * widget follows whatever theme is set on <AgStudio>. Fallbacks apply outside a themed Studio.
+ */
+.tk-live-balance {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: calc(var(--ag-spacing, 8px) * 0.75);
+  height: 100%;
+  padding: 0 calc(var(--ag-spacing, 8px) * 2);
+  font-family: var(--ag-font-family, inherit);
+  color: var(--ag-text-color, inherit);
+}
+
+.tk-live-balance__value {
+  margin: 0;
+  font-size: calc(var(--ag-font-size, 14px) * 2.6);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+.tk-live-balance__caption {
+  margin: 0;
+  font-size: calc(var(--ag-font-size, 14px) * 0.93);
+  color: var(--ag-subtle-text-color, inherit);
+}
+
+.tk-live-balance__badge {
+  padding: 1px calc(var(--ag-spacing, 8px) * 0.75);
+  border: var(--ag-border-width, 1px) solid var(--ag-border-color, currentColor);
+  border-radius: var(--ag-border-radius, 4px);
+  font-size: calc(var(--ag-font-size, 14px) * 0.78);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ag-subtle-text-color, inherit);
+}

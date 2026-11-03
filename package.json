@@ -1,0 +1,35 @@
+{
+  "name": "twokey",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TwoKey: two-key payouts and an AI-watched ledger for volunteer clubs on PayPal (PayPal AI Hackathon entry).",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "vitest run --config config/vitest.config.mts",
+    "test:watch": "vitest --config config/vitest.config.mts",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "1.4.0",
+    "ag-studio": "3.0.0",
+    "ag-studio-react": "3.0.0",
+    "next": "16.4.3",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "typescript": "5.9.3",
+    "vitest": "5.1.0"
+  }
+}
