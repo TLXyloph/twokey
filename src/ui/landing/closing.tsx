@@ -4,7 +4,7 @@ import { vars } from "./style-vars";
 /** The idea again, inverted: the gold field with burgundy words, one sentence and one button. */
 export function Cta() {
   return (
-    <section className="lp-cta" aria-labelledby="cta-title">
+    <section className="lp-cta lp-screen" aria-labelledby="cta-title">
       <h2 id="cta-title" className="lp-cta__title">
         {CTA.title.map((line, i) => (
           <span key={line} className="lp-cta__mask" data-reveal="mask" style={vars({ "--i": i })}>

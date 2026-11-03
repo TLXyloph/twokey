@@ -31,7 +31,10 @@ export function Motion() {
           io.unobserve(el);
         });
       },
-      { rootMargin: "0px 0px -5% 0px" },
+      // The root reaches 5% past the screen's foot: on desktop a whole screen snaps into view at
+      // once, and a closing row 40px above the bottom (held 24px lower until it enters) must still
+      // count as on screen, or it would wait for a scroll the snap never gives.
+      { rootMargin: "0px 0px 5% 0px" },
     );
     for (const el of parts) if (!("visible" in el.dataset)) io.observe(el);
     return () => io.disconnect();

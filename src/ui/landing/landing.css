@@ -24,8 +24,9 @@
   --display: var(--font-display), "Helvetica Neue", Arial, sans-serif;
   --text: var(--font-text), "Helvetica Neue", Arial, sans-serif;
 
-  /* Five steps outside the fragments, plus the statement size and the fitted display lines. */
-  --step-small: clamp(0.8125rem, 0.79rem + 0.1vw, 0.875rem);
+  /* Five steps outside the fragments, plus the statement size and the fitted display lines. The small
+     step tops out at 15px: captions, navigation, the footer and the rulebook table share it. */
+  --step-small: clamp(0.8125rem, 0.75rem + 0.35vw, 0.9375rem);
   --step-body: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
   --step-lead: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem);
   --step-statement: clamp(1.5rem, 1rem + 1.8vw, 2.25rem);
@@ -33,13 +34,41 @@
   --step-display: 9.7vw;
   --step-foot: 6.8vw;
 
-  --margin: clamp(1rem, 2.2vw, 2rem);
-  --gutter: clamp(0.75rem, 1.4vw, 1.5rem);
+  /* ---- The grid: one frame for every screen ----
+     Twelve columns between two equal margins, 32px on desktop and tablet and 20px on a phone, with
+     24px gutters:
+       column width  = (viewport − 2 × margin − 11 × gutter) / 12
+       column n starts at margin + (n − 1) × (column width + gutter)
+     At 1440: column = (1440 − 64 − 264) / 12 = 92.67px, pitch 116.67px, so column 5 starts at
+     32 + 4 × 116.67 = 498.67px, column 7 at 32 + 6 × 116.67 = 732px, and column 12 ends at 1408px,
+     the right margin. Large display type sits on the margins by its glyph edge, not its box (the
+     measured side bearings are with each fitted line). */
+  --margin: 2rem;
+  --gutter: 1.5rem;
+  --columns: repeat(12, minmax(0, 1fr));
+  /* Below the snap breakpoint, sections sit apart in the normal flow. */
   --section: clamp(5rem, 2.5rem + 8vw, 10rem);
+
+  /* ---- Screens: the vertical rhythm every desktop screen shares (see "Screens" below) ----
+     --screen-top: the cap line of a screen's heading sits this far below the screen's top: 96px on a
+       900px-tall window, scaled down on shorter ones (10.667svh × 900 = 96).
+     --head-gap: from that heading's baseline to the screen's content: 64px at 900 (7.111svh).
+     --screen-foot: a closing row (an action, a caption, a source) has its last baseline this far
+       above the screen's bottom. */
+  --screen-top: clamp(4rem, 10.667svh, 6rem);
+  --head-gap: clamp(2.5rem, 7.111svh, 4rem);
+  --screen-foot: 2.5rem;
+  --nav-h: 5.5rem;
 
   color-scheme: dark;
   height: auto;
   background: var(--bg);
+}
+
+@media (max-width: 599px) {
+  :root:has(.lp) {
+    --margin: 1.25rem;
+  }
 }
 
 :root:has(.lp) body {
@@ -64,7 +93,8 @@
   outline-offset: 4px;
 }
 
-.lp p {
+/* Zero specificity, so a paragraph's own class can set its margins. */
+:where(.lp) p {
   margin: 0;
   text-wrap: pretty;
 }
@@ -88,13 +118,24 @@
 }
 
 /* ---- Grid: one pair of margins, twelve columns, one gutter ---- */
-.lp-grid,
 .lp-nav,
 .lp-hero__foot,
 .lp-proof__foot {
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-columns: var(--columns);
   column-gap: var(--gutter);
+}
+
+/* Type that must meet a line exactly is trimmed to its cap height and baseline, so a box edge is a
+   letter edge: a heading's top is its cap line, a closing row's bottom is its last baseline. */
+.lp-head,
+.lp-hero__title,
+.lp-hero__lead,
+.lp-proof__statement,
+.lp-proof__caption,
+.lp-cta__title,
+.lp-cta__sentence {
+  text-box: trim-both cap alphabetic;
 }
 
 /* ---- Links and buttons: one button shape (square, flat), decided once ---- */
@@ -152,13 +193,65 @@
   color: var(--ink);
 }
 
-/* ---- Section headings: one size for every section ---- */
+/* ---- Section headings: one size for every section, the glyph edge on the margin ---- */
 .lp-head {
-  margin: 0;
+  margin: 0 0 0 calc(-1 * var(--lsb, 0em));
   font-family: var(--display);
   font-size: var(--step-head);
   font-weight: 600;
   line-height: 0.96;
   letter-spacing: -0.035em;
   text-wrap: balance;
+}
+
+/* ---- Screens ----
+   Below the snap breakpoint (and on short windows) sections take their natural height and sit
+   --section apart. From 900px wide and 640px tall, each section is one composed screen and one snap
+   point: the navigation and the first block share the first screen; the footer is the last point. */
+.lp-screen {
+  padding: var(--section) var(--margin) 0;
+}
+
+@media (min-width: 900px) and (min-height: 640px) {
+  :root:has(.lp) {
+    /* Native snap only: the browser's own momentum settles on the nearest screen, and a fast flick
+       can still pass several (scroll-snap-stop: normal). */
+    scroll-snap-type: y mandatory;
+  }
+
+  .lp-banner,
+  .lp-screen,
+  .lp-foot {
+    scroll-snap-align: start;
+    scroll-snap-stop: normal;
+  }
+
+  .lp-screen {
+    min-height: 100svh;
+    padding: var(--screen-top) var(--margin) var(--screen-foot);
+  }
+
+  .lp-first {
+    min-height: calc(100svh - var(--nav-h));
+  }
+}
+
+/* Anchor links glide only for visitors who have not asked for less motion; under reduced motion the
+   snap relaxes to proximity, so nothing pulls the page after a scroll. */
+@media (prefers-reduced-motion: no-preference) {
+  :root:has(.lp) {
+    scroll-behavior: smooth;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:has(.lp) {
+    scroll-behavior: auto;
+  }
+}
+
+@media (min-width: 900px) and (min-height: 640px) and (prefers-reduced-motion: reduce) {
+  :root:has(.lp) {
+    scroll-snap-type: y proximity;
+  }
 }

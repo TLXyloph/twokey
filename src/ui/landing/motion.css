@@ -196,7 +196,7 @@
   }
 
   .reveal-ready .lp [data-reveal="mask"]:not([data-visible]) > .lp-cta__line {
-    transform: translateY(105%);
+    transform: translateY(135%);
   }
 
   /* The bar fills stage by stage, left to right, then each clause rises under its stage. */
@@ -227,7 +227,7 @@
     transform: translateY(16px);
   }
 
-  @media (max-width: 1099px) {
+  @media (max-width: 899px) {
     .reveal-ready .lp-bar .lp-bar__time,
     .reveal-ready .lp-bar:not([data-visible]) .lp-bar__time {
       transition: none;
@@ -258,8 +258,17 @@
 
   /* One moving picture: the football game drifts a few percent as it passes. */
   @supports (animation-timeline: view()) {
+    /* The picture is 8% taller than its frame, not wider, so it drifts up and down inside the frame and
+       never reaches past the frame's column edges. */
+    .lp-rules__frame {
+      position: relative;
+    }
+
     .lp-rules__frame img {
-      scale: 1.08;
+      position: absolute;
+      inset: -4% 0;
+      width: 100%;
+      height: 108%;
       animation: lp-drift linear both;
       animation-timeline: view();
       animation-range: cover 0% cover 100%;
