@@ -1,0 +1,183 @@
+/* TwoKey landing page: the proof sentence and the proportional bar. Tokens live in landing.css. */
+
+/* ---- Proof: the places, as one sentence; one lit at a time ---- */
+.lp-proof {
+  padding: var(--section) var(--margin) 0;
+}
+
+.lp-proof__statement {
+  color: var(--muted);
+  font-family: var(--display);
+  font-size: var(--step-statement);
+  font-weight: 600;
+  line-height: 1.14;
+  letter-spacing: -0.02em;
+}
+
+.lp-proof__open {
+  color: var(--ink);
+}
+
+/* A name keeps its comma: a line never starts with punctuation. */
+.lp-proof__item {
+  white-space: nowrap;
+}
+
+.lp-proof__name {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+}
+
+.lp-proof__name[aria-pressed="true"] {
+  color: var(--ink);
+}
+
+.lp-proof__foot {
+  align-items: start;
+  margin-top: 2rem;
+}
+
+.lp-proof__captions {
+  display: grid;
+  grid-column: 1 / 8;
+}
+
+.lp-proof__caption {
+  grid-area: 1 / 1;
+  max-width: 62ch;
+  visibility: hidden;
+}
+
+.lp-proof__caption[data-lit] {
+  visibility: visible;
+}
+
+:root:not(.js) .lp-proof__caption {
+  grid-area: auto;
+  margin-bottom: 0.75em;
+  visibility: visible;
+}
+
+.lp-proof__pause {
+  grid-column: 11 / 13;
+  justify-self: end;
+  min-height: 2.75rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--step-small);
+  cursor: pointer;
+}
+
+:root:not(.js) .lp-proof__pause {
+  display: none;
+}
+
+@media (max-width: 599px) {
+  .lp-proof__statement {
+    font-size: 1.25rem;
+  }
+
+  .lp-proof__foot {
+    grid-template-columns: 1fr;
+    row-gap: 0.5rem;
+  }
+
+  .lp-proof__captions,
+  .lp-proof__pause {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+
+/* ---- How it works: the progress bar, enlarged to the page ---- */
+.lp-how {
+  padding: var(--section) var(--margin) 0;
+}
+
+.lp-how .lp-head {
+  margin-bottom: 4rem;
+}
+
+.lp-bar {
+  display: grid;
+  grid-template-columns: var(--cols);
+  grid-template-rows: max(22vh, 10.5rem) auto;
+  column-gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lp-bar__stage {
+  display: grid;
+  grid-row: span 2;
+  grid-template-rows: subgrid;
+}
+
+.lp-bar__stage[data-stage="0"] { --seg: var(--field); --seg-ink: var(--ink); }
+.lp-bar__stage[data-stage="1"] { --seg: var(--ink); --seg-ink: var(--bg); }
+.lp-bar__stage[data-stage="2"] { --seg: var(--muted); --seg-ink: var(--bg); }
+.lp-bar__stage[data-stage="3"] { --seg: var(--surface); --seg-ink: var(--ink); }
+
+.lp-bar__time {
+  padding: 1.25rem;
+  background: var(--seg);
+  color: var(--seg-ink);
+  font-family: var(--display);
+  font-size: clamp(1.25rem, 2vw, 1.875rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.lp-bar__clause {
+  max-width: 22ch;
+  margin-top: 1.5rem;
+  padding-right: 0.5rem;
+}
+
+.lp-how .ui-card {
+  margin: 3rem 0 0 calc(var(--first) * (100% - 18px) + 6px);
+}
+
+@media (max-width: 1099px) {
+  .lp-bar {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+    row-gap: 6px;
+  }
+
+  .lp-bar__stage {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    grid-row: auto;
+    min-height: max(4.5rem, calc(var(--share) * 70svh));
+    padding: 1rem 1.25rem 1.25rem;
+    background: var(--seg);
+    color: var(--seg-ink);
+  }
+
+  .lp-bar__time {
+    padding: 0;
+    background: none;
+    font-size: 1.375rem;
+  }
+
+  .lp-bar__clause {
+    max-width: 44ch;
+    margin: 0;
+    font-size: 1rem;
+  }
+
+  .lp-how .ui-card {
+    margin: 2rem 0 0;
+  }
+}

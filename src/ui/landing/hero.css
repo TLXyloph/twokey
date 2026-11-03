@@ -1,0 +1,240 @@
+/* TwoKey landing page: navigation and the hero sentence. Tokens live in landing.css. */
+
+/* ---- Navigation: small furniture on the page ground ---- */
+.lp-nav {
+  align-items: center;
+  min-height: 5.5rem;
+  padding-inline: var(--margin);
+  font-size: var(--step-small);
+}
+
+.lp-wordmark {
+  grid-column: 1 / span 3;
+  justify-self: start;
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: var(--step-body);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+}
+
+.lp-nav__links {
+  grid-column: 7 / 11;
+  display: flex;
+  justify-content: space-between;
+  gap: var(--gutter);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lp-nav__links a {
+  display: inline-block;
+  padding-block: 0.75rem;
+}
+
+.lp-nav__action {
+  grid-column: 11 / 13;
+  justify-self: end;
+}
+
+.lp-menu {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  .lp-nav__links,
+  .lp-nav__action {
+    display: none;
+  }
+
+  .lp-menu {
+    display: block;
+    grid-column: 10 / 13;
+    justify-self: end;
+  }
+
+  .lp-menu__toggle {
+    position: relative;
+    z-index: 11;
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding-inline: 0.25rem;
+    list-style: none;
+    font-size: var(--step-body);
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .lp-menu:not([open]) .lp-menu__sheet {
+    display: none;
+  }
+
+  /* The wordmark stays above the open sheet, so the visitor still sees where they are. */
+  .lp-wordmark {
+    position: relative;
+    z-index: 11;
+  }
+
+  .lp-menu__toggle::-webkit-details-marker {
+    display: none;
+  }
+
+  .lp-menu__close,
+  .lp-menu[open] .lp-menu__open {
+    display: none;
+  }
+
+  .lp-menu[open] .lp-menu__close {
+    display: inline;
+  }
+
+  .lp-menu__sheet {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 2.5rem;
+    padding: 6rem var(--margin) 2.5rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: var(--bg);
+  }
+
+  .lp-menu__sheet ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-family: var(--display);
+    font-size: var(--step-head);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+  }
+
+  .lp-menu__sheet ul a {
+    display: block;
+    padding-block: 0.2rem;
+    color: var(--ink);
+    text-decoration: none;
+  }
+}
+
+/* ---- Hero: the sentence, with two keys where the words would be ---- */
+/* Sized to its content: the sentence sits a fifth of the way down and the evidence follows at the
+   normal section gap, so the first screen holds no empty band. */
+.lp-hero__body {
+  padding: clamp(3rem, 19vh, 12rem) var(--margin) 0;
+}
+
+.lp-hero__title {
+  margin: 0 0 0 -0.045em;
+  font-family: var(--display);
+  font-size: var(--step-display);
+  font-weight: 600;
+  line-height: 0.92;
+  letter-spacing: -0.04em;
+  white-space: nowrap;
+}
+
+.lp-hero__mask,
+.lp-hero__words {
+  display: inline;
+}
+
+/* The frame is set like a glyph: its top on the cap height, its foot on the descender line, square
+   corners. Bricolage's cap height is 0.66em and its descender 0.155em (measured in the browser). */
+.lp-keys {
+  display: inline-block;
+  height: 0.815em;
+  aspect-ratio: 3 / 2;
+  margin-left: 0.02em;
+  vertical-align: -0.155em;
+  overflow: clip;
+  background: var(--keys-ground);
+}
+
+.lp-keys img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* The duotone is this picture's treatment; darkening it would pull its gold off the headline's. */
+  filter: none;
+}
+
+.lp-hero__foot {
+  align-items: end;
+  margin-top: 2.5rem;
+}
+
+.lp-hero__lead {
+  grid-column: 1 / 7;
+  max-width: 40ch;
+  font-size: var(--step-lead);
+  line-height: 1.35;
+}
+
+.lp-hero__action {
+  grid-column: 9 / 13;
+  justify-self: end;
+}
+
+@media (max-width: 1099px) {
+  .lp-hero__lead {
+    grid-column: 1 / 9;
+  }
+}
+
+/* Tablet: two lines, "Club money" over "takes [keys]", so the picture keeps its size. */
+@media (min-width: 600px) and (max-width: 1099px) {
+  .lp-hero__title {
+    font-size: 15vw;
+    white-space: normal;
+  }
+
+  .lp-hero__mask:first-child {
+    display: block;
+  }
+}
+
+@media (max-width: 599px) {
+  :root:has(.lp) {
+    --step-display: 17vw;
+  }
+
+  .lp-hero__body {
+    padding-block: 1.5rem 0;
+  }
+
+  .lp-hero__title {
+    line-height: 0.9;
+    white-space: normal;
+  }
+
+  .lp-hero__mask {
+    display: block;
+  }
+
+  .lp-keys {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0.16em 0 0 0.045em;
+  }
+
+  .lp-hero__foot {
+    grid-template-columns: 1fr;
+    row-gap: 1.75rem;
+    margin-top: 1.75rem;
+  }
+
+  .lp-hero__lead,
+  .lp-hero__action {
+    grid-column: 1 / -1;
+    justify-self: stretch;
+  }
+}

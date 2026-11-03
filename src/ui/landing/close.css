@@ -1,0 +1,275 @@
+/* TwoKey landing page: the questions, the inverted close and the footer. Tokens live in landing.css. */
+
+/* ---- Questions: a wide heading, the questions indented under it ---- */
+.lp-faq {
+  padding: var(--section) var(--margin) 0;
+}
+
+.lp-faq__list {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+  margin-top: 5rem;
+}
+
+.lp-faq__item {
+  grid-column: 5 / 13;
+  margin-inline: -1.5rem;
+  padding: 1.125rem 1.5rem;
+}
+
+.lp-faq__item[open] {
+  background: var(--surface);
+}
+
+.lp-faq__q {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1.5rem;
+  min-height: 2.75rem;
+  list-style: none;
+  font-size: var(--step-lead);
+  line-height: 1.3;
+  cursor: pointer;
+}
+
+.lp-faq__q::-webkit-details-marker {
+  display: none;
+}
+
+.lp-faq__chev {
+  flex: none;
+  width: 0.55em;
+  height: 0.55em;
+  margin-right: 0.2em;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: translateY(-0.2em) rotate(45deg);
+}
+
+.lp-faq__item[open] .lp-faq__chev {
+  transform: translateY(0.1em) rotate(-135deg);
+}
+
+.lp-faq__a p {
+  max-width: 48ch;
+  padding: 0.75rem 0 0.5rem;
+}
+
+@media (max-width: 899px) {
+  .lp-faq__list {
+    grid-template-columns: 1fr;
+    margin-top: 2.5rem;
+  }
+
+  .lp-faq__item {
+    grid-column: 1;
+    margin-inline: calc(-1 * var(--margin));
+    padding: 0.875rem var(--margin);
+  }
+
+  .lp-faq__q {
+    font-size: var(--step-lead);
+  }
+}
+
+/* ---- The close: the page's colours inverted ---- */
+.lp-cta {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 4rem;
+  min-height: 90svh;
+  margin-top: var(--section);
+  padding: clamp(4rem, 12vh, 8rem) var(--margin) 2.5rem;
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.lp-cta :focus-visible {
+  outline-color: var(--bg);
+}
+
+.lp-cta ::selection {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.lp-cta__title {
+  margin: 0 0 0 -0.045em;
+  font-family: var(--display);
+  font-size: var(--step-display);
+  font-weight: 600;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+}
+
+.lp-cta__mask {
+  display: block;
+  overflow: clip;
+  padding-bottom: 0.1em;
+  margin-bottom: -0.1em;
+}
+
+.lp-cta__line {
+  display: block;
+}
+
+.lp-cta__foot {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+  align-items: end;
+}
+
+.lp-cta__sentence {
+  grid-column: 1 / 6;
+  font-size: var(--step-lead);
+  line-height: 1.35;
+}
+
+.lp-cta__action {
+  grid-column: 10 / 13;
+  justify-self: end;
+}
+
+@media (max-width: 1099px) {
+  .lp-cta__title {
+    font-size: 14vw;
+  }
+
+  .lp-cta__sentence {
+    grid-column: 1 / 8;
+  }
+}
+
+@media (max-width: 599px) {
+  :root:has(.lp) .lp-cta {
+    min-height: 80svh;
+  }
+
+  .lp-cta__title {
+    font-size: 13.5vw;
+  }
+
+  .lp-cta__foot {
+    grid-template-columns: 1fr;
+    row-gap: 2rem;
+  }
+
+  .lp-cta__sentence,
+  .lp-cta__action,
+  .lp-cta__action .lp-button {
+    grid-column: 1;
+    justify-self: stretch;
+    width: 100%;
+  }
+
+  .lp-cta__sentence {
+    font-size: 1.0625rem;
+  }
+}
+
+/* ---- Footer: the repository address is the headline ---- */
+.lp-foot {
+  display: flex;
+  flex-direction: column;
+  min-height: 70svh;
+  padding: 2.5rem var(--margin) 2rem;
+  background: var(--field);
+  color: var(--ink);
+  font-size: var(--step-small);
+}
+
+.lp-foot__top,
+.lp-foot__meta {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+  align-items: start;
+}
+
+.lp-foot ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lp-foot__mark {
+  grid-column: 1 / 3;
+  font-family: var(--display);
+  font-size: var(--step-body);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.lp-foot__notes {
+  grid-column: 3 / 9;
+}
+
+.lp-foot__top-link {
+  grid-column: 11 / 13;
+  justify-self: end;
+}
+
+.lp-foot__line {
+  margin: auto 0 0 -0.04em;
+  padding-top: 4rem;
+  font-family: var(--display);
+  font-size: var(--step-foot);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  white-space: nowrap;
+}
+
+.lp-foot__line a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.lp-foot__meta {
+  margin-top: 2rem;
+}
+
+.lp-foot__links {
+  grid-column: 1 / 3;
+  display: flex;
+  gap: 1.5rem;
+}
+
+.lp-foot__credits {
+  grid-column: 4 / 10;
+  max-width: 80ch;
+}
+
+.lp-foot__year {
+  grid-column: 12;
+  justify-self: end;
+}
+
+@media (max-width: 899px) {
+  .lp-foot__top,
+  .lp-foot__meta {
+    grid-template-columns: 1fr;
+    row-gap: 1rem;
+  }
+
+  .lp-foot__top > *,
+  .lp-foot__meta > * {
+    grid-column: 1;
+    justify-self: start;
+  }
+}
+
+@media (max-width: 599px) {
+  .lp-foot__line {
+    font-size: 12vw;
+    white-space: normal;
+  }
+
+  .lp-foot__line span {
+    display: block;
+  }
+}

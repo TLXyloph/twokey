@@ -1,17 +1,15 @@
-import { connection } from "next/server";
-import { StudioLoader } from "@/ui/studio/studio-loader";
+import type { Metadata, Viewport } from "next";
+import { SUPPORTING } from "@/ui/landing/content";
+import { LandingPage } from "@/ui/landing/landing-page";
 
-/**
- * The dashboard. A server component, so it can read the AG Studio licence key from the server's
- * environment. The key is a client-side licence by design (Studio validates it in the browser), so
- * handing it to the client is expected; it is never logged and never a NEXT_PUBLIC_ variable.
- */
-export default async function Home() {
-  // Render per request, so the key is read at runtime rather than baked in at build time.
-  await connection();
-  return (
-    <main className="app-main">
-      <StudioLoader licenseKey={process.env.AG_STUDIO_LICENSE_KEY} />
-    </main>
-  );
+export const metadata: Metadata = {
+  title: "TwoKey: club money takes two keys",
+  description: SUPPORTING,
+};
+
+export const viewport: Viewport = { themeColor: "#3d0012" };
+
+/** The landing page. Static: it makes no AI calls and reads no secrets; the demo lives at /demo. */
+export default function Home() {
+  return <LandingPage />;
 }

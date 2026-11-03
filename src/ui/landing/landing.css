@@ -1,0 +1,164 @@
+/*
+ * TwoKey landing page. Direction "The sentence is the layout" (seed 966173891).
+ * Every colour and size below is a token; sections and fragments reference tokens only.
+ * Scoped to pages that render .lp, so the /demo route keeps its own globals.
+ */
+
+:root:has(.lp) {
+  /* Palette: burgundy ground, every word in varsity gold, the accent is the ink, used on the action. */
+  --bg: #3d0012;
+  --surface: #4d0519;
+  --ink: #f5cf6b;
+  --muted: #c79b4a;
+  --accent: #f5cf6b;
+  --accent-ink: #3d0012;
+  --field: #7d0a26;
+  /* The keys photograph is a duotone (key metal → --ink gold, background → --surface), made with
+     from a 3:2 crop of skeletonkey.png with ImageMagick:
+     `-colorspace Gray -level 6%,52% ( -size 1x256 gradient:'#f5cf6b-#4d0519' ) -clut`,
+     so the keys read as one more gold glyph of the headline. The frame matches its background. */
+  --keys-ground: #4d0519;
+  /* One treatment for every picture on this dark page: darkened, so none outshines the words. */
+  --picture-treatment: brightness(0.88) contrast(1.05);
+
+  --display: var(--font-display), "Helvetica Neue", Arial, sans-serif;
+  --text: var(--font-text), "Helvetica Neue", Arial, sans-serif;
+
+  /* Five steps outside the fragments, plus the statement size and the fitted display lines. */
+  --step-small: clamp(0.8125rem, 0.79rem + 0.1vw, 0.875rem);
+  --step-body: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+  --step-lead: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem);
+  --step-statement: clamp(1.5rem, 1rem + 1.8vw, 2.25rem);
+  --step-head: clamp(2.5rem, 0.6rem + 5vw, 5.5rem);
+  --step-display: 9.7vw;
+  --step-foot: 6.8vw;
+
+  --margin: clamp(1rem, 2.2vw, 2rem);
+  --gutter: clamp(0.75rem, 1.4vw, 1.5rem);
+  --section: clamp(5rem, 2.5rem + 8vw, 10rem);
+
+  color-scheme: dark;
+  height: auto;
+  background: var(--bg);
+}
+
+:root:has(.lp) body {
+  height: auto;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--text);
+  font-size: var(--step-body);
+  line-height: 1.5;
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+.lp ::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.lp :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+.lp p {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+.lp img {
+  display: block;
+  max-width: 100%;
+  filter: var(--picture-treatment);
+}
+
+.lp-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  font-size: 1px;
+}
+
+/* ---- Grid: one pair of margins, twelve columns, one gutter ---- */
+.lp-grid,
+.lp-nav,
+.lp-hero__foot,
+.lp-proof__foot {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+}
+
+/* ---- Links and buttons: one button shape (square, flat), decided once ---- */
+.lp-link {
+  color: inherit;
+  text-decoration-line: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 0.07em;
+  text-underline-offset: 0.22em;
+}
+
+.lp-link--under {
+  text-decoration-color: currentColor;
+}
+
+.lp-button,
+.lp-example,
+.lp-proof__name,
+.lp-proof__pause,
+.lp-faq__q,
+.lp-menu__toggle {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.lp-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3.5rem;
+  padding: 0 1.75rem;
+  border: 0;
+  border-radius: 0;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--text);
+  font-size: var(--step-body);
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.lp-button--quiet {
+  min-height: 2.75rem;
+  padding: 0 1.125rem;
+  border: 2px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  font-size: var(--step-small);
+}
+
+.lp-button--inverse {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+/* ---- Section headings: one size for every section ---- */
+.lp-head {
+  margin: 0;
+  font-family: var(--display);
+  font-size: var(--step-head);
+  font-weight: 600;
+  line-height: 0.96;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}

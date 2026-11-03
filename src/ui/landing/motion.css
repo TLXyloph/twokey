@@ -1,0 +1,307 @@
+/*
+ * The motion layer. Transform, scale, opacity and clip-path only (plus colour on hover).
+ * Curves from the animate skill: --ease-out for entrances and presses, --ease-in-out for wipes.
+ * Opacity fades run for everyone; travel, scale and wipes join them only without the reduced-motion
+ * preference. Nothing on the first screen is ever hidden waiting for a scroll.
+ */
+
+:root:has(.lp) {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --t-press: 150ms;
+  --t-hover: 150ms;
+  --t-ui: 200ms;
+  --t-fade: 300ms;
+  --t-reveal: 800ms;
+  --t-open: 1100ms;
+}
+
+/* ---- Feedback under the hand: a press on every control, hover only where a pointer hovers ---- */
+.lp-button,
+.lp-example {
+  transition-property: scale, background-color, color, text-decoration-color;
+  transition-duration: var(--t-press), var(--t-hover), var(--t-hover), var(--t-hover);
+  transition-timing-function: var(--ease-out), ease, ease, ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .lp-button:not(:disabled):active,
+  .lp-example:not(:disabled):active {
+    scale: 0.96;
+  }
+}
+
+.lp-link,
+.lp-proof__pause,
+.lp-foot__line a {
+  transition-property: text-decoration-color, text-decoration-thickness;
+  transition-duration: var(--t-hover);
+  transition-timing-function: ease;
+}
+
+.lp-faq__item {
+  transition: background-color var(--t-hover) ease;
+}
+
+.lp-faq__chev {
+  transition: transform var(--t-ui) var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lp-button:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 0.08em;
+    text-underline-offset: 0.24em;
+  }
+
+  .lp-button--quiet:hover {
+    background-color: var(--ink);
+    color: var(--bg);
+    text-decoration: none;
+  }
+
+  .lp-link:hover,
+  .lp-proof__pause:hover,
+  .lp-example:hover {
+    text-decoration-color: currentColor;
+  }
+
+  .lp-link--under:hover {
+    text-decoration-thickness: 0.14em;
+  }
+
+  .lp-proof__name:hover {
+    color: var(--ink);
+  }
+
+  .lp-faq__item:not([open]):hover {
+    background-color: color-mix(in srgb, var(--surface) 55%, var(--bg));
+  }
+
+  .lp-foot__line a:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 0.05em;
+    text-underline-offset: 0.12em;
+  }
+}
+
+/* The lit name eases between places only while it moves by itself; chosen by hand it is instant. */
+.lp-proof[data-auto] .lp-proof__name {
+  transition: color 400ms ease;
+}
+
+.lp-proof[data-auto] .lp-proof__caption[data-lit] {
+  transition: opacity var(--t-ui) ease;
+}
+
+/* ---- Accordion: the answer fades in; without reduced motion it also opens to its own height ---- */
+@supports selector(::details-content) {
+  .lp-faq__item {
+    interpolate-size: allow-keywords;
+  }
+
+  .lp-faq__item::details-content {
+    opacity: 0;
+    transition:
+      opacity var(--t-hover) var(--ease-out),
+      content-visibility var(--t-hover) allow-discrete;
+  }
+
+  .lp-faq__item[open]::details-content {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .lp-faq__item::details-content {
+      block-size: 0;
+      overflow: clip;
+      transition:
+        block-size var(--t-ui) var(--ease-out),
+        opacity var(--t-ui) var(--ease-out),
+        content-visibility var(--t-ui) allow-discrete;
+    }
+
+    .lp-faq__item[open]::details-content {
+      block-size: auto;
+    }
+  }
+}
+
+/* ---- Load: the picture and the sentence's support arrive; the headline is there on the first frame ---- */
+.js .lp-keys,
+.js .lp [data-load] {
+  animation: lp-fade var(--t-fade) var(--ease-out) var(--d, 80ms) backwards;
+}
+
+/* ---- Entrances, once, below the fold ---- */
+.reveal-ready .lp [data-reveal="rise"],
+.reveal-ready .lp [data-reveal="mask"],
+.reveal-ready .lp [data-reveal="wipe"] {
+  transition: opacity var(--t-fade) var(--ease-out) var(--delay, 0ms);
+}
+
+.reveal-ready .lp .lp-faq__item[data-reveal="rise"] {
+  transition:
+    opacity var(--t-fade) var(--ease-out) var(--delay, 0ms),
+    background-color var(--t-hover) ease;
+}
+
+.reveal-ready .lp [data-reveal]:not([data-visible]) {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* The signature move: the keys open into the sentence like the next word being written. */
+  .js .lp-keys {
+    animation: lp-shutter var(--t-open) var(--ease-in-out) 80ms backwards;
+  }
+
+  .js .lp-keys img {
+    animation: lp-settle var(--t-open) var(--ease-out) 80ms backwards;
+  }
+
+  .js .lp [data-load] {
+    animation: lp-rise 600ms var(--ease-out) var(--d, 0ms) backwards;
+  }
+
+  /* Words and pictures rise 24px. */
+  .reveal-ready .lp [data-reveal="rise"] {
+    transition:
+      opacity 700ms var(--ease-out) var(--delay, 0ms),
+      transform var(--t-reveal) var(--ease-out) var(--delay, 0ms);
+  }
+
+  .reveal-ready .lp .lp-faq__item[data-reveal="rise"] {
+    transition:
+      opacity 700ms var(--ease-out) var(--delay, 0ms),
+      transform var(--t-reveal) var(--ease-out) var(--delay, 0ms),
+      background-color var(--t-hover) ease;
+  }
+
+  .reveal-ready .lp [data-reveal="rise"]:not([data-visible]) {
+    transform: translateY(24px);
+  }
+
+  /* The close's two lines rise out of their own baselines. The mask is observed; the line moves. */
+  .reveal-ready .lp [data-reveal="mask"] {
+    transition: none;
+  }
+
+  .reveal-ready .lp [data-reveal="mask"]:not([data-visible]) {
+    opacity: 1;
+  }
+
+  .reveal-ready .lp [data-reveal="mask"] > .lp-cta__line {
+    transition: transform 900ms var(--ease-out) calc(var(--i, 0) * 90ms);
+  }
+
+  .reveal-ready .lp [data-reveal="mask"]:not([data-visible]) > .lp-cta__line {
+    transform: translateY(105%);
+  }
+
+  /* The bar fills stage by stage, left to right, then each clause rises under its stage. */
+  .reveal-ready .lp-bar[data-reveal="wipe"] {
+    transition: none;
+  }
+
+  .reveal-ready .lp-bar[data-reveal="wipe"]:not([data-visible]) {
+    opacity: 1;
+  }
+
+  .reveal-ready .lp-bar .lp-bar__time {
+    transition: clip-path 700ms var(--ease-in-out) calc(var(--i, 0) * 90ms);
+  }
+
+  .reveal-ready .lp-bar:not([data-visible]) .lp-bar__time {
+    clip-path: inset(0 100% 0 0);
+  }
+
+  .reveal-ready .lp-bar .lp-bar__clause {
+    transition:
+      opacity 700ms var(--ease-out) calc(300ms + var(--i, 0) * 70ms),
+      transform var(--t-reveal) var(--ease-out) calc(300ms + var(--i, 0) * 70ms);
+  }
+
+  .reveal-ready .lp-bar:not([data-visible]) .lp-bar__clause {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  @media (max-width: 1099px) {
+    .reveal-ready .lp-bar .lp-bar__time,
+    .reveal-ready .lp-bar:not([data-visible]) .lp-bar__time {
+      transition: none;
+      clip-path: none;
+    }
+
+    .reveal-ready .lp-bar .lp-bar__stage {
+      transition:
+        opacity 700ms var(--ease-out) calc(var(--i, 0) * 70ms),
+        transform var(--t-reveal) var(--ease-out) calc(var(--i, 0) * 70ms);
+    }
+
+    .reveal-ready .lp-bar:not([data-visible]) .lp-bar__stage {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+
+    .reveal-ready .lp-bar:not([data-visible]) .lp-bar__clause {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* The block caret blinks while the field waits on screen. */
+  .lp-ask__line[data-inview] .lp-ask__caret {
+    animation: lp-blink 1.06s steps(1) infinite;
+  }
+
+  /* One moving picture: the football game drifts a few percent as it passes. */
+  @supports (animation-timeline: view()) {
+    .lp-rules__frame img {
+      scale: 1.08;
+      animation: lp-drift linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 100%;
+    }
+  }
+}
+
+/* Reduced motion: nothing moves by itself, so every case is listed instead of lit one at a time. */
+@media (prefers-reduced-motion: reduce) {
+  .lp-proof__caption {
+    grid-area: auto;
+    margin-bottom: 0.75em;
+    visibility: visible;
+  }
+
+  .lp-proof__pause {
+    display: none;
+  }
+}
+
+@keyframes lp-fade {
+  from { opacity: 0; }
+}
+
+@keyframes lp-shutter {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0); }
+}
+
+@keyframes lp-settle {
+  from { transform: scale(1.12); }
+}
+
+@keyframes lp-rise {
+  from { opacity: 0; transform: translateY(16px); }
+}
+
+@keyframes lp-blink {
+  50% { opacity: 0; }
+}
+
+@keyframes lp-drift {
+  from { transform: translateY(-3.5%); }
+  to { transform: translateY(3.5%); }
+}
