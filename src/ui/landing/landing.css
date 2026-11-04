@@ -93,6 +93,11 @@
   outline-offset: 4px;
 }
 
+/* A section an anchor hands focus to is a place, not a control: it takes focus without a ring. */
+.lp [tabindex="-1"]:focus {
+  outline: none;
+}
+
 /* Zero specificity, so a paragraph's own class can set its margins. */
 :where(.lp) p {
   margin: 0;
@@ -207,16 +212,22 @@
 /* ---- Screens ----
    Below the snap breakpoint (and on short windows) sections take their natural height and sit
    --section apart. From 900px wide and 640px tall, each section is one composed screen and one snap
-   point: the navigation and the first block share the first screen; the footer is the last point. */
+   point: the navigation and the first block share the first screen; the footer is the last point.
+   With a fine pointer and motion allowed, weighted-scroll.ts takes the wheel, eases it and settles
+   softly on screens; it sets .lp-weighted on <html>, which turns the CSS snap off. Without it (no
+   script yet, a coarse pointer, reduced motion) the snap is proximity: it settles only near a screen. */
 .lp-screen {
   padding: var(--section) var(--margin) 0;
 }
 
 @media (min-width: 900px) and (min-height: 640px) {
   :root:has(.lp) {
-    /* Native snap only: the browser's own momentum settles on the nearest screen, and a fast flick
-       can still pass several (scroll-snap-stop: normal). */
-    scroll-snap-type: y mandatory;
+    /* A soft native snap: proximity, and a fast flick can still pass several (scroll-snap-stop: normal). */
+    scroll-snap-type: y proximity;
+  }
+
+  :root.lp-weighted:has(.lp) {
+    scroll-snap-type: none;
   }
 
   .lp-banner,
@@ -236,8 +247,8 @@
   }
 }
 
-/* Anchor links glide only for visitors who have not asked for less motion; under reduced motion the
-   snap relaxes to proximity, so nothing pulls the page after a scroll. */
+/* Anchor links glide only for visitors who have not asked for less motion (the weighted scroll takes
+   them over where it is attached); under reduced motion they jump and the snap stays proximity. */
 @media (prefers-reduced-motion: no-preference) {
   :root:has(.lp) {
     scroll-behavior: smooth;

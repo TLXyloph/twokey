@@ -4,9 +4,10 @@
  * Section entrances, fired once as each part enters the screen. Parts that enter together are staggered
  * by 70ms, four steps at most. Anything that starts on the first screen is shown at once, so nothing
  * above the fold waits for a scroll. Without script nothing is ever hidden; under reduced motion the
- * parts below the fold fade in without travel (motion.css).
+ * parts below the fold fade in without travel (motion.css). It also mounts the desktop weighted scroll.
  */
 import { useEffect } from "react";
+import { mountWeightedScroll } from "./weighted-scroll";
 
 const STAGGER_MS = 70;
 const MAX_STEPS = 4;
@@ -39,5 +40,7 @@ export function Motion() {
     for (const el of parts) if (!("visible" in el.dataset)) io.observe(el);
     return () => io.disconnect();
   }, []);
+  // The weighted scroll on desktop (weighted-scroll.ts); it detaches itself everywhere else.
+  useEffect(() => mountWeightedScroll(), []);
   return null;
 }
