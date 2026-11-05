@@ -66,5 +66,10 @@ declare global {
     /** Worker vars: the PayPal sandbox test-buyer login shown on the parent pay page (never committed). */
     TWOKEY_TEST_BUYER_EMAIL?: string;
     TWOKEY_TEST_BUYER_PASSWORD?: string;
+    /**
+     * Worker secret (>= 32 chars, generated and piped, never printed): the Cron Trigger's Bearer
+     * token for POST /api/watchtower/run (src/platform/cron-worker.ts). Unset means 503.
+     */
+    TWOKEY_CRON_SECRET?: string;
   }
 }

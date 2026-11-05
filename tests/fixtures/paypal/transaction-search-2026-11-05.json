@@ -1,0 +1,370 @@
+{
+  "account_number": "5Q53GF4N6MNVE",
+  "end_date": "2026-11-05T08:59:59Z",
+  "last_refreshed_datetime": "2026-11-05T08:59:59Z",
+  "page": 1,
+  "start_date": "2026-11-01T00:00:00Z",
+  "total_items": 11,
+  "total_pages": 1,
+  "transaction_details": [
+    {
+      "payer_info": {
+        "payer_name": {}
+      },
+      "transaction_info": {
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "5000.00"
+        },
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "5000.00"
+        },
+        "instrument_sub_type": "PayPal Wallet",
+        "instrument_type": "PayPal",
+        "protection_eligibility": "02",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "5000.00"
+        },
+        "transaction_event_code": "T1900",
+        "transaction_id": "9X808994PL646191H",
+        "transaction_initiation_date": "2026-11-02T18:16:03Z",
+        "transaction_status": "S",
+        "transaction_subject": "Initial balance",
+        "transaction_updated_date": "2026-11-02T18:16:03Z"
+      }
+    },
+    {
+      "payer_info": {
+        "payer_name": {}
+      },
+      "transaction_info": {
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "4998.75"
+        },
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "4998.75"
+        },
+        "instrument_sub_type": "PayPal Wallet",
+        "instrument_type": "PayPal",
+        "protection_eligibility": "02",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "-1.25"
+        },
+        "transaction_event_code": "T1503",
+        "transaction_id": "0GN99893ND2823603",
+        "transaction_initiation_date": "2026-11-02T23:32:08Z",
+        "transaction_status": "S",
+        "transaction_updated_date": "2026-11-02T23:32:08Z"
+      }
+    },
+    {
+      "payer_info": {
+        "account_id": "F6F3MRERZMHNC",
+        "email_address": "payouts-simulator-receiver@paypal.com",
+        "payer_name": {
+          "alternate_full_name": "Mitesh Jain's Test Store"
+        }
+      },
+      "transaction_info": {
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "4997.50"
+        },
+        "custom_field": "item-1",
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "4997.50"
+        },
+        "fee_amount": {
+          "currency_code": "USD",
+          "value": "-0.25"
+        },
+        "instrument_sub_type": "PayPal Wallet",
+        "instrument_type": "PayPal",
+        "paypal_account_id": "F6F3MRERZMHNC",
+        "paypal_reference_id": "0GN99893ND2823603",
+        "paypal_reference_id_type": "TXN",
+        "protection_eligibility": "02",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "-1.00"
+        },
+        "transaction_event_code": "T0001",
+        "transaction_id": "3XT37311AK7894010",
+        "transaction_initiation_date": "2026-11-02T23:32:17Z",
+        "transaction_note": "TwoKey day-1 spike",
+        "transaction_status": "S",
+        "transaction_subject": "TwoKey sandbox spike",
+        "transaction_updated_date": "2026-11-02T23:32:17Z"
+      }
+    },
+    {
+      "payer_info": {
+        "payer_name": {}
+      },
+      "transaction_info": {
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "4998.75"
+        },
+        "custom_field": "item-1",
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "4998.75"
+        },
+        "instrument_sub_type": "PayPal Wallet",
+        "instrument_type": "PayPal",
+        "paypal_reference_id": "0GN99893ND2823603",
+        "paypal_reference_id_type": "TXN",
+        "protection_eligibility": "02",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "1.25"
+        },
+        "transaction_event_code": "T1105",
+        "transaction_id": "9XV727263L7116130",
+        "transaction_initiation_date": "2026-11-02T23:32:17Z",
+        "transaction_note": "TwoKey day-1 spike",
+        "transaction_status": "S",
+        "transaction_subject": "TwoKey sandbox spike",
+        "transaction_updated_date": "2026-11-02T23:32:17Z"
+      }
+    },
+    {
+      "payer_info": {
+        "account_id": "PVJ9BTJ746W8G",
+        "email_address": "sb-wdqmv53686001@personal.example.com",
+        "payer_name": {
+          "alternate_full_name": "John Doe",
+          "given_name": "John",
+          "surname": "Doe"
+        }
+      },
+      "transaction_info": {
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "4995.54"
+        },
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "4995.54"
+        },
+        "instrument_sub_type": "PayPal Wallet",
+        "instrument_type": "PayPal",
+        "paypal_account_id": "PVJ9BTJ746W8G",
+        "paypal_reference_id": "75C6831553894692G",
+        "paypal_reference_id_type": "TXN",
+        "protection_eligibility": "02",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "-3.21"
+        },
+        "transaction_event_code": "T0000",
+        "transaction_id": "22N17109956532336",
+        "transaction_initiation_date": "2026-11-03T04:13:48Z",
+        "transaction_note": "test 11/2 23:13",
+        "transaction_status": "S",
+        "transaction_updated_date": "2026-11-03T04:13:48Z"
+      }
+    },
+    {
+      "payer_info": {
+        "payer_name": {}
+      },
+      "transaction_info": {
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "4998.75"
+        },
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "4998.75"
+        },
+        "instrument_sub_type": "PayPal Wallet",
+        "instrument_type": "PayPal",
+        "paypal_reference_id": "22N17109956532336",
+        "paypal_reference_id_type": "TXN",
+        "protection_eligibility": "02",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "3.21"
+        },
+        "transaction_event_code": "T0300",
+        "transaction_id": "30S826037D3388322",
+        "transaction_initiation_date": "2026-11-03T04:13:48Z",
+        "transaction_status": "S",
+        "transaction_updated_date": "2026-11-03T04:13:48Z"
+      }
+    },
+    {
+      "payer_info": {
+        "payer_name": {}
+      },
+      "transaction_info": {
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "4997.50"
+        },
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "4997.50"
+        },
+        "instrument_sub_type": "PayPal Wallet",
+        "instrument_type": "PayPal",
+        "protection_eligibility": "02",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "-1.25"
+        },
+        "transaction_event_code": "T1503",
+        "transaction_id": "5A033171RY9322040",
+        "transaction_initiation_date": "2026-11-03T19:59:09Z",
+        "transaction_status": "S",
+        "transaction_updated_date": "2026-11-03T19:59:09Z"
+      }
+    },
+    {
+      "payer_info": {
+        "account_id": "F6F3MRERZMHNC",
+        "email_address": "payouts-simulator-receiver@paypal.com",
+        "payer_name": {
+          "alternate_full_name": "Mitesh Jain's Test Store"
+        }
+      },
+      "transaction_info": {
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "4996.25"
+        },
+        "custom_field": "item-1",
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "4996.25"
+        },
+        "fee_amount": {
+          "currency_code": "USD",
+          "value": "-0.25"
+        },
+        "instrument_sub_type": "PayPal Wallet",
+        "instrument_type": "PayPal",
+        "paypal_account_id": "F6F3MRERZMHNC",
+        "paypal_reference_id": "5A033171RY9322040",
+        "paypal_reference_id_type": "TXN",
+        "protection_eligibility": "02",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "-1.00"
+        },
+        "transaction_event_code": "T0001",
+        "transaction_id": "23Y96953CP0068646",
+        "transaction_initiation_date": "2026-11-03T19:59:18Z",
+        "transaction_note": "TwoKey day-1 spike",
+        "transaction_status": "S",
+        "transaction_subject": "TwoKey sandbox spike",
+        "transaction_updated_date": "2026-11-03T19:59:18Z"
+      }
+    },
+    {
+      "payer_info": {
+        "payer_name": {}
+      },
+      "transaction_info": {
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "4997.50"
+        },
+        "custom_field": "item-1",
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "4997.50"
+        },
+        "instrument_sub_type": "PayPal Wallet",
+        "instrument_type": "PayPal",
+        "paypal_reference_id": "5A033171RY9322040",
+        "paypal_reference_id_type": "TXN",
+        "protection_eligibility": "02",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "1.25"
+        },
+        "transaction_event_code": "T1105",
+        "transaction_id": "50F06389P9373813Y",
+        "transaction_initiation_date": "2026-11-03T19:59:18Z",
+        "transaction_note": "TwoKey day-1 spike",
+        "transaction_status": "S",
+        "transaction_subject": "TwoKey sandbox spike",
+        "transaction_updated_date": "2026-11-03T19:59:18Z"
+      }
+    },
+    {
+      "payer_info": {
+        "account_id": "M7KDY5Y4RC6DS",
+        "email_address": "sb-6j9x4753696003@personal.example.com",
+        "payer_name": {
+          "alternate_full_name": "Esther Huang",
+          "given_name": "Esther",
+          "surname": "Huang"
+        }
+      },
+      "transaction_info": {
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "4994.29"
+        },
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "4994.29"
+        },
+        "instrument_sub_type": "PayPal Wallet",
+        "instrument_type": "PayPal",
+        "paypal_account_id": "M7KDY5Y4RC6DS",
+        "paypal_reference_id": "6MF727725X1912021",
+        "paypal_reference_id_type": "TXN",
+        "protection_eligibility": "02",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "-3.21"
+        },
+        "transaction_event_code": "T0000",
+        "transaction_id": "1TY14748YE721631B",
+        "transaction_initiation_date": "2026-11-03T20:27:29Z",
+        "transaction_status": "S",
+        "transaction_updated_date": "2026-11-03T20:27:29Z"
+      }
+    },
+    {
+      "payer_info": {
+        "payer_name": {}
+      },
+      "transaction_info": {
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "4997.50"
+        },
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "4997.50"
+        },
+        "instrument_sub_type": "PayPal Wallet",
+        "instrument_type": "PayPal",
+        "paypal_reference_id": "1TY14748YE721631B",
+        "paypal_reference_id_type": "TXN",
+        "protection_eligibility": "02",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "3.21"
+        },
+        "transaction_event_code": "T0300",
+        "transaction_id": "0UN74527JS883252U",
+        "transaction_initiation_date": "2026-11-03T20:27:29Z",
+        "transaction_status": "S",
+        "transaction_updated_date": "2026-11-03T20:27:29Z"
+      }
+    }
+  ]
+}

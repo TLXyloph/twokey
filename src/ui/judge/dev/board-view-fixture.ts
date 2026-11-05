@@ -250,6 +250,7 @@ export function fixtureBoardView(): BoardView {
     requests,
     sharedBalance: { availableCents: 499_750, currency: "USD", asOf: "2026-11-05T14:30:00Z" },
     limits: { payoutCapCents: 5_000, sessionPayoutsLeft: 3, dailyCentsLeft: 50_000 },
+    watchtower: null,
     chain: { length: 5, head: fakeHex("head:5") },
   };
 }

@@ -124,3 +124,54 @@ describe("the dev fixture's fake server", () => {
     expect(gloves.timeline.at(-1)).toMatchObject({ step: "blocked" });
   });
 });
+
+describe("the dev fixture's Watchtower", () => {
+  it("is stale by default, as PayPal's reports really were on Nov 5, with the two real outside sends open", async () => {
+    const watch = (await settle(createFixtureTransport().getView())).watchtower!;
+    expect(watch.status).toBe("stale_reports");
+    expect(watch.paypalAsOf).toBe("2026-11-05T08:59:59Z");
+    expect(watch.checkedAt).toBe("2026-11-05T16:40:00Z");
+    expect(watch.findings.map((f) => [f.transactionId, f.amountCents, f.fundedByBank, f.reportedAfterMinutes])).toEqual([
+      ["1TY14748YE721631B", 321, true, null],
+      ["22N17109956532336", 321, true, null],
+    ]);
+    expect(watch.explained.map((f) => f.transactionId)).toEqual(["23Y96953CP0068646", "3XT37311AK7894010"]);
+    expect(watch.explained.every((f) => f.explanation)).toBe(true);
+  });
+
+  it("takes the state the URL names, and falls back to stale for anything else", async () => {
+    const status = async (watch: string | null) => (await settle(createFixtureTransport({ watch }).getView())).watchtower?.status ?? null;
+    expect(await status("ok")).toBe("ok");
+    expect(await status("no_access")).toBe("no_access");
+    expect(await status("silent")).toBe("silent");
+    expect(await status("not_started")).toBe("not_started");
+    expect(await status("none")).toBeNull();
+    expect(await status("nonsense")).toBe("stale_reports");
+    expect(await status(null)).toBe("stale_reports");
+  });
+
+  it("keeps PayPal's records about an hour behind when they're current, with three explained findings", async () => {
+    const watch = (await settle(createFixtureTransport({ watch: "ok" }).getView())).watchtower!;
+    expect(watch.paypalAsOf).toBe("2026-11-05T15:59:59Z");
+    expect(watch.explained).toHaveLength(3);
+  });
+
+  it("goes quiet for longer than the silence threshold in the silent state", async () => {
+    const watch = (await settle(createFixtureTransport({ watch: "silent" }).getView())).watchtower!;
+    expect(Date.parse("2026-11-05T16:40:00Z") - Date.parse(watch.checkedAt!)).toBeGreaterThan(30 * 60_000);
+  });
+
+  it("replays the treasurer's real website send, labelled, and stores nothing", async () => {
+    const transport = createFixtureTransport();
+    const result = await settle(transport.replayOutsideSend());
+    expect(result).toMatchObject({
+      ok: true,
+      replay: { label: "Replay of a real sandbox event: a $3.21 website send on Nov 3, 2026.", finding: { transactionId: "1TY14748YE721631B" } },
+    });
+    expect((await settle(transport.getView())).watchtower!.findings).toHaveLength(2);
+  });
+
+  it("can fail the replay, to show the failure line", async () => {
+    await expect(settle(createFixtureTransport({ replayFails: true }).replayOutsideSend())).resolves.toMatchObject({ ok: false, status: 503 });
+  });
+});
