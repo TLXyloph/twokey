@@ -242,8 +242,11 @@ export function fixtureClubData(base: ClubDemoData = riverbend): ClubDemoData {
 /** A fresh judge session's board view. A new object every call: callers may mutate it. */
 export function fixtureBoardView(): BoardView {
   const requests = SEED_REQUESTS.map((seed, i) => seedRequestView(seed, i === 0 ? SEED_HASH : fakeHex(`head:${i}`)));
+  const data = structuredClone(fixtureClubData());
+  // The fold dates the session's balance by its latest event: the session opened this morning.
+  if (data.balances[0]) data.balances[0].asOf = "2026-11-05T14:41:00Z";
   return {
-    data: structuredClone(fixtureClubData()),
+    data,
     requests,
     sharedBalance: { availableCents: 499_750, currency: "USD", asOf: "2026-11-05T14:30:00Z" },
     limits: { payoutCapCents: 5_000, sessionPayoutsLeft: 3, dailyCentsLeft: 50_000 },

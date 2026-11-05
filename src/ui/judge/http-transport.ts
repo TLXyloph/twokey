@@ -4,7 +4,7 @@
  *
  * Every route needs the judge-session cookie. A call without one is answered 401; the transport then
  * POSTs the session endpoint (which sets the cookie) and sends the call once more, the same pattern
- * as the AI adapter (src/agents/studio/claude-adapter.ts). Concurrent 401s share one session request.
+ * as Studio's AI adapter in src/agents/studio. Concurrent 401s share one session request.
  *
  * Actions never throw on an HTTP error: a refusal is data the drawer shows ({ ok: false, code,
  * message }). Reading the view throws a {@link BoardViewError}, which the client keeps beside the

@@ -1,0 +1,463 @@
+/*
+ * The payout drawer (achromatic ledger; tokens from boardCssVars on .board, which the <dialog>
+ * inherits). Stone ground, white request cards with a 1px edge, radii 8/6/4, no shadows: a 1px
+ * edge and a scrim separate the drawer from the board. Type: 20 title / 16 payee / 14 body /
+ * 13 meta / 12 small, Geist; hashes in "Show proof" are the only monospace.
+ *
+ * Motion (animate): the drawer slides in on the drawer curve (360ms) and out faster (220ms), with
+ * the scrim fading alongside; refusals, a ticking timeline step and a new request fade up 4-8px.
+ * All transitions, so a quick reopen or a second refusal retargets instead of restarting. Under
+ * reduced motion everything keeps its opacity change and drops the travel.
+ */
+
+.judge-drawer {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --warn-bg: #fffbeb;
+  --warn-border: #fde68a;
+  --warn-ink: #92400e;
+  --warn-mark: #b45309;
+
+  position: fixed;
+  inset: 0 0 0 auto;
+  width: min(560px, 100vw);
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-left: 1px solid var(--border);
+  background: var(--ground);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 20px;
+  -webkit-font-smoothing: antialiased;
+  transform: translateX(100%);
+  transition:
+    transform 220ms var(--ease-drawer),
+    overlay 220ms allow-discrete,
+    display 220ms allow-discrete;
+}
+
+.judge-drawer[open] {
+  transform: translateX(0);
+  transition-duration: 360ms;
+}
+
+@starting-style {
+  .judge-drawer[open] {
+    transform: translateX(100%);
+  }
+}
+
+.judge-drawer::backdrop {
+  background-color: rgb(27 20 22 / 0);
+  transition:
+    background-color 220ms ease-out,
+    overlay 220ms allow-discrete,
+    display 220ms allow-discrete;
+}
+
+.judge-drawer[open]::backdrop {
+  background-color: rgb(27 20 22 / 0.24);
+  transition-duration: 360ms;
+}
+
+@starting-style {
+  .judge-drawer[open]::backdrop {
+    background-color: rgb(27 20 22 / 0);
+  }
+}
+
+.judge-drawer__panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.judge-drawer__head {
+  display: grid;
+  flex: none;
+  gap: 12px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.judge-drawer__title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.judge-drawer__title {
+  flex: 1;
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+  letter-spacing: -0.01em;
+}
+
+.judge-drawer__title:focus {
+  outline: none;
+}
+
+.judge-drawer__limits {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Positioned, so visually hidden text inside stays inside the scroller instead of the dialog. */
+.judge-drawer__body {
+  position: relative;
+  display: grid;
+  flex: 1;
+  align-content: start;
+  gap: 28px;
+  min-height: 0;
+  padding: 20px 24px 40px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* --- Sections and states ---------------------------------------------------------------------- */
+
+.judge-section__title {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.judge-section__count {
+  margin-left: 4px;
+  color: var(--muted);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+.judge-section__cards {
+  display: grid;
+  gap: 12px;
+}
+
+.judge-empty,
+.judge-readonly,
+.judge-error {
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: var(--radius-card);
+  color: var(--muted);
+}
+
+.judge-empty {
+  border: 1px dashed var(--control);
+}
+
+.judge-readonly {
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.judge-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+}
+
+.judge-error p {
+  margin: 0;
+}
+
+.judge-loading {
+  display: grid;
+  gap: 12px;
+}
+
+.judge-loading__bar,
+.judge-loading__card {
+  display: block;
+  border-radius: var(--radius-card);
+  background: var(--active);
+}
+
+.judge-loading__bar {
+  width: 45%;
+  height: 20px;
+}
+
+.judge-loading__card {
+  height: 280px;
+}
+
+/* --- A request card --------------------------------------------------------------------------- */
+
+.judge-card {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  transition: border-color 600ms ease;
+}
+
+.judge-card[data-fresh] {
+  border-color: var(--text);
+  transition-duration: 150ms;
+}
+
+@starting-style {
+  .judge-card[data-fresh] {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .judge-card[data-fresh] {
+    transition:
+      border-color 150ms ease,
+      opacity 240ms var(--ease-out),
+      transform 240ms var(--ease-out);
+  }
+}
+
+.judge-card__head {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: start;
+}
+
+.judge-card__payee {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 22px;
+}
+
+.judge-card__desc {
+  margin: 2px 0 0;
+}
+
+.judge-card__meta {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.judge-card__amount {
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+}
+
+.judge-card__figure {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+  font-variant-numeric: tabular-nums;
+}
+
+.judge-source {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  height: 20px;
+  padding: 0 6px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-chip);
+  background: var(--active);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.judge-source[data-source="live"] {
+  border-color: var(--control);
+  background: var(--surface);
+  color: var(--text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .judge-drawer,
+  .judge-drawer[open] {
+    transform: none;
+    opacity: 0;
+    transition:
+      opacity 150ms ease-out,
+      overlay 150ms allow-discrete,
+      display 150ms allow-discrete;
+  }
+
+  .judge-drawer[open] {
+    opacity: 1;
+  }
+
+  @starting-style {
+    .judge-drawer[open] {
+      opacity: 0;
+      transform: none;
+    }
+  }
+}
+
+/* --- Controls shared by the drawer ------------------------------------------------------------ */
+
+.judge-secondary-button,
+.judge-icon-button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+  border-radius: var(--radius-control);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition-property: background-color, border-color, scale;
+  transition-duration: 150ms;
+  transition-timing-function: ease-out;
+}
+
+.judge-secondary-button {
+  padding: 0 12px 0 10px;
+  border: 1px solid var(--control);
+  background: var(--surface);
+}
+
+.judge-icon-button {
+  width: 32px;
+  padding: 0;
+  border: 1px solid transparent;
+  background: transparent;
+}
+
+@media (hover: hover) {
+  .judge-secondary-button:hover {
+    background: var(--raised);
+  }
+
+  .judge-icon-button:hover {
+    background: var(--active);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .judge-secondary-button:active,
+  .judge-icon-button:active,
+  .judge-drawer .board-button:not([aria-disabled="true"]):active {
+    scale: 0.96;
+  }
+}
+
+.judge-text-button,
+.judge-text-link {
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-chip);
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: var(--control);
+  text-underline-offset: 3px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: text-decoration-color 150ms ease;
+}
+
+@media (hover: hover) {
+  .judge-text-button:hover,
+  .judge-text-link:hover {
+    text-decoration-color: currentColor;
+  }
+}
+
+.judge-secondary-button:focus-visible,
+.judge-icon-button:focus-visible,
+.judge-text-button:focus-visible,
+.judge-text-link:focus-visible,
+.judge-receipt:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
+.judge-drawer .board-button[aria-disabled="true"] {
+  cursor: progress;
+}
+
+/* Below 900px the drawer is a full-width sheet; on a phone its targets grow to 44px. */
+@media (max-width: 899px) {
+  .judge-drawer {
+    width: 100vw;
+    border-left: 0;
+  }
+}
+
+@media (max-width: 639px) {
+  .judge-drawer__head {
+    padding: 12px 16px;
+  }
+
+  .judge-drawer__body {
+    padding: 16px 16px 32px;
+  }
+
+  .judge-card {
+    padding: 16px;
+  }
+
+  .judge-card__head {
+    grid-template-columns: 48px minmax(0, 1fr) auto;
+    gap: 12px;
+  }
+
+  .judge-receipt {
+    width: 48px;
+    height: 52px;
+  }
+
+  .judge-secondary-button,
+  .judge-icon-button {
+    height: 44px;
+  }
+
+  .judge-icon-button {
+    width: 44px;
+  }
+
+  .judge-drawer .judge-role {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .judge-drawer .judge-role__track {
+    display: grid;
+  }
+
+  .judge-drawer .judge-role__option {
+    height: 40px;
+  }
+}

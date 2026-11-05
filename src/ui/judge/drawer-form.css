@@ -1,0 +1,230 @@
+/*
+ * The "Request a payout" form in the drawer: fields, the sample-receipt picker and its footer.
+ * Tokens from .board; motion curves from .judge-drawer (./drawer.css).
+ */
+
+/* --- Request a payout ------------------------------------------------------------------------- */
+
+.judge-form {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .judge-form {
+    transition:
+      opacity 200ms var(--ease-out),
+      transform 200ms var(--ease-out);
+  }
+
+  @starting-style {
+    .judge-form {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+  }
+}
+
+.judge-form__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 22px;
+}
+
+.judge-form__lede {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.judge-form__pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 148px;
+  gap: 12px;
+}
+
+.judge-field {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.judge-field__label {
+  padding: 0;
+  font-weight: 500;
+}
+
+.judge-field__help {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.judge-input {
+  width: 100%;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--control);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+select.judge-input {
+  padding-right: 8px;
+}
+
+.judge-input:focus-visible {
+  border-color: var(--text);
+  outline: 1px solid var(--text);
+  outline-offset: 0;
+}
+
+.judge-money {
+  position: relative;
+}
+
+.judge-money__sign {
+  position: absolute;
+  top: 9px;
+  left: 12px;
+  color: var(--muted);
+}
+
+.judge-input--money {
+  padding-left: 24px;
+  font-variant-numeric: tabular-nums;
+}
+
+.judge-receipts__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.judge-receipt-option {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  padding: 6px 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  cursor: pointer;
+  transition: border-color 150ms ease;
+}
+
+.judge-receipt-option__input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+}
+
+.judge-receipt-option:has(:checked) {
+  border-color: var(--text);
+  box-shadow: inset 0 0 0 1px var(--text);
+}
+
+.judge-receipt-option:has(:focus-visible) {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) {
+  .judge-receipt-option:not(:has(:checked)):hover {
+    border-color: var(--control);
+  }
+}
+
+.judge-receipt-option__image {
+  display: block;
+  height: 72px;
+  overflow: hidden;
+  border-radius: var(--radius-chip);
+  background: var(--raised);
+}
+
+.judge-receipt-option__image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+}
+
+.judge-receipt-option__label {
+  padding: 0 2px;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.judge-form__error {
+  margin: 0;
+  color: var(--data);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.judge-form__error:empty {
+  display: none;
+}
+
+.judge-form__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.judge-form__limits {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.judge-form__actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.judge-form__actions .judge-secondary-button {
+  height: 36px;
+  padding: 0 14px;
+}
+
+@media (max-width: 479px) {
+  .judge-form {
+    padding: 16px;
+  }
+
+  .judge-form__pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .judge-form__actions {
+    width: 100%;
+  }
+
+  .judge-form__actions .judge-secondary-button,
+  .judge-form__actions .board-button {
+    flex: 1;
+    height: 44px;
+  }
+}

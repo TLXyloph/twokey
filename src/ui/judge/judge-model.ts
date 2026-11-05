@@ -37,7 +37,7 @@ export const isOfficer = (role: ActingRole): role is OfficerRole => role !== "pa
 export const isActingRole = (value: unknown): value is ActingRole => ACTING_ROLES.includes(value as ActingRole);
 
 /** "the President or the Secretary". */
-function theRoles(roles: readonly OfficerRole[]): string {
+export function theRoles(roles: readonly OfficerRole[]): string {
   const named = roles.map((role) => `the ${roleTitle(role)}`);
   if (named.length <= 1) return named[0] ?? "";
   return `${named.slice(0, -1).join(", ")} or ${named.at(-1)}`;
