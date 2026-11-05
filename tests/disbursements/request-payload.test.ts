@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { canonicalJson, sha256Hex } from "@/ledger/canonical";
 import { PAYEES } from "@/disbursements/payees";
-import { RECEIPT_HASH_PENDING, receiptById, receiptSha256, RECEIPTS } from "@/disbursements/receipt-hashes";
+import { receiptById, receiptSha256, RECEIPTS } from "@/disbursements/receipt-hashes";
+import { RECEIPTS as SAMPLE_RECEIPTS } from "@/disbursements/risk/receipts";
 import { buildRequestPayload, computeRequestHash, type RequestFacts } from "@/disbursements/request-payload";
 import { SEEDED_REQUESTS } from "@/disbursements/seed-requests";
 
@@ -67,9 +68,12 @@ describe("buildRequestPayload", () => {
 });
 
 describe("the sample receipts", () => {
-  it("lists the four contract receipt ids, each with a hash placeholder until the Risk context wires its own", () => {
+  it("lists the four contract receipt ids, each binding the Risk context's hash of its image", () => {
     expect(RECEIPTS.map((r) => r.id)).toEqual(["gloves-team-supply", "paint-bluebird-hardware", "cones-team-supply", "bibs-team-supply"]);
-    for (const receipt of RECEIPTS) expect(receipt.sha256).toBe(RECEIPT_HASH_PENDING);
+    for (const receipt of RECEIPTS) {
+      expect(receipt.sha256).toMatch(/^[0-9a-f]{64}$/);
+      expect(receipt.sha256).toBe(SAMPLE_RECEIPTS[receipt.id].sha256);
+    }
     expect(receiptById("nope")).toBeUndefined();
   });
 });

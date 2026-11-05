@@ -1,34 +1,14 @@
 /**
- * Where the routes get their `RiskAssessor` (the Risk context's port, contracts.ts).
- *
- * STUB until integration: the Risk context (src/disbursements/risk/) builds the real assessor
- * (rule checks, the AI receipt read behind the AI budget gates, recorded cards), and this function
- * is rewired to return it. Until then every request gets a "clear" rules card that says the
- * receipt check isn't wired, and the AI read reports "unavailable" (null), so the rules card stands.
+ * Where the routes get their `RiskAssessor` (the Risk context's port, contracts.ts): the real one,
+ * with the rule checks, the recorded cards for the seeded requests, and the AI receipt read behind
+ * the same budget gates as /api/ai/turn (src/disbursements/risk/index.ts).
  */
-import type { RiskAssessor, RiskCard } from "@/ledger/contracts";
+import type { RiskAssessor } from "@/ledger/contracts";
+import { riskAssessorFromEnv, type RiskEnv } from "./risk";
 
-export const STUB_RULES_SUMMARY = "Receipt check not wired yet.";
-
-/** The Worker env the real assessor will read (AI key, budget vars, D1); unused by the stub. */
+/** The Worker env the assessor reads: the AI key and budget vars, D1 and the ASSETS binding. */
 export type RiskWiringEnv = Partial<CloudflareEnv>;
 
-export function riskAssessorFor(_env: RiskWiringEnv): RiskAssessor {
-  return {
-    rulesCard(_input, now): RiskCard {
-      return {
-        verdict: "clear",
-        summary: STUB_RULES_SUMMARY,
-        findings: [],
-        receipt: null,
-        matchesRequest: null,
-        origin: "rules",
-        model: null,
-        checkedAt: now.toISOString(),
-      };
-    },
-    async aiCard() {
-      return null;
-    },
-  };
+export function riskAssessorFor(env: RiskWiringEnv): RiskAssessor {
+  return riskAssessorFromEnv(env as RiskEnv, env.DB);
 }
