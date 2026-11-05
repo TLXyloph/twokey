@@ -1,6 +1,7 @@
 /**
  * The judge UI's port to the step-4 API (src/ledger/contracts.ts `API`): read the board view, create
- * a payout request, sign, and ask for the AI's receipt read.
+ * a payout request, sign, and ask for the AI's receipt read; and the Watchtower's judge-mode replay
+ * (src/watchtower/contracts.ts `WATCHTOWER_API.replay`).
  *
  * Every route needs the judge-session cookie. A call without one is answered 401; the transport then
  * POSTs the session endpoint (which sets the cookie) and sends the call once more, the same pattern
@@ -17,10 +18,14 @@ import {
   type PayoutRequestView,
   type SignBody,
 } from "@/ledger/contracts";
+import { WATCHTOWER_API, type WatchReplay } from "@/watchtower/contracts";
 
-export type ActionResult =
-  | { ok: true; request: PayoutRequestView }
-  | { ok: false; status: number; code: string; message: string };
+export type ActionFailure = { ok: false; status: number; code: string; message: string };
+
+export type ActionResult = { ok: true; request: PayoutRequestView } | ActionFailure;
+
+/** The replay of a real sandbox event (judge mode; the server stores nothing). */
+export type ReplayResult = { ok: true; replay: WatchReplay } | ActionFailure;
 
 /** What the board-view client needs from the server. The dev fixture implements it in memory. */
 export interface BoardTransport {
@@ -28,6 +33,8 @@ export interface BoardTransport {
   createRequest(body: CreatePayoutRequestBody): Promise<ActionResult>;
   sign(requestId: string, body: SignBody): Promise<ActionResult>;
   assessRisk(requestId: string): Promise<ActionResult>;
+  /** Runs a recorded outside send through the Watchtower's classifier again. */
+  replayOutsideSend(): Promise<ReplayResult>;
 }
 
 export class BoardViewError extends Error {
@@ -84,6 +91,24 @@ function isRequestBody(value: unknown): value is { request: PayoutRequestView } 
   return typeof request === "object" && request !== null && typeof request.requestId === "string" && Array.isArray(request.timeline);
 }
 
+/** Enough of a `WatchReplay` to draw the alert: a labelled finding with its amount and times. */
+export function isWatchReplay(value: unknown): value is WatchReplay {
+  const replay = value as Partial<WatchReplay> | null;
+  const finding = replay?.finding as Partial<WatchReplay["finding"]> | undefined;
+  return (
+    typeof replay === "object" &&
+    replay !== null &&
+    typeof replay.label === "string" &&
+    replay.label.trim() !== "" &&
+    typeof finding === "object" &&
+    finding !== null &&
+    typeof finding.transactionId === "string" &&
+    typeof finding.label === "string" &&
+    typeof finding.at === "string" &&
+    Number.isInteger(finding.amountCents)
+  );
+}
+
 export function createHttpTransport(options: HttpTransportOptions = {}): BoardTransport {
   const fetchImpl = (url: string, init?: RequestInit) => (options.fetch ?? globalThis.fetch.bind(globalThis))(url, init);
   let session: Promise<void> | null = null;
@@ -111,7 +136,8 @@ export function createHttpTransport(options: HttpTransportOptions = {}): BoardTr
     return call();
   };
 
-  const post = async (url: string, body: unknown): Promise<ActionResult> => {
+  /** POSTs JSON; an HTTP error or an unreadable answer comes back as data, never thrown. */
+  const postJson = async <T>(url: string, body: unknown, read: (payload: unknown) => T | null): Promise<{ ok: true; value: T } | ActionFailure> => {
     let response: Response;
     try {
       response = await send(url, {
@@ -124,11 +150,16 @@ export function createHttpTransport(options: HttpTransportOptions = {}): BoardTr
       return { ok: false, status: 0, code: "network", message: UNREACHABLE };
     }
     if (!response.ok) return { ok: false, status: response.status, ...(await readError(response)) };
-    const payload: unknown = await response.json().catch(() => null);
-    if (!isRequestBody(payload)) {
+    const value = read(await response.json().catch(() => null));
+    if (value === null) {
       return { ok: false, status: response.status, code: "bad_response", message: "The server's answer was not one this page can read." };
     }
-    return { ok: true, request: payload.request };
+    return { ok: true, value };
+  };
+
+  const post = async (url: string, body: unknown): Promise<ActionResult> => {
+    const result = await postJson(url, body, (payload) => (isRequestBody(payload) ? payload.request : null));
+    return result.ok ? { ok: true, request: result.value } : result;
   };
 
   return {
@@ -148,5 +179,9 @@ export function createHttpTransport(options: HttpTransportOptions = {}): BoardTr
     createRequest: (body) => post(API.payoutRequests, body),
     sign: (requestId, body) => post(API.sign(requestId), body),
     assessRisk: (requestId) => post(API.risk(requestId), {}),
+    async replayOutsideSend() {
+      const result = await postJson(WATCHTOWER_API.replay, {}, (payload) => (isWatchReplay(payload) ? payload : null));
+      return result.ok ? { ok: true, replay: result.value } : result;
+    },
   };
 }

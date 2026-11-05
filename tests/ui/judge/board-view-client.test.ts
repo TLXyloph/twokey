@@ -9,7 +9,7 @@ import {
   unrecordedOutcome,
   withRequest,
 } from "@/ui/judge/board-view-client";
-import type { ActionResult, BoardTransport } from "@/ui/judge/http-transport";
+import type { ActionResult, BoardTransport, ReplayResult } from "@/ui/judge/http-transport";
 import { boardView, glovesRequest, paintRequest, sentRequest } from "../../fixtures/board-view";
 
 /** A server in miniature: reads return `views` in turn (then the last), and actions change it. */
@@ -26,7 +26,15 @@ function mockTransport(views: BoardView[] = [boardView()]) {
   const sign = vi.fn(async (): Promise<ActionResult> => act(sentRequest()));
   const createRequest = vi.fn(async (): Promise<ActionResult> => act({ ...glovesRequest(), requestId: "new" }));
   const assessRisk = vi.fn(async (): Promise<ActionResult> => act({ ...paintRequest(), riskPending: false }));
-  return { transport: { getView, sign, createRequest, assessRisk } satisfies BoardTransport, getView, sign, createRequest, assessRisk };
+  // The board-view client never replays: the Watchtower's replay store does (tests/ui/watchtower).
+  const replayOutsideSend = vi.fn(async (): Promise<ReplayResult> => ({ ok: false, status: 500, code: "unused", message: "unused" }));
+  return {
+    transport: { getView, sign, createRequest, assessRisk, replayOutsideSend } satisfies BoardTransport,
+    getView,
+    sign,
+    createRequest,
+    assessRisk,
+  };
 }
 
 const flush = () => vi.advanceTimersByTimeAsync(0);

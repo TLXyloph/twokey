@@ -33,8 +33,8 @@ describe("the judge panel", () => {
     expect(PARENT_PAGE_HREF).toBe("/demo/pay/banquet?judge=1");
     expect(html).toContain('href="/demo/pay/banquet?judge=1"');
     expect(text(html)).toContain("Buy banquet tickets (parent page)");
-    expect(text(html)).toContain("demo keys held by the server");
-    expect(text(html)).toContain("passkey");
+    expect(text(html)).toContain("the server's demo keys");
+    expect(text(html)).toContain("passkeys");
   });
 });
 

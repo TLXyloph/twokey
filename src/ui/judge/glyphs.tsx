@@ -54,3 +54,18 @@ export const PlusGlyph = () => (
     <path d="M8 3.5v9M3.5 8h9" />
   </svg>
 );
+
+/** A disclosure's chevron; CSS turns it when the section is open. */
+export const ChevronGlyph = () => (
+  <svg {...common} width={14} height={14}>
+    <path d="M4.5 6.25L8 9.75l3.5-3.5" />
+  </svg>
+);
+
+/** Play it again: an arrow coming round to its start. */
+export const ReplayGlyph = () => (
+  <svg {...common}>
+    <path d="M3.25 8a4.75 4.75 0 1 0 1.4-3.36" />
+    <path d="M3.25 2.75v2.5h2.5" />
+  </svg>
+);

@@ -8,7 +8,8 @@
  * It follows the rules the real server enforces (spec §3) closely enough to exercise every state the
  * drawer draws: refusals recorded in the ledger, the flags tick, the session's limits, a payout sent
  * on the second key and confirmed a few seconds later, and the AI's receipt read replacing the rules
- * card. It calls nothing: no PayPal, no AI.
+ * card. It also carries the Watchtower in the state `watch` names (./watchtower-fixture.ts) and fakes
+ * its judge-mode replay. It calls nothing: no PayPal, no AI.
  */
 import { OFFICERS } from "@/demo/riverbend";
 import { BUDGET_LINES, OFFICER_DIRECTORY, budgetLineById } from "@/demo/riverbend-policy";
@@ -30,6 +31,7 @@ import type { ActionResult, BoardTransport } from "../http-transport";
 import { budgetLeftCents, formatCents, isOfficer, needsAcknowledgement, roleTitle } from "../judge-model";
 import { sampleReceipt } from "../sample-receipts";
 import { fakeHex, fixtureBoardView, fixtureSignature } from "./board-view-fixture";
+import { DEFAULT_WATCH_FIXTURE, fixtureReplay, fixtureWatchtower, isWatchFixtureState } from "./watchtower-fixture";
 
 export interface FixtureTransportOptions {
   /** Simulated network time per call. */
@@ -38,6 +40,10 @@ export interface FixtureTransportOptions {
   confirmAfterMs?: number;
   /** How long the AI takes to read a receipt. */
   readAfterMs?: number;
+  /** The Watchtower's state (`&watch=`); anything unknown falls back to "stale", today's real state. */
+  watch?: string | null;
+  /** Answers the replay with an error instead, to see the failure line. */
+  replayFails?: boolean;
 }
 
 /** What each sample receipt really says, as the fake AI "reads" it. */
@@ -61,8 +67,9 @@ const clone = <T>(value: T): T => structuredClone(value);
 
 export function createFixtureTransport(options: FixtureTransportOptions = {}): BoardTransport {
   if (process.env.NODE_ENV === "production") throw new Error("The board-view fixture is for development only.");
-  const { latencyMs = 250, confirmAfterMs = 6_000, readAfterMs = 1_800 } = options;
+  const { latencyMs = 250, confirmAfterMs = 6_000, readAfterMs = 1_800, replayFails = false } = options;
   const view: BoardView = fixtureBoardView();
+  view.watchtower = fixtureWatchtower(isWatchFixtureState(options.watch) ? options.watch : DEFAULT_WATCH_FIXTURE);
   const ledgerIds = new Map(Object.entries(SEED_LEDGER_IDS));
   let created = 0;
 
@@ -292,6 +299,12 @@ export function createFixtureTransport(options: FixtureTransportOptions = {}): B
         appendEvent();
       }
       return reply(request).then((r) => ({ ok: true as const, request: r }));
+    },
+    async replayOutsideSend() {
+      // The real route runs the recorded rows through the classifier: a little longer than a read.
+      await sleep(latencyMs * 2);
+      if (replayFails) return { ok: false, status: 503, code: "replay_unavailable", message: "The replay isn't available just now. Try again in a moment." };
+      return { ok: true, replay: fixtureReplay() };
     },
   };
 }
