@@ -12,6 +12,9 @@ const SITE = "https://twokey.afterscroll.workers.dev";
 const SESSION_SECRET = "test-session-secret-not-real-0123456789abcdef";
 const NOW = new Date("2026-11-05T17:42:05.000Z");
 
+/** What src/close/reviewer-public-key.json holds until scripts/gen-reviewer-key.sh runs. */
+const PLACEHOLDER_KEY = { keyId: "unset", publicKey: "unset" };
+
 async function setup(over: Partial<CloseApiDeps> = {}, key?: TestReviewerKey) {
   const reviewer = key ?? (await generateTestReviewerKey());
   const store = createInMemorySignoffStore();
@@ -76,7 +79,7 @@ describe("GET /api/close", () => {
   });
 
   it("says no Reviewer key is published while the JSON is the placeholder", async () => {
-    const { deps, cookie } = await setup({ publicKey: undefined });
+    const { deps, cookie } = await setup({ publicKey: PLACEHOLDER_KEY });
     const view = (await (await handleCloseView(get(cookie), deps)).json()) as CloseView;
     expect(view.reviewerKey).toBeNull();
   });
@@ -144,7 +147,7 @@ describe("POST /api/close/sign", () => {
   });
 
   it("fails closed (503) while the Reviewer's key is unpublished, unset or not the committed one", async () => {
-    const { deps: placeholder, cookie, store } = await setup({ publicKey: undefined });
+    const { deps: placeholder, cookie, store } = await setup({ publicKey: PLACEHOLDER_KEY });
     const unpublished = await sign(placeholder, cookie);
     expect(unpublished.status).toBe(503);
     expect(await unpublished.json()).toMatchObject({ error: { code: "reviewer_key_unpublished" } });

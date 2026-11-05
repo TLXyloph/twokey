@@ -19,10 +19,12 @@ const signed = (keyId: string, over: Partial<SignedClose> = {}): SignedClose => 
 });
 
 describe("the Reviewer's demo key", () => {
-  it("is an unpublished placeholder until scripts/gen-reviewer-key.sh runs, so signing fails closed", async () => {
-    expect(isPublished(COMMITTED_REVIEWER_KEY)).toBe(false);
+  it("is published (scripts/gen-reviewer-key.sh ran); against the placeholder, signing fails closed", async () => {
+    expect(isPublished(COMMITTED_REVIEWER_KEY)).toBe(true);
+    const placeholder = { keyId: "unset", publicKey: "unset" };
+    expect(isPublished(placeholder)).toBe(false);
     const { secret } = await generateTestReviewerKey();
-    expect(await loadReviewerSigner(secret)).toEqual({ ok: false, code: "reviewer_key_unpublished" });
+    expect(await loadReviewerSigner(secret, placeholder)).toEqual({ ok: false, code: "reviewer_key_unpublished" });
   });
 
   it("signs with the secret that matches the published key, and the signature verifies", async () => {
