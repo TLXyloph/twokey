@@ -8,10 +8,10 @@
  * last signature per officer comes from the view's requests, newest first.
  */
 import demoPublicKeys from "@/disbursements/demo-public-keys.json";
-import { OFFICER_DIRECTORY } from "@/demo/riverbend-policy";
+import { OFFICER_DIRECTORY, REVIEWER } from "@/demo/riverbend-policy";
 import type { ActingRole, BoardView, OfficerRole } from "@/ledger/contracts";
 import { formatStepTime, roleTitle } from "@/ui/judge/judge-model";
-import { KEY_STEPS, REVIEWER_NAME, STEP_COUNT, type KeyStepId } from "./keys-content";
+import { KEY_STEPS, STEP_COUNT, type KeyStepId } from "./keys-content";
 
 /** The committed demo keys, read loosely: a Reviewer key may be added later for the monthly close. */
 const COMMITTED_KEYS: Partial<Record<ActingRole, { keyId: string }>> = demoPublicKeys;
@@ -121,7 +121,7 @@ export function keysPanel(done: number, view: BoardView | null, now: Date = new 
     {
       role: "reviewer",
       title: roleTitle("reviewer"),
-      person: REVIEWER_NAME,
+      person: REVIEWER.name,
       access: [NO_ACCESS],
       keyId: reviewerKey,
       keyNote: reviewerKey ? "Signs the monthly close only" : "No payout key; signs the monthly close",

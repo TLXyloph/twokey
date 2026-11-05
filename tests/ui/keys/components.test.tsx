@@ -44,6 +44,15 @@ describe("the setup steps", () => {
     expect(html).not.toContain(">Mark done<");
     expect(text(html)).toContain("All five changes are made.");
   });
+
+  it("says plainly what setup can't close once all five are done: the owner login, caught by the Watchtower", () => {
+    const done = text(renderToStaticMarkup(<KeyChecklist done={5} onAdvance={noop} onBack={noop} onReset={noop} />));
+    expect(done).toContain("What setup can't close");
+    expect(done).toContain("owner login");
+    expect(done).toContain("usually within about 2 hours");
+    const partway = text(renderToStaticMarkup(<KeyChecklist done={4} onAdvance={noop} onBack={noop} onReset={noop} />));
+    expect(partway).not.toContain("What setup can't close");
+  });
 });
 
 describe("who holds the keys", () => {

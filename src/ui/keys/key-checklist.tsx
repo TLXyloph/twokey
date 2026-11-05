@@ -153,6 +153,12 @@ export function KeyChecklist({ done, onAdvance, onBack, onReset }: KeyChecklistP
           </div>
         </div>
       ) : null}
+      {done === STEP_COUNT ? (
+        <div className="keys-gap">
+          <h3 className="keys-gap__title">{KEYS_COPY.gapTitle}</h3>
+          <p className="keys-gap__text">{KEYS_COPY.gapText}</p>
+        </div>
+      ) : null}
     </section>
   );
 }

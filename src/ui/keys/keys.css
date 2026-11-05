@@ -369,6 +369,28 @@
   margin-left: auto;
 }
 
+/* Once all five are made: the gap setup leaves open (the owner login), on one tone step. */
+.keys-gap {
+  margin-top: 20px;
+  padding: 14px 16px 16px;
+  border-radius: var(--radius-control);
+  background: var(--ground);
+}
+
+.keys-gap__title {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.keys-gap__text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  text-wrap: pretty;
+}
+
 /* Reduced motion: no travel, no growth. Words and marks fade; the accordion opens at once. */
 @media (prefers-reduced-motion: reduce) {
   .keys-step__body {

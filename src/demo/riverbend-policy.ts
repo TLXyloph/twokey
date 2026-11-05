@@ -18,6 +18,12 @@ export const OFFICER_DIRECTORY: readonly OfficerRecord[] = [
   { role: "secretary", name: "Priya Natarajan", address: "9 Quarry St, Riverbend" },
 ];
 
+/**
+ * The Reviewer (fictional): a non-signer who signs the monthly close and holds no payout key, so
+ * it stays out of `OFFICER_DIRECTORY`, which lists the payout keys the risk checks compare payees with.
+ */
+export const REVIEWER = { role: "reviewer", name: "Nora Lindgren" } as const;
+
 export interface BudgetLine {
   id: BudgetLineId;
   label: string;

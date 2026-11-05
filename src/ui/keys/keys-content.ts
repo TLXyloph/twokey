@@ -96,14 +96,14 @@ export const KEY_STEPS: readonly KeyStep[] = [
 
 export const STEP_COUNT = KEY_STEPS.length;
 
-/** The Reviewer isn't in the officer directory (its roles are the payout keys); a fictional name. */
-export const REVIEWER_NAME = "Nora Lindgren";
-
 export const KEYS_COPY = {
   title: "Key setup",
   finding: "Five changes in PayPal's settings take the keys away from any one officer. TwoKey can't make them through the API; it walks the board through them.",
   checklistTitle: "Setup steps",
   checklistNote: "Demo data: in judge mode, marking a step done changes only this page. Nothing is sent to PayPal.",
+  gapTitle: "What setup can't close",
+  gapText:
+    "PayPal has no setting that stops the owner login from sending money outside TwoKey. If it does, the Watchtower flags the send once PayPal reports it, usually within about 2 hours, and every officer and every parent sees the alert.",
   panelTitle: "Who holds the keys",
   panelNote:
     "PayPal access follows the setup steps (demo data). Key ids and signatures come from this session's ledger, and the Watchtower's line is live. Judge mode's keys are demo keys the server holds; a real club gives each officer a passkey.",
