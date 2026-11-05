@@ -3,7 +3,9 @@
  * .plans/watchtower-spec.md "Classify every row". It never looks at the balance.
  *   - Credits (amount > 0) are never findings. A T03xx credit whose `paypal_reference_id` names a
  *     debit marks that debit `fundedByBank` (the linked bank covered it; the balance didn't move).
- *   - Holds and releases (T15xx, T11xx) are never findings. A denied row ("D") moved no money.
+ *   - Holds and their releases (T15xx, T1105, and the dispute hold pair T1110/T1111) are never
+ *     findings. Other T11xx debits are: a T1107 refund or a T1106 reversal is money leaving, and
+ *     TwoKey never refunds. A denied row ("D") moved no money.
  *   - T0001 (payout) goes on to be traced against the ledger (./trace.ts).
  *   - Any other debit is `outside_debit`.
  * What left = |amount| + |fee| (a payout carries its $0.25 fee on the same row).
@@ -62,11 +64,14 @@ export function routeLabel(eventCode: string): string {
   if (n < 200) return "Fee charged by PayPal";
   if (n >= 400 && n < 500) return "Withdrawn to a bank";
   if (n >= 700 && n < 800) return "Spent with a PayPal debit card";
+  if (n === 1106) return "Reversed by PayPal (a dispute or chargeback)";
+  if (n === 1107) return "Refunded from PayPal's website";
   if (n >= 1200 && n < 1300) return "Adjusted by PayPal";
   return "Money left the PayPal account";
 }
 
-const isHoldOrRelease = (eventCode: string): boolean => eventCode.startsWith("T15") || eventCode.startsWith("T11");
+const HOLD_PAIR_CODES = new Set(["T1105", "T1110", "T1111"]);
+const isHoldOrRelease = (eventCode: string): boolean => eventCode.startsWith("T15") || HOLD_PAIR_CODES.has(eventCode);
 const isFunding = (eventCode: string): boolean => eventCode.startsWith("T03");
 
 export function classifyRows(rows: readonly TransactionRow[], lastRefreshed: string | null): Classification {

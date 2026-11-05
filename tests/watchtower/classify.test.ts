@@ -72,10 +72,22 @@ describe("classifyRows rules", () => {
     ]);
   });
 
-  it("ignores holds and releases (T15xx, T11xx) even when they take money, and credits", () => {
+  it("flags a refund or a reversal: TwoKey never refunds, so money left another way", () => {
+    const rows = [
+      row({ transactionId: "F", eventCode: "T1107", amountCents: -1500 }),
+      row({ transactionId: "V", eventCode: "T1106", amountCents: -1500 }),
+    ];
+    expect(classifyRows(rows, null).debits.map((d) => [d.transactionId, d.route, d.label])).toEqual([
+      ["F", "outside_debit", "Refunded from PayPal's website"],
+      ["V", "outside_debit", "Reversed by PayPal (a dispute or chargeback)"],
+    ]);
+  });
+
+  it("ignores holds and their releases (T15xx, T1105, T1110, T1111) even when they take money, and credits", () => {
     const rows = [
       row({ transactionId: "H", eventCode: "T1503", amountCents: -125 }),
       row({ transactionId: "R", eventCode: "T1105", amountCents: -10 }),
+      row({ transactionId: "D", eventCode: "T1110", amountCents: -10 }),
       row({ transactionId: "C", eventCode: "T0011", amountCents: 900 }),
       row({ transactionId: "Z", eventCode: "T0000", amountCents: 0 }),
     ];
