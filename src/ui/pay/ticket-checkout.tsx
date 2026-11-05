@@ -36,7 +36,68 @@ type Readiness = { kind: "loading" } | { kind: "unavailable" } | { kind: "ready"
 
 const BUSY = new Set<CheckoutStatus["kind"]>(["opening", "capturing"]);
 
-export function TicketCheckout({ event, clientId, judge, boardHref }: { event: TicketEvent; clientId: string | null; judge: boolean; boardHref: string }) {
+type Paid = Extract<CheckoutStatus, { kind: "paid" }>;
+
+export interface PaidTicketProps {
+  result: Paid["result"];
+  method: Paid["method"];
+  quantity: number;
+  judge: boolean;
+  boardHref: string;
+  ledgerHref: string;
+  onBuyMore: () => void;
+}
+
+/**
+ * The ticket once PayPal has the money, stamped with the capture id. In judge mode it leads on to the
+ * parent ledger, where the payment lands, with the way back to the board beside it.
+ */
+export function PaidTicket({ result, method, quantity, judge, boardHref, ledgerHref, onBuyMore }: PaidTicketProps) {
+  return (
+    <div className="checkout checkout--paid" role="status">
+      <p className="checkout__stamp" aria-hidden="true">
+        Paid
+      </p>
+      <h2 className="checkout__paid-title">{TICKET.paidHeading}</h2>
+      <p className="checkout__paid-line">
+        {ticketsLabel(quantity)} · {formatDollars(result.amountCents)} · paid with {METHOD_LABEL[method]}
+      </p>
+      <p className="checkout__capture">
+        PayPal capture <strong>{result.captureId}</strong>
+      </p>
+      <p className="checkout__note">{result.status === "COMPLETED" ? TICKET.ledgerLine : TICKET.pendingLine}</p>
+      <div className="checkout__after">
+        {judge && (
+          <>
+            <a className="button" href={ledgerHref}>
+              {TICKET.seeLedger}
+            </a>
+            <a className="button button--quiet" href={boardHref}>
+              {TICKET.backToBoard}
+            </a>
+          </>
+        )}
+        <button type="button" className="button button--quiet" onClick={onBuyMore}>
+          {TICKET.buyMore}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export function TicketCheckout({
+  event,
+  clientId,
+  judge,
+  boardHref,
+  ledgerHref,
+}: {
+  event: TicketEvent;
+  clientId: string | null;
+  judge: boolean;
+  boardHref: string;
+  ledgerHref: string;
+}) {
   const [quantity, setQuantity] = useState(Math.min(2, event.maxTickets));
   const [readiness, setReadiness] = useState<Readiness>(clientId ? { kind: "loading" } : { kind: "unavailable" });
   const [status, setStatus] = useState<CheckoutStatus>({ kind: "idle" });
@@ -82,31 +143,16 @@ export function TicketCheckout({ event, clientId, judge, boardHref }: { event: T
   };
 
   if (status.kind === "paid") {
-    const { result, method } = status;
     return (
-      <div className="checkout checkout--paid" role="status">
-        <p className="checkout__stamp" aria-hidden="true">
-          Paid
-        </p>
-        <h2 className="checkout__paid-title">{TICKET.paidHeading}</h2>
-        <p className="checkout__paid-line">
-          {ticketsLabel(status.quantity)} · {formatDollars(result.amountCents)} · paid with {METHOD_LABEL[method]}
-        </p>
-        <p className="checkout__capture">
-          PayPal capture <strong>{result.captureId}</strong>
-        </p>
-        <p className="checkout__note">{result.status === "COMPLETED" ? TICKET.ledgerLine : TICKET.pendingLine}</p>
-        <div className="checkout__after">
-          {judge && (
-            <a className="button" href={boardHref}>
-              {TICKET.backToBoard}
-            </a>
-          )}
-          <button type="button" className="button button--quiet" onClick={() => setStatus({ kind: "idle" })}>
-            {TICKET.buyMore}
-          </button>
-        </div>
-      </div>
+      <PaidTicket
+        result={status.result}
+        method={status.method}
+        quantity={status.quantity}
+        judge={judge}
+        boardHref={boardHref}
+        ledgerHref={ledgerHref}
+        onBuyMore={() => setStatus({ kind: "idle" })}
+      />
     );
   }
 

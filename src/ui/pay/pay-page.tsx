@@ -17,6 +17,8 @@ export interface PayPageProps {
 }
 
 const BOARD = "/demo";
+/** The parent ledger, where a ticket payment lands (judge mode links it wherever the board shows). */
+const LEDGER = "/demo/ledger";
 
 /**
  * The parent's ticket page, built as the club's own banquet ticket: a gold card in the team's
@@ -43,7 +45,7 @@ export function PayPage({ event, paypalClientId, testBuyer, judge }: PayPageProp
                 {TICKET.date} <span aria-hidden="true">·</span> {TICKET.doors}
               </p>
               <p className="ticket__what">{TICKET.what}</p>
-              <TicketCheckout event={event} clientId={paypalClientId} judge={judge} boardHref={BOARD} />
+              <TicketCheckout event={event} clientId={paypalClientId} judge={judge} boardHref={BOARD} ledgerHref={LEDGER} />
             </div>
             {testBuyer && (
               <>
@@ -55,6 +57,7 @@ export function PayPage({ event, paypalClientId, testBuyer, judge }: PayPageProp
               <a href="#letter">Where your $15 goes</a>
               <a href="#evening">The evening</a>
               {judge && <a href={BOARD}>{TICKET.backToBoard}</a>}
+              {judge && <a href={LEDGER}>{TICKET.seeLedger}</a>}
             </nav>
           </article>
           <figure className="pay-hero__photo">
@@ -116,9 +119,14 @@ export function PayPage({ event, paypalClientId, testBuyer, judge }: PayPageProp
                   </li>
                 ))}
                 {judge && (
-                  <li>
-                    <a href={BOARD}>{TICKET.backToBoard}</a>
-                  </li>
+                  <>
+                    <li>
+                      <a href={BOARD}>{TICKET.backToBoard}</a>
+                    </li>
+                    <li>
+                      <a href={LEDGER}>{TICKET.seeLedger}</a>
+                    </li>
+                  </>
                 )}
               </ul>
             </div>
