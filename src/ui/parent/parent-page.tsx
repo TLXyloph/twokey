@@ -28,6 +28,8 @@ import { parentCssVars } from "./tokens";
 import { WatchRoom } from "./watch-room";
 import "./parent.css";
 import "./chapters.css";
+import "./takings.css";
+import "./foot.css";
 import "./stacked.css";
 import "./motion.css";
 

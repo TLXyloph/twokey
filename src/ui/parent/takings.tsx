@@ -6,7 +6,7 @@
  * figure answers: what the ledger records against it, of what its count says to expect, with the
  * working-out beside it. The page opens on the event with the largest gap (the car wash).
  *
- * Three parts, no wrapper, so the chapter's grid places each one (chapters.css).
+ * Three parts, no wrapper, so the chapter's grid places each one (takings.css).
  */
 import { useState } from "react";
 import { eventTakings, storyEventId } from "./parent-model";
