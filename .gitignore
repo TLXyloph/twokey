@@ -27,6 +27,7 @@ docs/HANDOFF.md
 docs/twokey-concept.md
 docs/council/
 docs/research/*
+.plans/
 !docs/research/spike-poll-*.log
 
 # OS
