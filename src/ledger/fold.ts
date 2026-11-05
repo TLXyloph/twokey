@@ -98,7 +98,7 @@ function captureRow(c: Captured): LedgerEntry {
 }
 
 const isOut = (state: RequestState) => ["sent", "confirmed"].includes(requestStatus(state));
-const isDropped = (state: RequestState) => ["blocked", "failed"].includes(requestStatus(state));
+const isDropped = (state: RequestState) => ["blocked", "failed", "sent_back"].includes(requestStatus(state));
 
 function requestRow(state: RequestState): LedgerEntry {
   const { request } = state;

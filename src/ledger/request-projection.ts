@@ -25,7 +25,10 @@ export interface RequestState {
   request: Payload<"payout.requested">;
   /** In ledger order; the first is the request's own (key 1). */
   signatures: SignatureView[];
+  /** The server's refusals (a "sent_back" decision is kept apart, in `sentBack`). */
   refusals: PayoutRequestView["refusals"];
+  /** An officer's decision to send the request back, with the reason; it closes the request. */
+  sentBack: { role: OfficerRole; reason: string; at: string; seq: number } | null;
   risks: RiskRecord[];
   blocked: Stamped<Payload<"payout.blocked">> | null;
   sent: Stamped<Payload<"payout.sent">> | null;
@@ -47,6 +50,7 @@ export function projectRequests(events: readonly LedgerEvent[]): RequestState[] 
           request: event.payload,
           signatures: [],
           refusals: [],
+          sentBack: null,
           risks: [],
           blocked: null,
           sent: null,
@@ -74,7 +78,8 @@ export function projectRequests(events: readonly LedgerEvent[]): RequestState[] 
       });
     } else if (is(event, "approval.refused")) {
       const { role, code, message } = event.payload;
-      state.refusals.push({ role, code, message, at: event.occurredAt });
+      if (code === "sent_back") state.sentBack ??= { role: role as OfficerRole, reason: message, at: event.occurredAt, seq: event.seq };
+      else state.refusals.push({ role, code, message, at: event.occurredAt });
     } else if (is(event, "risk.assessed")) {
       state.risks.push({ card: event.payload.card, cardHash: event.payload.cardHash, at: event.occurredAt });
     } else if (is(event, "payout.blocked")) {
@@ -96,6 +101,7 @@ export function requestStatus(state: RequestState): PayoutRequestView["status"] 
   if (state.sent) return "sent";
   if (state.failed) return "failed";
   if (state.blocked) return "blocked";
+  if (state.sentBack) return "sent_back";
   return "waiting";
 }
 

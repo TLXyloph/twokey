@@ -29,6 +29,7 @@ import { signPayout } from "../approve";
 import { unknownRequest } from "../eligibility";
 import { createPayoutRequest, createPayoutRequestSchema, MAX_SESSION_REQUESTS } from "../requests";
 import { runRiskRead } from "../risk-read";
+import { sendBackPayout } from "../send-back";
 import { errorJson, internalError, json, openJudgeRequest, type JudgeApiDeps, type JudgeContext } from "./judge-context";
 
 const REQUEST_ID = /^[A-Za-z0-9_-]{1,64}$/;
@@ -41,6 +42,13 @@ const signBodySchema = z
   .strict();
 
 const riskBodySchema = z.union([z.undefined(), z.object({}).strict()]);
+
+const sendBackBodySchema = z
+  .object({
+    actingAs: z.enum(["president", "treasurer", "secretary", "parent", "reviewer"]),
+    reason: z.string().trim().min(3).max(200),
+  })
+  .strict();
 
 function badRequest(ctx: JudgeContext, error: z.ZodError): Response {
   ctx.finish("bad_request", 400, "validation");
@@ -124,6 +132,34 @@ export async function handleRiskRead(request: Request, requestId: string, deps: 
     const outcome = await runRiskRead(ctx, ctx.sessionId, requestId);
     if (outcome === "unknown_request") return unknown(ctx);
     ctx.finish(outcome, 200);
+    return json(200, { request: await viewOf(ctx, requestId) });
+  } catch (error) {
+    return internalError(ctx, error);
+  }
+}
+
+/**
+ * `POST …/send-back` {actingAs, reason}: an officer who could add key 2 sends the payout back.
+ *   200 { request }   sent back (status "sent_back"; the reason is on its timeline)
+ *   400               body invalid (the reason must be 3–200 characters)
+ *   404               unknown request
+ *   409 refusal       not an officer, the payee, the requester, or no longer waiting (recorded)
+ */
+export async function handleSendBack(request: Request, requestId: string, deps: JudgeApiDeps): Promise<Response> {
+  const prelude = await openJudgeRequest(request, deps, "payouts/send-back");
+  if (!prelude.ok) return prelude.response;
+  const { ctx } = prelude;
+  const parsed = sendBackBodySchema.safeParse(ctx.body);
+  if (!parsed.success) return badRequest(ctx, parsed.error);
+  if (!REQUEST_ID.test(requestId)) return unknown(ctx);
+  try {
+    const outcome = await sendBackPayout(ctx, ctx.sessionId, requestId, parsed.data);
+    if (outcome.kind === "unknown_request") return unknown(ctx);
+    if (outcome.kind === "refused") {
+      ctx.finish(outcome.refusal.code, 409);
+      return errorJson(409, outcome.refusal.code, outcome.refusal.message);
+    }
+    ctx.finish("sent_back", 200);
     return json(200, { request: await viewOf(ctx, requestId) });
   } catch (error) {
     return internalError(ctx, error);

@@ -44,6 +44,7 @@ const routes = async () => ({
   requests: await import("@/app/api/payouts/requests/route"),
   sign: await import("@/app/api/payouts/requests/[id]/sign/route"),
   risk: await import("@/app/api/payouts/requests/[id]/risk/route"),
+  sendBack: await import("@/app/api/payouts/requests/[id]/send-back/route"),
 });
 const get = (path: string, withCookie = true) => new Request(`${SITE}${path}`, { headers: withCookie ? { cookie } : {} });
 const post = (path: string, body: unknown) =>
@@ -85,7 +86,7 @@ describe("the judge routes", () => {
     const all = await routes();
     expect(Object.keys(all.view).sort()).toEqual(["GET", "runtime"]);
     expect(Object.keys(all.verify).sort()).toEqual(["GET", "runtime"]);
-    for (const route of [all.requests, all.sign, all.risk]) expect(Object.keys(route).sort()).toEqual(["POST", "runtime"]);
+    for (const route of [all.requests, all.sign, all.risk, all.sendBack]) expect(Object.keys(route).sort()).toEqual(["POST", "runtime"]);
     for (const route of Object.values(all)) expect(route.runtime).toBe("nodejs");
   });
 
@@ -103,6 +104,23 @@ describe("the judge routes", () => {
     const check = (await (await verify.GET(get("/api/ledger/verify"))).json()) as ChainCheck;
     expect(check).toMatchObject({ ok: true });
     expect(d1.all("SELECT type FROM ledger_events WHERE type = 'payout.sent'")).toHaveLength(1);
+  });
+
+  it("send a payout back with a reason, refuse the payee, and refuse key 2 afterwards", async () => {
+    const { sendBack, sign } = await routes();
+    const asPayee = await sendBack.POST(post("/api/payouts/requests/L15/send-back", { actingAs: "treasurer", reason: "Not mine to decide" }), params("L15"));
+    expect(asPayee.status).toBe(409);
+    expect(((await asPayee.json()) as { error: { code: string } }).error.code).toBe("payee_cannot_sign");
+    expect((await sendBack.POST(post("/api/payouts/requests/L15/send-back", { actingAs: "president", reason: "x" }), params("L15"))).status).toBe(400);
+    const sent = await sendBack.POST(post("/api/payouts/requests/L15/send-back", { actingAs: "president", reason: "The lights aren't field paint." }), params("L15"));
+    expect(sent.status).toBe(200);
+    expect(((await sent.json()) as { request: PayoutRequestView }).request).toMatchObject({
+      status: "sent_back",
+      timeline: expect.arrayContaining([expect.objectContaining({ step: "sent_back", label: "Sent back by the President", detail: "The lights aren't field paint." })]),
+    });
+    const after = await sign.POST(post("/api/payouts/requests/L15/sign", { actingAs: "president", acknowledgedFlags: true }), params("L15"));
+    expect(after.status).toBe(409);
+    expect(paypal.calls.some((c) => c.url === `${SANDBOX}/v1/payments/payouts`)).toBe(false);
   });
 
   it("create a judge's own request with 201", async () => {

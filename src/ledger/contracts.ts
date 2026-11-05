@@ -165,6 +165,11 @@ export interface SignedApproval {
 }
 
 export type RefusalCode =
+  /**
+   * Not the server refusing: an officer who could add key 2 decided against the payout and sent it
+   * back, with their reason as the message. It closes the request (`status` "sent_back").
+   */
+  | "sent_back"
   | "not_an_officer"
   | "payee_cannot_sign"
   | "already_signed"
@@ -252,7 +257,7 @@ export interface SignatureView {
 }
 
 export interface TimelineStep {
-  step: "requested" | "signed" | "blocked" | "sent" | "failed" | "confirmed";
+  step: "requested" | "signed" | "sent_back" | "blocked" | "sent" | "failed" | "confirmed";
   /** Plain words: "Sent to PayPal", "PayPal confirmed". */
   label: string;
   at: string;
@@ -280,7 +285,7 @@ export interface PayoutRequestView {
   risk: RiskCard | null;
   /** True while an AI read hasn't landed yet and could still run. */
   riskPending: boolean;
-  status: "waiting" | "blocked" | "sent" | "confirmed" | "failed";
+  status: "waiting" | "sent_back" | "blocked" | "sent" | "confirmed" | "failed";
   timeline: TimelineStep[];
 }
 
@@ -310,6 +315,8 @@ export const API = {
   payoutRequests: "/api/payouts/requests",
   /** POST SignBody -> 200 { request } | 409 refusal | 409 limit */
   sign: (requestId: string) => `/api/payouts/requests/${encodeURIComponent(requestId)}/sign`,
+  /** POST SendBackBody -> 200 { request } | 409 refusal (an officer who could sign key 2 sends it back) */
+  sendBack: (requestId: string) => `/api/payouts/requests/${encodeURIComponent(requestId)}/send-back`,
   /** POST {} -> 200 { request } (runs the AI receipt read once; later calls return the stored card) */
   risk: (requestId: string) => `/api/payouts/requests/${encodeURIComponent(requestId)}/risk`,
   /** POST CreateOrderBody -> 201 { orderId } */
@@ -332,6 +339,12 @@ export interface CreatePayoutRequestBody {
 export interface SignBody {
   actingAs: ActingRole;
   acknowledgedFlags: boolean;
+}
+
+export interface SendBackBody {
+  actingAs: ActingRole;
+  /** Why it was sent back: 3–200 characters, shown on the request's timeline. */
+  reason: string;
 }
 
 export interface CreateOrderBody {

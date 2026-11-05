@@ -5,7 +5,7 @@
  *
  * Signing, checked in this order:
  *   not_an_officer           a parent holds no key
- *   request_closed           already sent, confirmed, blocked or failed, or both keys are on it
+ *   request_closed           already sent, confirmed, blocked, failed or sent back, or both keys are on it
  *   payee_cannot_sign        the payee never signs a payout to themselves
  *   already_signed           one officer, one key (the requester's request is key 1)
  *   receipt_check_pending    key 2 waits for the receipt check to land or be tried
@@ -40,6 +40,30 @@ const NON_OFFICER_SIGN: Record<Exclude<ActingRole, OfficerRole>, string> = {
   reviewer: "The reviewer signs the monthly close, never a payout, so the reviewer holds no payout key.",
 };
 
+function closedMessage(state: RequestState, status: Exclude<ReturnType<typeof requestStatus>, "waiting">): string {
+  if (status === "sent_back") return `The ${titleOf(state.sentBack!.role)} sent this payout back, so it can't be signed.`;
+  return CLOSED[status];
+}
+
+/**
+ * May `actingAs` send this request back? Only an officer who could add key 2: not a parent or the
+ * reviewer, not the requester (their key is on it), not the payee, and only while it waits.
+ */
+export function sendBackRefusal(state: RequestState, actingAs: ActingRole): Refusal | null {
+  if (!isOfficer(actingAs)) return { code: "not_an_officer", message: `${NON_OFFICER[actingAs]} can't send a payout back. Only the club's officers decide on payouts.` };
+  const status = requestStatus(state);
+  if (status !== "waiting") return { code: "request_closed", message: closedMessage(state, status) };
+  if (hasBothKeys(state)) return { code: "request_closed", message: "This payout already has both keys." };
+  const title = titleOf(actingAs);
+  if (payeeRole(state) === actingAs) {
+    return { code: "payee_cannot_sign", message: `The ${title} is the payee, so the ${title} can't decide on this payout.` };
+  }
+  if (signers(state).includes(actingAs)) {
+    return { code: "already_signed", message: `The ${title}'s key is already on this payout, so a different officer decides on it.` };
+  }
+  return null;
+}
+
 /** May `actingAs` request a payout to this payee? */
 export function requestRefusal(actingAs: ActingRole, payeeOfficer: OfficerRole | null): Refusal | null {
   if (!isOfficer(actingAs)) return { code: "not_an_officer", message: `${NON_OFFICER[actingAs]} can't request payouts. Only the club's officers can.` };
@@ -54,7 +78,7 @@ export function requestRefusal(actingAs: ActingRole, payeeOfficer: OfficerRole |
 export function signRefusal(state: RequestState, actingAs: ActingRole, acknowledgedFlags: boolean): Refusal | null {
   if (!isOfficer(actingAs)) return { code: "not_an_officer", message: NON_OFFICER_SIGN[actingAs] };
   const status = requestStatus(state);
-  if (status !== "waiting") return { code: "request_closed", message: CLOSED[status] };
+  if (status !== "waiting") return { code: "request_closed", message: closedMessage(state, status) };
   if (hasBothKeys(state)) return { code: "request_closed", message: "This payout already has both keys." };
   const title = titleOf(actingAs);
   if (payeeRole(state) === actingAs) {

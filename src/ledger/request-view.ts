@@ -17,6 +17,10 @@ function timeline(state: RequestState): TimelineStep[] {
     if (!signature.isRequest) steps.push({ step: "signed", label: `Signed by the ${signature.title}`, at: signature.at, order: 1 + index });
   });
   const base = 100;
+  if (state.sentBack) {
+    const { role, reason, at, seq } = state.sentBack;
+    steps.push({ step: "sent_back", label: `Sent back by the ${titleOf(role)}`, at, order: base + seq, detail: reason });
+  }
   if (state.blocked) {
     steps.push({ step: "blocked", label: `Not sent: ${state.blocked.payload.message}`, at: state.blocked.at, order: base + state.blocked.seq });
   }
