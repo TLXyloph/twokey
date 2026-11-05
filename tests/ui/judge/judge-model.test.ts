@@ -194,8 +194,11 @@ describe("sending a payout back", () => {
     expect(canSendBack(sentBackRequest(), "president")).toBe(false);
   });
 
-  it("starts the reason from the card's top flag, worst first", () => {
-    expect(defaultSendBackReason(paintRequest().risk)).toBe("The payee is an officer: this reimbursement goes to the treasurer.");
+  it("starts the reason from the card's top flag, worst first, and the receipt's flag before a rule's at the same level", () => {
+    // A rule's flag ("this pays an officer") is a fact about the request; the receipt's is the reason to send it back.
+    expect(defaultSendBackReason(paintRequest().risk)).toBe("One line on the receipt is not a league item.");
+    const rule = { severity: "warn" as const, text: "This pays an officer, the Treasurer.", evidence: "", source: "rule" as const };
+    expect(defaultSendBackReason(riskCard({ findings: [rule] }))).toBe("This pays an officer, the Treasurer.");
     const stop = { severity: "stop" as const, text: "The receipt total doesn't match.", evidence: "", source: "ai" as const };
     const warn = { severity: "warn" as const, text: "A warning.", evidence: "", source: "rule" as const };
     expect(defaultSendBackReason(riskCard({ findings: [warn, stop] }))).toBe("The receipt total doesn't match.");

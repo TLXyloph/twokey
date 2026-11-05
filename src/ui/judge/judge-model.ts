@@ -132,9 +132,14 @@ export const SEND_BACK_REASON_MAX = 200;
 export const canSendBack = (request: PayoutRequestView, role: ActingRole): boolean =>
   request.status === "waiting" && isOfficer(role) && request.eligibleSigners.includes(role);
 
-/** The reason a send-back starts from: the card's top flag (stop before warn), within the limit. */
+/**
+ * The reason a send-back starts from: the card's top flag (stop before warn), within the limit. At the
+ * same level the receipt's flag comes before a rule's: "this pays an officer" is a fact about the
+ * request, the string lights are the reason to send it back.
+ */
 export function defaultSendBackReason(card: RiskCard | null): string {
-  const top = card?.findings.find((f) => f.severity === "stop") ?? card?.findings.find((f) => f.severity === "warn");
+  const flags = [...(card?.findings ?? [])].sort((a, b) => (a.source === "rule" ? 1 : 0) - (b.source === "rule" ? 1 : 0));
+  const top = flags.find((f) => f.severity === "stop") ?? flags.find((f) => f.severity === "warn");
   const text = top?.text.trim() ?? "";
   return text.length <= SEND_BACK_REASON_MAX ? text : `${text.slice(0, SEND_BACK_REASON_MAX - 1).trimEnd()}…`;
 }
