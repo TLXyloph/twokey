@@ -78,7 +78,10 @@
   line-clamp: 1;
 }
 
-/* One of the two forms is shown (and so read); a strip under 840px takes the shorter. */
+/*
+ * One of the two forms is shown (and so read). The long form needs about 1000px of strip: at 1440
+ * the strip is about 920px and cut "…2:59 AM C…", so a strip under 1000px takes the shorter.
+ */
 .tk-strip {
   container-type: inline-size;
 }
@@ -87,7 +90,7 @@
   display: none;
 }
 
-@container (max-width: 839px) {
+@container (max-width: 999px) {
   .tk-strip__note-long {
     display: none;
   }
