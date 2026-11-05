@@ -1,0 +1,109 @@
+/*
+ * The parent balance widget. Three figures in one panel, parted by space (no dividers): a label over
+ * a large figure in the display face over a caption. Every colour and face is Studio's theme, read
+ * back from its CSS variables, so the widget has no palette of its own.
+ */
+.pk-balance {
+  --pk-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  box-sizing: border-box;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  column-gap: 32px;
+  align-items: center;
+  height: 100%;
+  margin: 0;
+  padding: 0 var(--ag-spacing, 8px);
+  font-family: var(--ag-font-family, inherit);
+  color: var(--ag-text-color, currentColor);
+  container-type: inline-size;
+}
+
+/* The balance leads: its column is wider and its figure larger. */
+.pk-balance:has(> :nth-child(3)) {
+  grid-template-columns: minmax(0, 1.4fr);
+}
+
+.pk-balance__cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.pk-balance__label,
+.pk-balance__value,
+.pk-balance__caption {
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.pk-balance__label {
+  font-size: 15px;
+  line-height: 20px;
+  color: var(--ag-subtle-text-color, currentColor);
+}
+
+.pk-balance__value {
+  font-family: var(--ag-studio-widget-title-font-family, inherit);
+  font-size: 40px;
+  line-height: 48px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.pk-balance__cell[data-cell="balance"] .pk-balance__value {
+  font-size: 56px;
+  line-height: 60px;
+}
+
+.pk-balance__cell[data-zero] .pk-balance__value {
+  color: var(--ag-subtle-text-color, currentColor);
+}
+
+.pk-balance__caption {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ag-subtle-text-color, currentColor);
+}
+
+/* A narrow panel (the 720-1099px canvas): the figures step down so all three keep one line. */
+@container (max-width: 760px) {
+  .pk-balance__value {
+    font-size: 30px;
+    line-height: 36px;
+  }
+
+  .pk-balance__cell[data-cell="balance"] .pk-balance__value {
+    font-size: 40px;
+    line-height: 48px;
+  }
+}
+
+/* The tick: a changed figure fades in where it stands; with motion allowed it also rises 6px. */
+.pk-balance__value[data-tick] {
+  transition: opacity 240ms var(--pk-ease-out);
+}
+
+@starting-style {
+  .pk-balance__value[data-tick] {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pk-balance__value[data-tick] {
+    transition:
+      opacity 240ms var(--pk-ease-out),
+      translate 240ms var(--pk-ease-out);
+  }
+
+  @starting-style {
+    .pk-balance__value[data-tick] {
+      translate: 0 6px;
+    }
+  }
+}

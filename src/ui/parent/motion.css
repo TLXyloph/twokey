@@ -1,0 +1,247 @@
+/*
+ * The parent ledger's motion. Transform, scale, opacity and clip-path only (plus colour on hover and
+ * the arrival's one glow). Curves and durations are the landing's and the pay page's, from the animate
+ * skill: --ease-out for entrances and presses, --ease-in-out for the shutter. Opacity fades run for
+ * everyone; travel, scale and the shutter join them only without the reduced-motion preference.
+ * Nothing on the first screen waits for a scroll, and without script nothing is hidden.
+ */
+
+.parent {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --t-press: 150ms;
+  --t-hover: 150ms;
+  --t-ui: 240ms;
+  --t-reveal: 800ms;
+  --t-open: 1100ms;
+}
+
+/* ---- Feedback under the hand: a press on every control, hover only where a pointer hovers ---- */
+.button,
+.stacked__more,
+.foot__tile--banquet {
+  transition-property: scale, background-color, color;
+  transition-duration: var(--t-press), var(--t-hover), var(--t-hover);
+  transition-timing-function: var(--ease-out), ease, ease;
+}
+
+.picker__text {
+  transition-property: background-color, color;
+  transition-duration: var(--t-hover);
+  transition-timing-function: ease;
+}
+
+.link,
+.nav a,
+.latest__all,
+.foot a {
+  transition: text-decoration-color var(--t-hover) ease;
+}
+
+.foot__arrow {
+  transition: translate var(--t-ui) var(--ease-out);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .button:active,
+  .stacked__more:active,
+  .foot__tile--banquet:active,
+  .picker__option:active .picker__text {
+    scale: 0.96;
+  }
+
+  .picker__text {
+    transition-property: background-color, color, scale;
+    transition-duration: var(--t-hover), var(--t-hover), var(--t-press);
+    transition-timing-function: ease, ease, var(--ease-out);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .button:hover {
+    background-color: color-mix(in oklab, var(--p-ink) 88%, white);
+  }
+
+  .link:hover,
+  .nav a:hover,
+  .latest__all:hover,
+  .foot__links a:hover,
+  .foot__credits a:hover {
+    text-decoration-color: currentColor;
+  }
+
+  .picker__input:not(:checked):hover + .picker__text {
+    background-color: color-mix(in oklab, var(--p-ink) 70%, var(--p-ground));
+  }
+
+  .stacked__more:hover {
+    background-color: var(--p-raised);
+  }
+
+  .foot__tile--banquet:hover .foot__arrow {
+    translate: 4px -4px;
+  }
+}
+
+/* ---- The tick: a payment lands, its row arrives on top and glows gold once ---- */
+.latest__row {
+  transition:
+    opacity var(--t-ui) var(--ease-out),
+    translate var(--t-ui) var(--ease-out);
+}
+
+.latest__row[data-arrived] {
+  animation: latest-glow 1600ms ease-out 1 both;
+}
+
+@starting-style {
+  .latest__row[data-arrived] {
+    opacity: 0;
+  }
+}
+
+@keyframes latest-glow {
+  from {
+    background-color: color-mix(in oklab, var(--p-ink) 26%, var(--p-ground));
+  }
+  to {
+    background-color: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @starting-style {
+    .latest__row[data-arrived] {
+      translate: 0 -8px;
+    }
+  }
+}
+
+/* ---- The takings figure: each new answer arrives in place ---- */
+.takings__received {
+  transition: opacity var(--t-ui) var(--ease-out);
+}
+
+@starting-style {
+  .takings__received {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .takings__received {
+    transition:
+      opacity var(--t-ui) var(--ease-out),
+      translate var(--t-ui) var(--ease-out);
+  }
+
+  @starting-style {
+    .takings__received {
+      translate: 0 0.06em;
+    }
+  }
+}
+
+/* ---- Load: the hero's words settle, the stage opens beside them ---- */
+.hero__title,
+.hero__lead,
+.hero__actions,
+.hero__stage {
+  animation: parent-fade 300ms var(--ease-out) var(--d, 80ms) backwards;
+}
+
+.hero__lead {
+  --d: 150ms;
+}
+
+.hero__actions {
+  --d: 220ms;
+}
+
+.hero__stage {
+  --d: 260ms;
+}
+
+@keyframes parent-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero__title,
+  .hero__lead,
+  .hero__actions {
+    animation-name: parent-rise;
+    animation-duration: 600ms;
+  }
+
+  .hero__stage {
+    animation: parent-stage var(--t-open) var(--ease-in-out) var(--d) backwards;
+  }
+
+  @keyframes parent-rise {
+    from {
+      opacity: 0;
+      translate: 0 24px;
+    }
+  }
+
+  @keyframes parent-stage {
+    from {
+      opacity: 0;
+      translate: 48px 0;
+    }
+  }
+}
+
+/* ---- Entrances: the parts of each chapter, once, as they enter (parent-motion.tsx) ---- */
+:root.parent-reveal-ready .parent [data-reveal]:not([data-visible]) {
+  opacity: 0;
+}
+
+.parent [data-reveal] {
+  transition: opacity var(--t-reveal) var(--ease-out) var(--delay, 0ms);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :root.parent-reveal-ready .parent [data-reveal]:not([data-visible]) {
+    translate: 0 24px;
+  }
+
+  .parent [data-reveal] {
+    transition:
+      opacity var(--t-reveal) var(--ease-out) var(--delay, 0ms),
+      translate var(--t-reveal) var(--ease-out) var(--delay, 0ms);
+  }
+}
+
+/* ---- The signature: the car-wash photograph opens like a shutter, the picture settling inside ---- */
+@media (prefers-reduced-motion: no-preference) {
+  :root.parent-reveal-ready .takings__photo:not([data-visible]) .takings__frame {
+    clip-path: inset(100% 0 0 0);
+  }
+
+  :root.parent-reveal-ready .takings__photo:not([data-visible]) .takings__frame img {
+    scale: 1.12;
+  }
+
+  .takings__frame {
+    transition: clip-path var(--t-open) var(--ease-in-out) var(--delay, 0ms);
+  }
+
+  .takings__frame img {
+    transition: scale var(--t-open) var(--ease-out) var(--delay, 0ms);
+  }
+
+  /* The one moving picture: once open, the photograph drifts slowly closer while it is on screen. */
+  .takings__photo[data-visible] .takings__frame img {
+    animation: parent-drift 24s linear 1.2s infinite alternate;
+  }
+
+  @keyframes parent-drift {
+    to {
+      scale: 1.06;
+    }
+  }
+}

@@ -1,0 +1,147 @@
+/*
+ * The club's books below 720px (stacked-books.tsx): the Studio page's four answers as plain panels on
+ * the maroon, one tone up, in the same faces and colours as Studio's theme. Hidden from 720px, where
+ * Studio takes over.
+ */
+.stacked {
+  display: grid;
+  gap: 8px;
+  padding: 0 var(--margin);
+}
+
+@media (min-width: 720px) {
+  .stacked {
+    display: none;
+  }
+}
+
+.stacked__balance,
+.stacked__part {
+  padding: 20px 16px;
+  background: var(--p-surface);
+}
+
+.stacked__balance {
+  display: grid;
+  gap: 18px;
+}
+
+.stacked__cell {
+  display: grid;
+  gap: 2px;
+}
+
+.stacked__figure {
+  font-family: var(--p-display);
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.stacked__cell[data-lead] .stacked__figure {
+  font-size: 2.75rem;
+}
+
+.stacked__caption {
+  font-size: var(--step-small);
+}
+
+.stacked__title {
+  margin-bottom: 14px;
+  font-family: var(--p-display);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.stacked__events,
+.stacked__waiting {
+  display: grid;
+  gap: 18px;
+}
+
+.stacked__event-head,
+.stacked__payout-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.stacked__event-name,
+.stacked__payee {
+  min-width: 0;
+  font-weight: 500;
+}
+
+.stacked__event-figure,
+.stacked__amount {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Received against expected: a gold fill in a dusty-rose track, the chart's two colours. */
+.stacked__bar {
+  display: block;
+  height: 10px;
+  margin-top: 8px;
+  background: var(--p-comparison);
+}
+
+.stacked__bar-fill {
+  display: block;
+  height: 100%;
+  background: var(--p-ink);
+}
+
+.stacked__note {
+  margin-top: 6px;
+  font-size: var(--step-small);
+}
+
+.stacked__event-figure[data-short] {
+  color: var(--p-short);
+  font-weight: 600;
+}
+
+.stacked__event:has([data-short]) .stacked__note {
+  color: var(--p-short);
+}
+
+.stacked__quiet {
+  color: var(--p-muted);
+}
+
+/* The ledger rows reuse the hero's rows (latest.tsx), edge to edge in the panel, parted by tone. */
+.stacked__part .latest__rows {
+  margin-inline: -16px;
+}
+
+.stacked__part .latest__row {
+  padding-inline: 16px;
+  border-top: 0;
+}
+
+.stacked__part .latest__row:nth-child(odd) {
+  background: color-mix(in oklab, var(--p-surface) 70%, var(--p-ground));
+}
+
+.stacked__part .latest__party {
+  color: var(--p-ink);
+  white-space: normal;
+}
+
+.stacked__more {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 12px;
+  border: 0;
+  background: var(--p-ground);
+  color: var(--p-ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
