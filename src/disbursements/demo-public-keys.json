@@ -1,0 +1,5 @@
+{
+  "president": { "keyId": "unset", "publicKey": "unset" },
+  "secretary": { "keyId": "unset", "publicKey": "unset" },
+  "treasurer": { "keyId": "unset", "publicKey": "unset" }
+}
