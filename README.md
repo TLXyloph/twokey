@@ -26,6 +26,7 @@ Open https://twokey.afterscroll.workers.dev/demo on a desktop browser. Every bro
 5. **Watch the Watchtower.** Under the header: two $3.21 sends made from PayPal's own website on Nov 3, one of them to the Treasurer. TwoKey didn't make them, so the Watchtower flags them for every officer and parent. "Replay an outside send" replays the real event through the same checks, labelled as a replay.
 6. **Ask the AI** on the board: "Where did the car-wash money go?"
 7. **See the other screens** from the nav: the **parent ledger** (in the club's colours), the **monthly close** (the Reviewer signs it) and **key setup** (who holds which key).
+8. **Start over** (in the band) gives you a fresh copy of the club from the seed. It counts as a new session: each network gets 5 an hour.
 
 Limits in judge mode: $50 per payout, 3 payouts per session, and $500 a day across all sessions. The AI has a hard total budget. When it runs out, the AI features serve recorded answers labelled "replay".
 
@@ -115,13 +116,13 @@ You need Node 22+, a Cloudflare account (Workers Paid, for CPU time), a PayPal d
    - Create a REST app in the [developer dashboard](https://developer.paypal.com/dashboard/applications/sandbox), with Payouts and Transaction Search enabled.
    - Copy its client id and secret.
    - Create a personal sandbox account to use as the test buyer.
-3. **Settings:** copy `config/env.example` to `.env` and fill it in. Make the demo keys with `bash scripts/gen-demo-keys.sh` (it writes the private keys to `.dev.vars` and the public keys to `src/disbursements/demo-public-keys.json`; copy the `TWOKEY_DEMO_KEY_*` lines into `.env` for `next dev`).
+3. **Settings:** copy `config/env.example` to `.env` and fill it in. Make the demo keys with `bash scripts/gen-demo-keys.sh` (it writes the private keys to `.dev.vars` and the public keys to `src/disbursements/demo-public-keys.json`; copy the `TWOKEY_DEMO_KEY_*` lines into `.env` for `next dev`). Make the Reviewer's key the same way with `bash scripts/gen-reviewer-key.sh` (public key in `src/close/reviewer-public-key.json`).
 4. **Run locally:** `npm run dev`, then open http://localhost:3000/demo. Under `next dev` the ledger lives in memory.
 5. **Test:** `npm test` and `npx tsc --noEmit`.
 6. **Deploy to Cloudflare:**
    - Create the D1 database `twokey` and put its id in `wrangler.jsonc`.
    - Run `npx wrangler d1 migrations apply twokey --remote`.
-   - Set each secret with `npx wrangler secret put NAME`, reading the value from stdin. `scripts/put-worker-secret.py` and `scripts/gen-demo-keys.sh --deploy` do this without printing values.
+   - Set each secret with `npx wrangler secret put NAME`, reading the value from stdin. `scripts/put-worker-secret.py`, `scripts/gen-demo-keys.sh --deploy` and `scripts/gen-reviewer-key.sh --deploy` do this without printing values.
    - Run `npm run deploy`, which builds without your `.env`, scans the bundle for secrets, and deploys.
 7. **Webhooks:** register `https://<your-worker>/api/paypal/webhook` for all events (`python3 scripts/paypal-sandbox-spike.py webhook-register --url …`) and set `PAYPAL_WEBHOOK_ID`.
 
