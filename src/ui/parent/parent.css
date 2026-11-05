@@ -1,0 +1,412 @@
+/*
+ * The parent ledger: base, navigation, hero and the "Latest in the club account" fragment. Direction
+ * "Colour chapters" (seed 584334170) in the club's team colours (tokens: ./tokens.ts, on .parent as
+ * --p-*). One grid of twelve columns between two equal margins; two faces (Bricolage Grotesque for
+ * display, Geist for text); five sizes: the takings figure, display, lead, body, small. Square
+ * corners everywhere; surfaces part by tone, never by a line, except inside the interface fragments
+ * (data-ui), which keep their table rules.
+ */
+
+:root:has(.parent),
+:root:has(.parent) body {
+  height: auto;
+  background: #3d0012;
+  color-scheme: dark;
+}
+
+.parent {
+  --margin: 32px;
+  --gutter: 24px;
+  --section: clamp(96px, 60px + 6vw, 160px);
+  --step-figure: clamp(140px, 19vw, 320px);
+  --step-display: clamp(3rem, 1.75rem + 3.6vw, 5.25rem);
+  --step-lead: clamp(1.1875rem, 1.1rem + 0.3vw, 1.375rem);
+  --step-body: 1.0625rem;
+  --step-small: 0.9375rem;
+  --rule-on-ground: color-mix(in oklab, var(--p-ink) 16%, var(--p-ground));
+
+  background: var(--p-ground);
+  color: var(--p-ink);
+  font-family: var(--p-text);
+  font-size: var(--step-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+@media (max-width: 1099px) {
+  .parent {
+    --margin: 24px;
+  }
+}
+
+@media (max-width: 699px) {
+  .parent {
+    --margin: 16px;
+    --gutter: 16px;
+  }
+}
+
+.parent :where(h1, h2, h3, p, figure, ul, ol, dl, dd, fieldset) {
+  margin: 0;
+}
+
+.parent :where(ul, ol) {
+  padding: 0;
+  list-style: none;
+}
+
+.parent img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.parent :focus-visible {
+  outline: 3px solid var(--p-ink);
+  outline-offset: 3px;
+}
+
+.parent ::selection {
+  background: var(--p-ink);
+  color: var(--p-ground);
+}
+
+.board-visually-hidden,
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---- The judge band: the board's own look, a layer for judges above the club's page ---- */
+.parent__judge .judge-bar {
+  padding-inline: var(--margin);
+  /* On the board a 1px rule parts the band from the stone ground; here the maroon below parts it. */
+  border-bottom: 0;
+}
+
+/* ---- Navigation: wordmark, the club, three links, one action ---- */
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 28px;
+  padding: 28px var(--margin) 0;
+  font-size: var(--step-small);
+}
+
+.nav__wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: center;
+  color: var(--p-ink);
+  font-family: var(--p-display);
+  font-size: 1.375rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+}
+
+.nav__mark {
+  flex: none;
+}
+
+.nav__club {
+  color: var(--p-ink);
+}
+
+.nav__demo {
+  color: var(--p-muted);
+}
+
+.nav__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 24px;
+  margin-left: auto;
+}
+
+.nav a:not(.nav__wordmark) {
+  color: var(--p-ink);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, var(--p-ink) 40%, transparent);
+  text-underline-offset: 4px;
+}
+
+.nav__action {
+  font-weight: 600;
+}
+
+@media (max-width: 899px) {
+  .nav__links {
+    display: none;
+  }
+
+  .nav__action {
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 699px) {
+  .nav {
+    gap: 4px 16px;
+    padding-top: 20px;
+  }
+
+  .nav__club {
+    order: 3;
+    flex-basis: 100%;
+  }
+}
+
+/* ---- Buttons and links: one square gold button, underlined text links ---- */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 0 26px;
+  background: var(--p-ink);
+  color: var(--p-ground);
+  font-size: var(--step-body);
+  font-weight: 600;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.link {
+  color: var(--p-ink);
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, var(--p-ink) 45%, transparent);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.24em;
+}
+
+/* ---- Hero: the title and the action on the maroon; the latest rows on a crimson stage ---- */
+.hero {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+  align-items: start;
+  min-height: calc(100svh - 140px);
+  padding: clamp(64px, 3rem + 4vw, 120px) var(--margin) 0;
+}
+
+.hero__words {
+  grid-column: 1 / span 5;
+  display: grid;
+  gap: 32px;
+  padding-bottom: 64px;
+}
+
+.hero__title {
+  font-family: var(--p-display);
+  font-size: var(--step-display);
+  font-weight: 600;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  font-variation-settings: "opsz" 96;
+  text-wrap: balance;
+}
+
+.hero__lead {
+  max-width: 40ch;
+  font-size: var(--step-lead);
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 28px;
+}
+
+/* The stage bleeds off the right edge and the hero's foot; its corner is cut like a key's bit. */
+.hero__stage {
+  grid-column: 6 / span 7;
+  align-self: stretch;
+  margin-top: clamp(48px, 9vh, 112px);
+  margin-right: calc(var(--margin) * -1);
+  padding: 72px var(--margin) 48px 56px;
+  background: var(--p-field);
+  clip-path: polygon(0 56px, 40px 56px, 40px 28px, 80px 28px, 80px 0, 100% 0, 100% 100%, 0 100%);
+}
+
+@media (max-width: 1099px) {
+  .hero__words {
+    grid-column: 1 / -1;
+    max-width: 640px;
+  }
+
+  .hero__stage {
+    grid-column: 1 / -1;
+    margin-top: 0;
+    margin-left: calc(var(--margin) * -1);
+    padding-left: var(--margin);
+  }
+}
+
+@media (max-width: 699px) {
+  .hero {
+    min-height: 0;
+    padding-top: 40px;
+  }
+
+  /* The chapters' display size, so the phone keeps the page's five steps. */
+  .hero__title {
+    font-size: var(--step-display);
+  }
+
+  .hero__words {
+    gap: 24px;
+    padding-bottom: 48px;
+  }
+
+  .hero__lead {
+    font-size: var(--step-body);
+  }
+
+  .hero__stage {
+    padding: 64px 16px 32px;
+    clip-path: polygon(0 48px, 32px 48px, 32px 24px, 72px 24px, 72px 0, 100% 0, 100% 100%, 0 100%);
+  }
+}
+
+/* ---- The latest rows: a real piece of the ledger, on the maroon, one tone below the stage ---- */
+.latest {
+  max-width: 720px;
+  background: var(--p-ground);
+  /* The Watchtower's status line reads the board's names; here they take the team colours. */
+  --text: var(--p-ink);
+  --muted: var(--p-muted);
+  --data: var(--p-short);
+  --comparison: var(--p-muted);
+  --active: var(--p-surface);
+  --radius-chip: 0;
+}
+
+.latest__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px 12px;
+}
+
+.latest__title {
+  font-family: var(--p-display);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.latest__all {
+  color: var(--p-ink);
+  font-size: var(--step-small);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, var(--p-ink) 40%, transparent);
+  text-underline-offset: 4px;
+}
+
+.latest__rows {
+  display: grid;
+}
+
+.latest__row {
+  display: grid;
+  grid-template-columns: 4.25rem minmax(0, 1fr) auto;
+  align-items: baseline;
+  column-gap: 16px;
+  padding: 14px 24px;
+  border-top: 1px solid var(--rule-on-ground);
+}
+
+.latest__day {
+  color: var(--p-muted);
+  font-size: var(--step-small);
+  font-variant-numeric: tabular-nums;
+}
+
+.latest__what {
+  display: grid;
+  min-width: 0;
+}
+
+.latest__desc {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.latest__party {
+  overflow: hidden;
+  color: var(--p-muted);
+  font-size: var(--step-small);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.latest__amount {
+  font-family: var(--p-display);
+  font-size: 1.375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* Not paid yet: the figure waits in the quieter gold. */
+.latest__amount[data-waiting] {
+  color: var(--p-muted);
+}
+
+.latest__foot {
+  padding: 14px 24px 18px;
+  border-top: 1px solid var(--rule-on-ground);
+  font-size: var(--step-small);
+}
+
+/* The Watchtower's line at the page's small size, not the board's 13px; its mark stays on line one. */
+.latest__foot .watch-status {
+  margin: 0;
+  font-size: var(--step-small);
+  line-height: 1.45;
+}
+
+.latest__foot .watch-status .watch-mark {
+  margin-top: 8px;
+}
+
+@media (max-width: 699px) {
+  .latest__head,
+  .latest__row,
+  .latest__foot {
+    padding-inline: 16px;
+  }
+
+  /* The title keeps one line and the link its two words: the link steps under the title. */
+  .latest__head {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+
+  .latest__all {
+    white-space: nowrap;
+  }
+
+  .latest__row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .latest__day {
+    grid-column: 1 / -1;
+  }
+}

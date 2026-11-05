@@ -1,0 +1,228 @@
+/*
+ * "Did each event's takings arrive?": the loud chapter, gold paper and maroon ink. The question, the
+ * picker, the figure at poster size and the car-wash photograph, on the page's twelve columns. The
+ * heading's face and size are the chapters' own (chapters.css).
+ */
+
+/* ---- Takings: gold paper, maroon ink; the question, the picker, the figure, the photograph ---- */
+.takings {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-rows: auto auto minmax(48px, 1fr) auto;
+  column-gap: var(--gutter);
+  min-height: 92svh;
+  padding: var(--section) var(--margin);
+  background: var(--p-ink);
+  color: var(--p-ground);
+}
+
+.takings :focus-visible {
+  outline-color: var(--p-ground);
+}
+
+.takings__title {
+  grid-column: 1 / span 7;
+  grid-row: 1;
+}
+
+.picker {
+  grid-column: 1 / span 7;
+  grid-row: 2;
+  align-self: start;
+  margin-top: 32px;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.picker__track {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  background: color-mix(in oklab, var(--p-ink) 84%, var(--p-ground));
+}
+
+.picker__option {
+  position: relative;
+  display: inline-flex;
+}
+
+/* The native radio sits invisibly over its label, so a tap anywhere on the option picks it. */
+.picker__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.picker__text {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 18px;
+  color: var(--p-ground);
+  font-size: var(--step-body);
+  font-weight: 500;
+  pointer-events: none;
+}
+
+.picker__input:checked + .picker__text {
+  background: var(--p-ground);
+  color: var(--p-ink);
+}
+
+.picker__input:focus-visible + .picker__text {
+  outline: 3px solid var(--p-ground);
+  outline-offset: 2px;
+}
+
+/*
+ * Nine columns, so "$15 of $1,305 expected" reads as one line at 1100px and up. The figure and its
+ * unit are a wrapping row on one baseline: the unit never breaks inside itself, and when a long figure
+ * leaves it no room it drops whole beneath the figure, a small step down rather than a figure-sized
+ * line box.
+ */
+.takings__figure {
+  grid-column: 1 / span 9;
+  grid-row: 4;
+  align-self: end;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.1em 0.12em;
+  font-family: var(--p-display);
+  font-size: var(--step-figure);
+  font-weight: 700;
+  line-height: 0.8;
+  letter-spacing: -0.05em;
+  font-variant-numeric: tabular-nums;
+}
+
+.takings__unit {
+  font-size: 0.2em;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.takings__working {
+  grid-column: 10 / span 3;
+  grid-row: 4;
+  align-self: end;
+  max-width: 34ch;
+  font-size: var(--step-body);
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.takings__event {
+  font-weight: 600;
+}
+
+.takings__photo {
+  grid-column: 9 / span 4;
+  grid-row: 1 / span 2;
+  align-self: start;
+}
+
+.takings__frame {
+  overflow: hidden;
+  aspect-ratio: 4 / 5;
+}
+
+.takings__frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 42% 50%;
+  /* The pay page's treatment: warm monochrome, so the archive pictures read as one set. */
+  filter: grayscale(1) sepia(0.32) contrast(1.06) brightness(0.9);
+}
+
+.takings__caption {
+  margin-top: 10px;
+  font-size: var(--step-small);
+}
+
+@media (max-width: 1099px) {
+  .takings {
+    grid-template-rows: auto;
+    min-height: 0;
+    row-gap: 32px;
+  }
+
+  .takings__title,
+  .picker,
+  .takings__figure {
+    grid-column: 1 / -1;
+  }
+
+  .takings__title {
+    grid-row: 1;
+  }
+
+  .picker {
+    grid-row: 3;
+    margin-top: 0;
+  }
+
+  .takings__figure {
+    grid-row: 4;
+  }
+
+  /* The photograph and the working-out share a row, so neither half of it stands empty. */
+  .takings__photo {
+    grid-column: 1 / span 6;
+    grid-row: 2;
+  }
+
+  .takings__working {
+    grid-column: 7 / -1;
+    grid-row: 2;
+    align-self: end;
+  }
+
+  .takings__figure {
+    font-size: 24vw;
+  }
+}
+
+@media (max-width: 699px) {
+  .takings__title,
+  .takings__photo,
+  .picker,
+  .takings__figure,
+  .takings__working {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+
+  .takings__figure {
+    font-size: 30vw;
+  }
+
+  /* The unit always takes its own line under the figure on a phone. */
+  .takings__unit {
+    flex-basis: 100%;
+    font-size: 1.25rem;
+  }
+
+  .picker__track {
+    display: flex;
+  }
+
+  .picker__option {
+    flex: 1 1 auto;
+  }
+
+  .picker__text {
+    justify-content: center;
+    width: 100%;
+    padding: 0 12px;
+  }
+}
+

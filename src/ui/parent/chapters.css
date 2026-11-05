@@ -1,0 +1,228 @@
+/*
+ * The chapters after the hero, each a field in one of the team colours, butted together with no gap:
+ * the takings on gold (the loud one, where the story is), the books on maroon (Studio's own ground),
+ * the Watchtower on crimson, then the footer's tiles. Headings start on the page margin in every
+ * chapter, so the grid holds while the colour changes.
+ *
+ * This file holds the chapters' shared heading and lead, the books and the Watchtower; the takings
+ * chapter is in takings.css and the footer in foot.css.
+ */
+
+.chapter-title,
+.takings__title {
+  font-family: var(--p-display);
+  font-size: var(--step-display);
+  font-weight: 600;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  font-variation-settings: "opsz" 96;
+  text-wrap: balance;
+}
+
+.chapter-lead {
+  max-width: 46ch;
+  font-size: var(--step-lead);
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+/* ---- Books: the maroon ground Studio sits on ---- */
+/* Under the books, a short step down to the Watchtower: Studio's canvas padding (20px at 1100px and
+   up, 12px below) and its 12px widget inset add to this, so the last table ends about 72px above the
+   crimson. */
+.books {
+  padding: var(--section) 0 40px;
+  background: var(--p-ground);
+}
+
+.books__head {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+  align-items: end;
+  padding: 0 var(--margin) 40px;
+}
+
+.books__head .chapter-title {
+  grid-column: 1 / span 6;
+}
+
+.books__head .chapter-lead {
+  grid-column: 8 / span 5;
+}
+
+/* Studio's place, sized before it loads (books.tsx); Studio itself insets its panels onto the margin. */
+.books__studio {
+  min-height: var(--books-wide);
+}
+
+.books__loading {
+  padding: 32px var(--margin);
+  color: var(--p-muted);
+  font-size: var(--step-small);
+}
+
+@media (max-width: 1099px) {
+  .books__studio {
+    min-height: var(--books-medium);
+  }
+
+  .books__head .chapter-title,
+  .books__head .chapter-lead {
+    grid-column: 1 / -1;
+  }
+
+  .books__head .chapter-lead {
+    margin-top: 24px;
+  }
+}
+
+@media (max-width: 719px) {
+  .books__studio {
+    display: none;
+  }
+}
+
+/* ---- The Watchtower: crimson field; its status and alerts on a maroon panel ---- */
+.watch {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+  align-items: start;
+  min-height: 80svh;
+  padding: var(--section) var(--margin);
+  background: var(--p-field);
+}
+
+.watch__words {
+  grid-column: 1 / span 5;
+  display: grid;
+  gap: 28px;
+}
+
+.watch__delay {
+  max-width: 46ch;
+  text-wrap: pretty;
+}
+
+.watch__room {
+  grid-column: 7 / span 6;
+  margin-top: 8px;
+}
+
+.watch-room {
+  display: grid;
+  gap: 16px;
+  padding: 28px;
+  background: var(--p-ground);
+  /* The board's Watchtower components read the board's names; here they take the team colours. */
+  --text: var(--p-ink);
+  --muted: var(--p-muted);
+  --data: var(--p-short);
+  --short-tint: var(--p-surface);
+  --comparison: var(--p-muted);
+  --border: var(--p-rule);
+  --rule: var(--p-rule);
+  --surface: var(--p-surface);
+  --raised: var(--p-raised);
+  --active: var(--p-surface);
+  --control: var(--p-muted);
+  --radius-chip: 0;
+  --radius-control: 0;
+  font-size: var(--step-body);
+}
+
+.watch-room .watch-alerts,
+.watch-room .watch-status {
+  --watch-notice: var(--p-ink);
+  --watch-edge: var(--p-surface);
+  --watch-rule: var(--p-rule);
+}
+
+.watch-room .watch-status {
+  margin: 0;
+}
+
+.watch-room__quiet {
+  color: var(--p-muted);
+}
+
+/*
+ * The board sets its Watchtower at its 13-14px meta size; a parent reads this room as the page's
+ * text: findings at the body size, PayPal's times and the controls at the small size. The marks grow
+ * with the words and stay centred on the first line (a 25.5px line, an 8px mark).
+ */
+.watch-room .watch-status,
+.watch-room .watch-alerts {
+  font-size: var(--step-body);
+  line-height: 1.5;
+}
+
+.watch-room .watch-facts,
+.watch-room .watch-explained__note,
+.watch-room .watch-alert__label,
+.watch-room .watch-quiet,
+.watch-room .watch-toggle {
+  font-size: var(--step-small);
+  line-height: 1.45;
+}
+
+.watch-room .watch-status .watch-mark,
+.watch-room .watch-alert .watch-mark,
+.watch-room .watch-explained .watch-mark {
+  width: 8px;
+  height: 8px;
+  margin-top: 9px;
+}
+
+.watch-room .watch-alert__row,
+.watch-room .watch-explained__item {
+  grid-template-columns: 8px minmax(0, 1fr);
+  gap: 12px;
+}
+
+.watch-room .watch-alert {
+  padding: 14px 18px 16px;
+}
+
+.watch-room .watch-alert__list {
+  gap: 12px;
+}
+
+.watch-room .watch-alert__list > li + li {
+  padding-top: 12px;
+}
+
+.watch-room .watch-explained {
+  padding: 0 18px;
+}
+
+.watch-room .watch-explained__item {
+  padding: 12px 0;
+}
+
+@media (max-width: 1099px) {
+  .watch__words,
+  .watch__room {
+    grid-column: 1 / -1;
+  }
+
+  .watch__room {
+    margin-top: 40px;
+  }
+}
+
+@media (max-width: 699px) {
+  .watch-room {
+    padding: 20px 16px;
+  }
+
+  .watch-room .watch-alert {
+    padding: 12px 14px 14px;
+  }
+
+  .watch-room .watch-explained {
+    padding: 0 14px;
+  }
+}
+

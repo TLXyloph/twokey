@@ -1,0 +1,191 @@
+/*
+ * The footer: a board of tiles in the team colours, every cell used, on the page's margins. The name
+ * returns at full size beside the banquet's tile, the page's one action said again.
+ */
+
+/* ---- Footer: a board of tiles, every cell used, on the page's margins ---- */
+.foot {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-rows: minmax(220px, auto) 320px;
+  gap: 8px;
+  padding: 8px var(--margin) var(--margin);
+  background: var(--p-ground);
+}
+
+.foot__tile {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  min-width: 0;
+  margin: 0;
+  padding: 24px;
+  background: var(--p-surface);
+}
+
+.foot__tile--statement {
+  grid-column: 1 / span 4;
+}
+
+.foot__tile--nav {
+  grid-column: 5 / span 3;
+}
+
+/* The clock's tile is a size container, so the clock can fit its line at any width (below). */
+.foot__tile--time {
+  grid-column: 8 / span 2;
+  container-type: inline-size;
+}
+
+.foot__tile--credits {
+  grid-column: 10 / span 3;
+}
+
+.foot__statement {
+  font-size: var(--step-lead);
+  line-height: 1.35;
+  text-wrap: pretty;
+}
+
+.foot__small {
+  color: var(--p-muted);
+  font-size: var(--step-small);
+}
+
+.foot__links {
+  display: grid;
+  gap: 8px;
+}
+
+.foot a {
+  color: var(--p-ink);
+}
+
+.foot__links a,
+.foot__credits a {
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, var(--p-ink) 40%, transparent);
+  text-underline-offset: 4px;
+}
+
+/* One line, always: "10:08 AM CST", the widest, is 6.4em, so 15% of the tile's inside fits it; the
+   lead step (the statement's size) once there is room. */
+.foot__clock {
+  font-family: var(--p-display);
+  font-size: min(var(--step-lead), 15cqi);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.foot__credits {
+  display: grid;
+  gap: 10px;
+  font-size: var(--step-small);
+  line-height: 1.4;
+}
+
+.foot__tile--wordmark {
+  grid-column: 1 / span 8;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  background: var(--p-ink);
+  color: var(--p-ground);
+  font-family: var(--p-display);
+  font-size: 13vw;
+  font-weight: 700;
+  line-height: 0.8;
+  letter-spacing: -0.06em;
+}
+
+.foot__tile--banquet {
+  grid-column: 9 / span 4;
+  position: relative;
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 20px;
+  background: var(--p-field);
+  text-decoration: none;
+}
+
+.foot__program {
+  grid-row: 1 / -1;
+  width: 160px;
+  height: auto;
+  align-self: start;
+  filter: grayscale(1) sepia(0.32) contrast(1.06) brightness(0.9);
+}
+
+/* The title and its date read as one block at the top of the tile, however tall the tile is. */
+.foot__banquet-words {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+
+/* The date and price in the full gold: the muted gold is 4.2:1 on the crimson, under AA. */
+.foot__tile--banquet .foot__small {
+  color: var(--p-ink);
+}
+
+.foot__banquet-title {
+  font-family: var(--p-display);
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.foot__arrow {
+  grid-column: 2;
+  justify-self: end;
+  align-self: end;
+}
+
+@media (max-width: 1099px) {
+  .foot {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: none;
+  }
+
+  .foot__tile {
+    grid-column: auto;
+    min-height: 180px;
+  }
+
+  .foot__tile--wordmark {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    min-height: 200px;
+    font-size: 22vw;
+  }
+
+  .foot__tile--banquet {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
+
+@media (max-width: 699px) {
+  .foot {
+    gap: 6px;
+  }
+
+  .foot__tile {
+    padding: 20px;
+  }
+
+  .foot__tile--wordmark {
+    min-height: 160px;
+    font-size: 26vw;
+  }
+
+  .foot__tile--statement,
+  .foot__tile--credits {
+    grid-column: 1 / -1;
+  }
+}
