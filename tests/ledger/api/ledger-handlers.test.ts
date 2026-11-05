@@ -1,5 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import type { JudgeApiDeps } from "@/disbursements/api/judge-context";
 import { eventHash } from "@/ledger/chain";
+import type { WatchtowerView } from "@/watchtower/contracts";
 import type { BoardView, ChainCheck, LedgerEvent } from "@/ledger/contracts";
 import type { LedgerTable } from "@/ledger/ledger-table";
 import { seedHash } from "@/ledger/seed";
@@ -42,6 +44,24 @@ describe("GET /api/ledger/view", () => {
     const f = await judgeFixture({ sharedBalance: async () => Promise.reject(new Error("PayPal down")) });
     const board = (await (await handleLedgerView(get("/api/ledger/view", f.cookie), f.deps)).json()) as BoardView;
     expect(board.sharedBalance).toBeNull();
+  });
+
+  it("carries the global Watchtower's view, the same for every session", async () => {
+    const watchtower: WatchtowerView = { status: "stale_reports", checkedAt: "2026-11-05T15:00:02.000Z", paypalAsOf: "2026-11-05T08:59:59Z", findings: [], explained: [] };
+    const read = vi.fn(async () => watchtower);
+    const f = await judgeFixture({ watchtower: read });
+    const board = (await (await handleLedgerView(get("/api/ledger/view", f.cookie), f.deps)).json()) as BoardView;
+    expect(board.watchtower).toEqual(watchtower);
+    expect(read).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows no Watchtower (null) rather than failing when it can't be read", async () => {
+    for (const watchtower of [async () => Promise.reject(new Error("D1 down")), () => { throw new Error("sync"); }, undefined]) {
+      const f = await judgeFixture({ watchtower: watchtower as JudgeApiDeps["watchtower"] });
+      const response = await handleLedgerView(get("/api/ledger/view", f.cookie), f.deps);
+      expect(response.status).toBe(200);
+      expect(((await response.json()) as BoardView).watchtower).toBeNull();
+    }
   });
 
   it("needs a session cookie, but not a same-origin header (it's a GET)", async () => {

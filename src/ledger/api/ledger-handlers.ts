@@ -3,8 +3,9 @@
  * (src/disbursements/api/judge-context.ts; a first read opens the session):
  *
  * GET /api/ledger/view    -> 200 BoardView: the seed folded with this session's events, today's
- *                            payout total across sessions for the limits, and PayPal's shared
- *                            sandbox balance (null when it can't be read).
+ *                            payout total across sessions for the limits, PayPal's shared
+ *                            sandbox balance and the global Watchtower's view (each null when it
+ *                            can't be read; neither ever fails the view).
  * GET /api/ledger/verify  -> 200 ChainCheck: re-hashes the session's chain from the seed hash and
  *                            checks every signature against the committed public keys; names the
  *                            first event that doesn't hold.
@@ -18,18 +19,23 @@ import type { LedgerEvent } from "../contracts";
 import { foldBoard } from "../fold";
 import { seedHash } from "../seed";
 
+/** A side read the board can do without: any failure (even a synchronous throw) reads as null. */
+const readOrNull = <T>(read: (() => Promise<T | null>) | undefined): Promise<T | null> =>
+  read ? Promise.resolve().then(read).catch(() => null) : Promise.resolve(null);
+
 export async function handleLedgerView(request: Request, deps: JudgeApiDeps): Promise<Response> {
   const prelude = await openJudgeRequest(request, deps, "ledger/view");
   if (!prelude.ok) return prelude.response;
   const { ctx } = prelude;
   try {
     const events = await ctx.ledger.read(ctx.sessionId);
-    const [dailySentCents, sharedBalance, seed] = await Promise.all([
+    const [dailySentCents, sharedBalance, watchtower, seed] = await Promise.all([
       ctx.ledger.sentPayoutCentsSince(startOfUtcDay(ctx.now())),
       deps.sharedBalance ? deps.sharedBalance().catch(() => null) : Promise.resolve(null),
+      readOrNull(deps.watchtower),
       seedHash(),
     ]);
-    const board = foldBoard(riverbend, events, { sharedBalance, dailySentCents, seedHash: seed });
+    const board = foldBoard(riverbend, events, { sharedBalance, dailySentCents, seedHash: seed, watchtower });
     ctx.finish("ok", 200);
     return json(200, board);
   } catch (error) {

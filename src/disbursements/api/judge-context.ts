@@ -21,6 +21,7 @@ import { createLedgerStore, type TwoKeyLedgerStore } from "@/ledger/ledger-store
 import type { LedgerTable } from "@/ledger/ledger-table";
 import type { PaypalClient } from "@/payments/paypal/client";
 import type { SharedBalance } from "@/payments/paypal/balances";
+import type { WatchtowerView } from "@/watchtower/contracts";
 import { createSessionOpener } from "../open-session";
 import {
   COMMITTED_PUBLIC_KEYS,
@@ -54,6 +55,8 @@ export interface JudgeApiDeps {
   paypal: PaypalClient | undefined;
   /** PayPal's shared sandbox balance (cached); absent or null shows nothing. */
   sharedBalance?(): Promise<SharedBalance | null>;
+  /** The global Watchtower's view (src/watchtower/view.ts); absent, null or failing shows none. */
+  watchtower?(): Promise<WatchtowerView | null>;
   /** Defaults to the committed src/disbursements/demo-public-keys.json. */
   publicKeys?: DemoPublicKeys;
   now?(): Date;
