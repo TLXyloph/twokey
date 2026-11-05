@@ -1,7 +1,7 @@
 /**
  * The judge UI's port to the step-4 API (src/ledger/contracts.ts `API`): read the board view, create
- * a payout request, sign, and ask for the AI's receipt read; and the Watchtower's judge-mode replay
- * (src/watchtower/contracts.ts `WATCHTOWER_API.replay`).
+ * a payout request, sign or send it back, and ask for the AI's receipt read; and the Watchtower's
+ * judge-mode replay (src/watchtower/contracts.ts `WATCHTOWER_API.replay`).
  *
  * Every route needs the judge-session cookie. A call without one is answered 401; the transport then
  * POSTs the session endpoint (which sets the cookie) and sends the call once more, the same pattern
@@ -16,6 +16,7 @@ import {
   type BoardView,
   type CreatePayoutRequestBody,
   type PayoutRequestView,
+  type SendBackBody,
   type SignBody,
 } from "@/ledger/contracts";
 import { WATCHTOWER_API, type WatchReplay } from "@/watchtower/contracts";
@@ -32,6 +33,8 @@ export interface BoardTransport {
   getView(): Promise<BoardView>;
   createRequest(body: CreatePayoutRequestBody): Promise<ActionResult>;
   sign(requestId: string, body: SignBody): Promise<ActionResult>;
+  /** An officer who could add key 2 sends the request back, with a reason (3–200 characters). */
+  sendBack(requestId: string, body: SendBackBody): Promise<ActionResult>;
   assessRisk(requestId: string): Promise<ActionResult>;
   /** Runs a recorded outside send through the Watchtower's classifier again. */
   replayOutsideSend(): Promise<ReplayResult>;
@@ -178,6 +181,7 @@ export function createHttpTransport(options: HttpTransportOptions = {}): BoardTr
     },
     createRequest: (body) => post(API.payoutRequests, body),
     sign: (requestId, body) => post(API.sign(requestId), body),
+    sendBack: (requestId, body) => post(API.sendBack(requestId), body),
     assessRisk: (requestId) => post(API.risk(requestId), {}),
     async replayOutsideSend() {
       const result = await postJson(WATCHTOWER_API.replay, {}, (payload) => (isWatchReplay(payload) ? payload : null));

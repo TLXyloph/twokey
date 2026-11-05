@@ -1,0 +1,227 @@
+/*
+ * A request card's second decision and its quieter parts: "Send back" and its reason, the folded
+ * "2 notes" on the risk card, and the waiting clock. Tokens from .board; motion curves from
+ * .judge-drawer (./drawer.css).
+ *
+ * Motion (animate): the reason and the opened notes are occasional disclosures, so each fades in
+ * 4px from above over 200ms on the strong ease-out (transitions with @starting-style, so a quick
+ * close and reopen retargets). Under reduced motion they keep the fade and drop the travel. The
+ * clock never animates: its digits change in place, in tabular figures.
+ */
+
+/* --- Send back ------------------------------------------------------------------------------- */
+
+/* The secondary decision beside "Sign as …", at the primary's 36px height. */
+.judge-sign__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.judge-sign__actions .judge-secondary-button {
+  height: 36px;
+  padding: 0 14px;
+}
+
+.judge-sign__actions .judge-secondary-button[aria-expanded="true"] {
+  border-color: var(--text);
+  background: var(--active);
+}
+
+.judge-sendback {
+  display: grid;
+  gap: 12px;
+  padding: 12px 14px 14px;
+  border-radius: var(--radius-control);
+  background: var(--ground);
+  transition: opacity 200ms var(--ease-out);
+}
+
+@starting-style {
+  .judge-sendback {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .judge-sendback {
+    transition:
+      opacity 200ms var(--ease-out),
+      transform 200ms var(--ease-out);
+  }
+
+  @starting-style {
+    .judge-sendback {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+  }
+}
+
+.judge-sendback__field {
+  display: grid;
+  gap: 6px;
+}
+
+/* The label, and the count beside it: the field's one limit stays in view while typing. */
+.judge-sendback__label-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 2px 12px;
+}
+
+.judge-sendback__reason {
+  height: auto;
+  min-height: 80px;
+  padding: 8px 12px;
+  line-height: 20px;
+  resize: vertical;
+}
+
+.judge-sendback__lede {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.judge-sendback__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.judge-sendback__actions .judge-secondary-button {
+  height: 36px;
+  padding: 0 14px;
+}
+
+@media (max-width: 479px) {
+  .judge-sign__actions,
+  .judge-sendback__actions {
+    width: 100%;
+  }
+
+  .judge-sign__actions > *,
+  .judge-sendback__actions > * {
+    flex: 1;
+  }
+
+  .judge-sign__actions .judge-secondary-button,
+  .judge-sendback__actions .judge-secondary-button,
+  .judge-sendback__actions .board-button {
+    height: 44px;
+  }
+
+  /* 16px, so a phone's browser doesn't zoom the page when the field takes focus. */
+  .judge-sendback__reason {
+    font-size: 16px;
+    line-height: 22px;
+  }
+}
+
+/* Focus follows a card that was just sent back; a keyboard user sees the ring, a click does not. */
+.judge-card[tabindex="-1"]:focus {
+  outline: none;
+}
+
+.judge-card[tabindex="-1"]:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
+/* --- The sent-back step: the officer's own words, in ink ----------------------------------- */
+
+.judge-step[data-step="sent-back"] .judge-step__detail {
+  color: var(--text);
+  font-size: 14px;
+  line-height: 20px;
+  text-wrap: pretty;
+}
+
+/* --- The waiting clock ----------------------------------------------------------------------- */
+
+.judge-step__clock {
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Folded notes on the risk card ----------------------------------------------------------- */
+
+.judge-notes {
+  margin-top: -2px;
+}
+
+.judge-notes__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  /* Room for the focus ring; the negative margin keeps the words on the card's text edge. */
+  margin-inline: -4px;
+  padding: 2px 4px;
+  border-radius: var(--radius-chip);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  list-style: none;
+  cursor: pointer;
+  transition: color 150ms ease;
+}
+
+.judge-notes__toggle::-webkit-details-marker {
+  display: none;
+}
+
+.judge-notes__toggle svg {
+  transition: rotate 150ms var(--ease-out);
+}
+
+.judge-notes[open] .judge-notes__toggle svg {
+  rotate: 180deg;
+}
+
+.judge-notes__toggle:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) {
+  .judge-notes__toggle:hover {
+    color: var(--text);
+  }
+}
+
+.judge-notes .judge-findings {
+  margin-top: 8px;
+  transition: opacity 200ms var(--ease-out);
+}
+
+@starting-style {
+  .judge-notes .judge-findings {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .judge-notes .judge-findings {
+    transition:
+      opacity 200ms var(--ease-out),
+      transform 200ms var(--ease-out);
+  }
+
+  @starting-style {
+    .judge-notes .judge-findings {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .judge-notes__toggle svg {
+    transition: none;
+  }
+}

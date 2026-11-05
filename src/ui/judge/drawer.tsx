@@ -9,8 +9,8 @@
  * Waiting requests come first, then the ones that left the queue. Officers can request a payout
  * from the header; a parent's drawer is read-only. The board behind updates as the client polls.
  */
-import { useEffect, useRef, useState, type SyntheticEvent } from "react";
-import type { ActingRole, BoardView } from "@/ledger/contracts";
+import { useEffect, useRef, useState, type ReactNode, type SyntheticEvent } from "react";
+import type { ActingRole, BoardView, PayoutRequestView } from "@/ledger/contracts";
 import { unrecordedOutcome, type BoardViewSnapshot } from "./board-view-client";
 import { boardViewClient } from "./board-view-source";
 import { RequestCard } from "./drawer-request";
@@ -22,6 +22,7 @@ import { RoleSwitch } from "./role-switch";
 import { useActingRole, useBoardView, useDrawerOpen } from "./use-judge";
 import "./drawer.css";
 import "./drawer-card.css";
+import "./drawer-details.css";
 
 /** How long a request the judge just created keeps its emphasis. */
 const FRESH_MS = 2_400;
@@ -31,14 +32,29 @@ interface SectionsProps {
   snapshot: BoardViewSnapshot;
   role: ActingRole;
   open: boolean;
-  /** The request the judge just created, drawn with a moment's emphasis. */
+  /** The request the judge just created or sent back, drawn with a moment's emphasis. */
   freshId: string | null;
+  /** A send-back landed: the card moves to "Sent back", and focus follows it. */
+  onSentBack?: (requestId: string) => void;
 }
 
-function Sections({ view, snapshot, role, open, freshId }: SectionsProps) {
+function Section({ id, title, requests, card }: { id: string; title: string; requests: PayoutRequestView[]; card: (r: PayoutRequestView) => ReactNode }) {
+  if (requests.length === 0) return null;
+  return (
+    <section className="judge-section" aria-labelledby={id}>
+      <h3 id={id} className="judge-section__title">
+        {title} <span className="judge-section__count">{requests.length}</span>
+      </h3>
+      <div className="judge-section__cards">{requests.map((r) => card(r))}</div>
+    </section>
+  );
+}
+
+/** Waiting for a second key, then Signed, then Sent back: every request in the session. */
+export function RequestSections({ view, snapshot, role, open, freshId, onSentBack }: SectionsProps) {
   const client = boardViewClient();
   const now = new Date();
-  const { waiting, closed } = requestSections(view);
+  const { waiting, signed, sentBack } = requestSections(view);
 
   // Ask for the AI's receipt read on any request still waiting for it (once per request; spec §4).
   const pendingIds = view.requests.filter((r) => r.riskPending).map((r) => r.requestId).join(" ");
@@ -58,6 +74,12 @@ function Sections({ view, snapshot, role, open, freshId }: SectionsProps) {
       riskRead={snapshot.riskReads[request.requestId]}
       fresh={request.requestId === freshId}
       onSign={(acknowledgedFlags) => void client?.sign(request.requestId, { actingAs: role, acknowledgedFlags })}
+      onSendBack={async (reason) => {
+        if (!client) return { ok: false, status: 0, code: "network", message: "The page isn't ready yet. Try again in a moment." };
+        const result = await client.sendBack(request.requestId, { actingAs: role, reason });
+        if (result.ok) onSentBack?.(request.requestId);
+        return result;
+      }}
     />
   );
 
@@ -73,14 +95,8 @@ function Sections({ view, snapshot, role, open, freshId }: SectionsProps) {
           <p className="judge-empty">Nothing is waiting for a second key.</p>
         )}
       </section>
-      {closed.length > 0 && (
-        <section className="judge-section" aria-labelledby="judge-closed-title">
-          <h3 id="judge-closed-title" className="judge-section__title">
-            Signed <span className="judge-section__count">{closed.length}</span>
-          </h3>
-          <div className="judge-section__cards">{closed.map((r) => card(r))}</div>
-        </section>
-      )}
+      <Section id="judge-signed-title" title="Signed" requests={signed} card={card} />
+      <Section id="judge-sent-back-title" title="Sent back" requests={sentBack} card={card} />
     </>
   );
 }
@@ -207,7 +223,7 @@ export function PayoutDrawer() {
               }}
             />
           )}
-          {view && <Sections view={view} snapshot={snapshot} role={role} open={open} freshId={fresh} />}
+          {view && <RequestSections view={view} snapshot={snapshot} role={role} open={open} freshId={fresh} onSentBack={setFresh} />}
         </div>
       </div>
     </dialog>

@@ -17,7 +17,8 @@ export function clampQuantity(value: number, min: number, max: number): number {
 }
 
 /**
- * Judge mode shows "Back to the board". The judge panel links here with `?judge=1`; a parent who
+ * Judge mode shows "Back to the board" and "See it on the parent ledger". The judge panel links
+ * here with `?judge=1`; a parent who
  * opens a shared link without it never sees a link into the officers' board. Not a security
  * boundary (the board is the public demo), just the parent's view kept clean.
  */

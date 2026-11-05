@@ -7,8 +7,8 @@
  *
  * It follows the rules the real server enforces (spec §3) closely enough to exercise every state the
  * drawer draws: refusals recorded in the ledger, the flags tick, the session's limits, a payout sent
- * on the second key and confirmed a few seconds later, and the AI's receipt read replacing the rules
- * card. It also carries the Watchtower in the state `watch` names (./watchtower-fixture.ts) and fakes
+ * on the second key and confirmed a few seconds later (or held unconfirmed), a request sent back
+ * with a reason, and the AI's receipt read replacing the rules card. It also carries the Watchtower in the state `watch` names (./watchtower-fixture.ts) and fakes
  * its judge-mode replay. It calls nothing: no PayPal, no AI.
  */
 import { OFFICERS } from "@/demo/riverbend";
@@ -25,6 +25,7 @@ import {
   type RefusalCode,
   type RiskCard,
   type RiskFinding,
+  type SendBackBody,
   type SignBody,
 } from "@/ledger/contracts";
 import type { ActionResult, BoardTransport } from "../http-transport";
@@ -36,8 +37,8 @@ import { DEFAULT_WATCH_FIXTURE, fixtureReplay, fixtureWatchtower, isWatchFixture
 export interface FixtureTransportOptions {
   /** Simulated network time per call. */
   latencyMs?: number;
-  /** From "Sent to PayPal" to "PayPal confirmed". */
-  confirmAfterMs?: number;
+  /** From "Sent to PayPal" to "PayPal confirmed"; null holds it at "Waiting" (`&confirm=hold`). */
+  confirmAfterMs?: number | null;
   /** How long the AI takes to read a receipt. */
   readAfterMs?: number;
   /** The Watchtower's state (`&watch=`); anything unknown falls back to "stale", today's real state. */
@@ -116,11 +117,37 @@ export function createFixtureTransport(options: FixtureTransportOptions = {}): B
     request.timeline.push({ step: "sent", label: "Sent to PayPal", at: nowIso(), detail: `Batch ${batch}` });
     appendEvent();
     moveMoney(request);
+    if (confirmAfterMs === null) return;
     setTimeout(() => {
       request.status = "confirmed";
       request.timeline.push({ step: "confirmed", label: "PayPal confirmed", at: nowIso(), detail: "PayPal says the payout succeeded" });
       appendEvent();
     }, confirmAfterMs);
+  }
+
+  /** The server's send-back (src/disbursements/send-back.ts), with its eligibility messages. */
+  function sendBack(request: PayoutRequestView, body: SendBackBody): ActionResult {
+    const role = body.actingAs;
+    const reason = body.reason.trim();
+    if (reason.length < 3 || reason.length > 200) return { ok: false, status: 400, code: "bad_request", message: "Check these fields and try again: reason." };
+    if (!isOfficer(role)) {
+      const who = role === "parent" ? "A parent" : "The reviewer";
+      return refuse(request, role, "not_an_officer", `${who} can't send a payout back. Only the club's officers decide on payouts.`);
+    }
+    if (request.status !== "waiting") return refuse(request, role, "request_closed", "This payout has already left the queue.");
+    const title = roleTitle(role);
+    if (request.payee.role === role) return refuse(request, role, "payee_cannot_sign", `The ${title} is the payee, so the ${title} can't decide on this payout.`);
+    if (request.signatures.some((s) => s.role === role)) {
+      return refuse(request, role, "already_signed", `The ${title}'s key is already on this payout, so a different officer decides on it.`);
+    }
+    request.status = "sent_back";
+    request.eligibleSigners = [];
+    request.timeline.push({ step: "sent_back", label: `Sent back by the ${title}`, at: nowIso(), detail: reason });
+    // The fold drops a payout that never left the account from the ledger rows, so the board's
+    // "Waiting for a second key" loses it too.
+    view.data.ledger = view.data.ledger.filter((row) => row.id !== ledgerIds.get(request.requestId));
+    appendEvent();
+    return { ok: true, request: clone(request) };
   }
 
   function sign(request: PayoutRequestView, body: SignBody): ActionResult {
@@ -284,6 +311,12 @@ export function createFixtureTransport(options: FixtureTransportOptions = {}): B
       const request = find(requestId);
       if (!request) return { ok: false, status: 404, code: "unknown_request", message: "That payout request isn't in this session." };
       return sign(request, body);
+    },
+    async sendBack(requestId, body) {
+      await sleep(latencyMs);
+      const request = find(requestId);
+      if (!request) return { ok: false, status: 404, code: "unknown_request", message: "That payout request isn't in this session." };
+      return sendBack(request, body);
     },
     async createRequest(body) {
       await sleep(latencyMs);

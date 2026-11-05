@@ -12,7 +12,7 @@
  * A poll that brings the same view keeps the previous snapshot (and the board data's identity), so
  * React re-renders nothing and Studio reloads nothing.
  */
-import type { ActingRole, BoardView, CreatePayoutRequestBody, PayoutRequestView, RefusalCode, SignBody } from "@/ledger/contracts";
+import type { ActingRole, BoardView, CreatePayoutRequestBody, PayoutRequestView, RefusalCode, SendBackBody, SignBody } from "@/ledger/contracts";
 import type { ActionResult, BoardTransport } from "./http-transport";
 
 export const POLL_INTERVAL_MS = 3_000;
@@ -50,6 +50,8 @@ export interface BoardViewClient {
   windowFocused(): void;
   isPolling(): boolean;
   sign(requestId: string, body: SignBody): Promise<ActionResult>;
+  /** Sends a waiting request back with a reason; like `sign`, its outcome is kept for the card. */
+  sendBack(requestId: string, body: SendBackBody): Promise<ActionResult>;
   createRequest(body: CreatePayoutRequestBody): Promise<ActionResult>;
   /** Asks the server for the AI's receipt read once per request per page (spec §4). */
   assessRiskOnce(requestId: string): void;
@@ -188,6 +190,16 @@ export function createBoardViewClient({ transport, timers = globalTimers, pollMs
     return rest;
   };
 
+  /** Keeps an action's result as the request's latest outcome, then reads back what the ledger recorded. */
+  const settle = (requestId: string, role: ActingRole, refusalsBefore: number, result: ActionResult, patch: Partial<BoardViewSnapshot> = {}) => {
+    if (result.ok) applyRequest(result.request);
+    const outcome: SignOutcome = { role, at: now(), refusalsBefore, result };
+    set({ ...patch, outcomes: { ...snapshot.outcomes, [requestId]: outcome } });
+    void refresh();
+  };
+
+  const refusalsOf = (requestId: string) => snapshot.view?.requests.find((r) => r.requestId === requestId)?.refusals.length ?? 0;
+
   return {
     subscribe(listener) {
       listeners.add(listener);
@@ -214,14 +226,17 @@ export function createBoardViewClient({ transport, timers = globalTimers, pollMs
     },
     isPolling: () => polling(),
     async sign(requestId, body) {
-      const before = snapshot.view?.requests.find((r) => r.requestId === requestId);
+      const refusalsBefore = refusalsOf(requestId);
       set({ busy: { ...snapshot.busy, [requestId]: true } });
       const result = await transport.sign(requestId, body);
-      if (result.ok) applyRequest(result.request);
-      const outcome: SignOutcome = { role: body.actingAs, at: now(), refusalsBefore: before?.refusals.length ?? 0, result };
-      set({ busy: without(snapshot.busy, requestId), outcomes: { ...snapshot.outcomes, [requestId]: outcome } });
-      // A refusal or a block is recorded in the ledger as well: read it back.
-      void refresh();
+      // A refusal or a block is recorded in the ledger as well: `settle` reads it back.
+      settle(requestId, body.actingAs, refusalsBefore, result, { busy: without(snapshot.busy, requestId) });
+      return result;
+    },
+    async sendBack(requestId, body) {
+      const refusalsBefore = refusalsOf(requestId);
+      const result = await transport.sendBack(requestId, body);
+      settle(requestId, body.actingAs, refusalsBefore, result);
       return result;
     },
     async createRequest(body) {

@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { vi } from "vitest";
 import type { CreatePayoutRequestBody } from "@/ledger/contracts";
+import { fixtureOptionsFrom } from "@/ui/judge/board-view-source";
 import { createFixtureTransport } from "@/ui/judge/dev/fixture-transport";
 
 beforeEach(() => {
@@ -122,6 +123,62 @@ describe("the dev fixture's fake server", () => {
     const gloves = (await settle(transport.getView())).requests.find((r) => r.requestId === "req_seed_gloves")!;
     expect(gloves.status).toBe("blocked");
     expect(gloves.timeline.at(-1)).toMatchObject({ step: "blocked" });
+  });
+});
+
+describe("the dev fixture's send-back", () => {
+  const REASON = "One line on the receipt is not a league item.";
+
+  it("lets the President send the paint back: it leaves the queue and the board's waiting rows, with the reason on its timeline", async () => {
+    const transport = createFixtureTransport();
+    const result = await settle(transport.sendBack("req_seed_paint", { actingAs: "president", reason: `  ${REASON} ` }));
+    expect(result.ok && result.request).toMatchObject({ status: "sent_back", eligibleSigners: [] });
+
+    const view = await settle(transport.getView());
+    const paint = view.requests.find((r) => r.requestId === "req_seed_paint")!;
+    expect(paint.timeline.at(-1)).toMatchObject({ step: "sent_back", label: "Sent back by the President", detail: REASON });
+    expect(paint.refusals).toEqual([]);
+    expect(view.data.ledger.find((row) => row.id === "L15")).toBeUndefined();
+    expect(view.limits.sessionPayoutsLeft).toBe(3);
+  });
+
+  it("then refuses any signature on it", async () => {
+    const transport = createFixtureTransport();
+    await settle(transport.sendBack("req_seed_paint", { actingAs: "president", reason: REASON }));
+    await expect(settle(transport.sign("req_seed_paint", { actingAs: "president", acknowledgedFlags: true }))).resolves.toMatchObject({ code: "request_closed" });
+  });
+
+  it.each([
+    ["treasurer", "payee_cannot_sign"],
+    ["secretary", "already_signed"],
+    ["reviewer", "not_an_officer"],
+    ["parent", "not_an_officer"],
+  ] as const)("refuses the %s on the paint (%s) and records the refusal", async (role, code) => {
+    const transport = createFixtureTransport();
+    await expect(settle(transport.sendBack("req_seed_paint", { actingAs: role, reason: REASON }))).resolves.toMatchObject({ ok: false, status: 409, code });
+    const paint = (await settle(transport.getView())).requests.find((r) => r.requestId === "req_seed_paint")!;
+    expect(paint.status).toBe("waiting");
+    expect(paint.refusals).toMatchObject([{ role, code }]);
+  });
+
+  it("wants a reason of 3 to 200 characters, as the server does", async () => {
+    const transport = createFixtureTransport();
+    await expect(settle(transport.sendBack("req_seed_paint", { actingAs: "president", reason: " no " }))).resolves.toMatchObject({ status: 400 });
+    await expect(settle(transport.sendBack("req_seed_paint", { actingAs: "president", reason: "x".repeat(201) }))).resolves.toMatchObject({ status: 400 });
+  });
+
+  it("reads its options from the dev URL: &confirm=hold keeps a sent payout waiting for PayPal", () => {
+    expect(fixtureOptionsFrom("?fixture=1&confirm=hold")).toMatchObject({ confirmAfterMs: null });
+    expect(fixtureOptionsFrom("?fixture=1&watch=ok&replay=fail")).toEqual({ watch: "ok", replayFails: true });
+    expect(fixtureOptionsFrom("?fixture=1")).toEqual({ watch: null, replayFails: false });
+  });
+
+  it("can hold a sent payout unconfirmed, to watch the wait", async () => {
+    const transport = createFixtureTransport({ confirmAfterMs: null });
+    await settle(transport.sign("req_seed_gloves", { actingAs: "president", acknowledgedFlags: false }));
+    await vi.advanceTimersByTimeAsync(60_000);
+    const gloves = (await settle(transport.getView())).requests.find((r) => r.requestId === "req_seed_gloves")!;
+    expect(gloves.status).toBe("sent");
   });
 });
 

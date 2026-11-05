@@ -269,6 +269,11 @@
   margin-top: 1.25rem;
 }
 
+/* A quiet link's words sit on the ticket's text edge when it wraps under the filled button. */
+.checkout__after .button--quiet {
+  margin-inline: -0.25rem;
+}
+
 /* ---- The stub: where the ticket tears off ---- */
 .perforation {
   position: relative;

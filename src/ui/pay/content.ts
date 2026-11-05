@@ -24,6 +24,7 @@ export const TICKET = {
   pendingLine: "PayPal is still processing it; the board shows it once PayPal confirms.",
   buyMore: "Buy more tickets",
   backToBoard: "Back to the board",
+  seeLedger: "See it on the parent ledger",
 } as const;
 
 export const TEST_BUYER = {

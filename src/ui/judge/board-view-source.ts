@@ -5,12 +5,14 @@
  *
  * Development only: `/demo?fixture=1` swaps the API for an in-memory fake (./dev/fixture-transport.ts)
  * so the drawer can be built before the real routes exist; `&watch=stale|ok|no_access|silent|
- * not_started|none` picks the Watchtower's state in it (stale by default), and `&replay=fail` makes
- * its fake replay fail. The switch sits inside
- * `if (process.env.NODE_ENV !== "production")`, which Next inlines and the production bundler folds
- * to `if (false)`, so the fake and its dynamic import are not in a production build at all.
+ * not_started|none` picks the Watchtower's state in it (stale by default), `&replay=fail` makes
+ * its fake replay fail, and `&confirm=hold` keeps a sent payout waiting for PayPal. The switch sits
+ * inside `if (process.env.NODE_ENV !== "production")`, which Next inlines and the production bundler
+ * folds to `if (false)`, so the fake and its dynamic import are not in a production build at all
+ * (the options type is a type-only import, erased at build time).
  */
 import { createBoardViewClient, type BoardViewClient } from "./board-view-client";
+import type { FixtureTransportOptions } from "./dev/fixture-transport";
 import { createHttpTransport, type BoardTransport } from "./http-transport";
 
 let transport: BoardTransport | null = null;
@@ -33,16 +35,27 @@ function deferredTransport(load: () => Promise<BoardTransport>): BoardTransport 
     getView: () => get().then((t) => t.getView()),
     createRequest: (body) => get().then((t) => t.createRequest(body)),
     sign: (requestId, body) => get().then((t) => t.sign(requestId, body)),
+    sendBack: (requestId, body) => get().then((t) => t.sendBack(requestId, body)),
     assessRisk: (requestId) => get().then((t) => t.assessRisk(requestId)),
     replayOutsideSend: () => get().then((t) => t.replayOutsideSend()),
+  };
+}
+
+/** The dev fixture's options from its URL flags: `&watch=`, `&replay=fail`, and `&confirm=hold`. */
+export function fixtureOptionsFrom(search: string): FixtureTransportOptions {
+  const params = new URLSearchParams(search);
+  return {
+    watch: wantsWatchState(search),
+    replayFails: params.get("replay") === "fail",
+    // Holds a sent payout at "PayPal confirmed: Waiting", to watch the wait's clock.
+    ...(params.get("confirm") === "hold" && { confirmAfterMs: null }),
   };
 }
 
 function browserTransport(): BoardTransport {
   if (process.env.NODE_ENV !== "production") {
     if (wantsFixture(window.location.search)) {
-      const search = window.location.search;
-      const options = { watch: wantsWatchState(search), replayFails: new URLSearchParams(search).get("replay") === "fail" };
+      const options = fixtureOptionsFrom(window.location.search);
       return deferredTransport(() => import("./dev/fixture-transport").then((mod) => mod.createFixtureTransport(options)));
     }
   }

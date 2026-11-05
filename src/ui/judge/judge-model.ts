@@ -17,6 +17,7 @@ import {
   type OfficerRole,
   type PayoutRequestView,
   type RiskCard,
+  type RiskFinding,
   type RiskVerdict,
   type SignatureView,
 } from "@/ledger/contracts";
@@ -105,13 +106,49 @@ export function reviewButtonLabel(role: ActingRole, count: number): string {
   return count > 0 ? reviewLabel(count) : "No payouts waiting";
 }
 
-/** Waiting first, then the rest, each in the server's order. */
-export function requestSections(view: BoardView): { waiting: PayoutRequestView[]; closed: PayoutRequestView[] } {
+/**
+ * Waiting first; then the signed ones (both keys on them: sent, confirmed, or stopped by a limit or
+ * PayPal); then the ones an officer sent back. Each in the server's order.
+ */
+export function requestSections(view: BoardView): { waiting: PayoutRequestView[]; signed: PayoutRequestView[]; sentBack: PayoutRequestView[] } {
   return {
     waiting: view.requests.filter((r) => r.status === "waiting"),
-    closed: view.requests.filter((r) => r.status !== "waiting"),
+    signed: view.requests.filter((r) => r.status !== "waiting" && r.status !== "sent_back"),
+    sentBack: view.requests.filter((r) => r.status === "sent_back"),
   };
 }
+
+// --- Sending a payout back -----------------------------------------------------------------------
+
+/** The server's limits on a send-back's reason (src/disbursements/api/payout-handlers.ts). */
+export const SEND_BACK_REASON_MIN = 3;
+export const SEND_BACK_REASON_MAX = 200;
+
+/**
+ * Whether to offer "Send back": only to an officer who could add key 2, which is the server's own
+ * answer in `eligibleSigners` (not the requester, not the payee, not a parent or the reviewer). The
+ * server still decides, and refuses anyone else.
+ */
+export const canSendBack = (request: PayoutRequestView, role: ActingRole): boolean =>
+  request.status === "waiting" && isOfficer(role) && request.eligibleSigners.includes(role);
+
+/** The reason a send-back starts from: the card's top flag (stop before warn), within the limit. */
+export function defaultSendBackReason(card: RiskCard | null): string {
+  const top = card?.findings.find((f) => f.severity === "stop") ?? card?.findings.find((f) => f.severity === "warn");
+  const text = top?.text.trim() ?? "";
+  return text.length <= SEND_BACK_REASON_MAX ? text : `${text.slice(0, SEND_BACK_REASON_MAX - 1).trimEnd()}…`;
+}
+
+export type ReasonCheck = { ok: true; reason: string } | { ok: false; message: string };
+
+export function checkSendBackReason(input: string): ReasonCheck {
+  const reason = input.trim();
+  if (reason.length < SEND_BACK_REASON_MIN) return { ok: false, message: `Say why in a few words: at least ${SEND_BACK_REASON_MIN} characters.` };
+  if (reason.length > SEND_BACK_REASON_MAX) return { ok: false, message: `Keep the reason to ${SEND_BACK_REASON_MAX} characters.` };
+  return { ok: true, reason };
+}
+
+export const reasonCount = (input: string) => `${input.length} of ${SEND_BACK_REASON_MAX} characters`;
 
 // --- Risk cards ----------------------------------------------------------------------------------
 
@@ -128,6 +165,13 @@ export const originLabel = (origin: RiskCard["origin"]) => ORIGINS[origin];
 
 /** A check or stop card needs the second signer's "I've read the flags" (spec §3). */
 export const needsAcknowledgement = (card: RiskCard | null) => card !== null && card.verdict !== "clear";
+
+/** The flags (warn and stop) stay in view; the info notes fold away. Each keeps the card's order. */
+export function splitFindings(findings: readonly RiskFinding[]): { flags: RiskFinding[]; notes: RiskFinding[] } {
+  return { flags: findings.filter((f) => f.severity !== "info"), notes: findings.filter((f) => f.severity === "info") };
+}
+
+export const notesLabel = (count: number) => (count === 1 ? "1 note" : `${count} notes`);
 
 // --- Signatures and limits -----------------------------------------------------------------------
 
@@ -173,17 +217,20 @@ export function signHint(request: PayoutRequestView, role: ActingRole): SignHint
 // --- The timeline --------------------------------------------------------------------------------
 
 export interface TimelineRow {
-  key: "requested" | "signed" | "sent" | "confirmed" | "not-sent";
+  key: "requested" | "signed" | "sent" | "confirmed" | "not-sent" | "sent-back";
   label: string;
   state: "done" | "pending" | "stopped";
   /** Null while the step is still to come. */
   time: string | null;
   detail?: string;
+  /** On "PayPal confirmed" while it waits: when the payout went to PayPal, to count the wait from. */
+  waitingSince?: string;
 }
 
 /**
  * Requested → Signed → Sent to PayPal → PayPal confirmed, or Requested → Signed → Not sent (blocked
- * or failed, with the reason). Steps still to come are listed, waiting, so the judge sees what is next.
+ * or failed, with the reason), or Requested → Sent back by an officer (with their reason). Steps
+ * still to come are listed, waiting, so the judge sees what is next.
  */
 export function timelineRows(request: PayoutRequestView, now: Date = new Date()): TimelineRow[] {
   const last = (step: PayoutRequestView["timeline"][number]["step"]) => request.timeline.findLast((t) => t.step === step);
@@ -195,15 +242,20 @@ export function timelineRows(request: PayoutRequestView, now: Date = new Date())
     ...(step?.detail ? { detail: step.detail } : {}),
   });
 
-  const rows = [
-    row("requested", "Requested", last("requested") ?? { step: "requested", label: "Requested", at: request.createdAt }),
-    row("signed", "Signed", last("signed")),
-  ];
+  const requested = row("requested", "Requested", last("requested") ?? { step: "requested", label: "Requested", at: request.createdAt });
+  const sentBack = last("sent_back");
+  if (sentBack) {
+    return [requested, { key: "sent-back", label: sentBack.label, state: "stopped", time: formatStepTime(sentBack.at, now), ...(sentBack.detail ? { detail: sentBack.detail } : {}) }];
+  }
+  const rows = [requested, row("signed", "Signed", last("signed"))];
   const stopped = last("failed") ?? last("blocked");
   if (stopped) {
     return [...rows, { key: "not-sent", label: "Not sent", state: "stopped", time: formatStepTime(stopped.at, now), detail: stopped.detail ?? stopped.label }];
   }
-  return [...rows, row("sent", "Sent to PayPal", last("sent")), row("confirmed", "PayPal confirmed", last("confirmed"))];
+  const sent = last("sent");
+  const confirmed = row("confirmed", "PayPal confirmed", last("confirmed"));
+  if (sent && confirmed.state === "pending") confirmed.waitingSince = sent.at;
+  return [...rows, row("sent", "Sent to PayPal", sent), confirmed];
 }
 
 // --- Budget lines --------------------------------------------------------------------------------
