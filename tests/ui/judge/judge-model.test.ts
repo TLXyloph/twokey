@@ -2,23 +2,30 @@ import { describe, expect, it } from "vitest";
 import { BUDGET_LINES } from "@/demo/riverbend-policy";
 import {
   budgetLeftCents,
+  canSendBack,
+  checkSendBackReason,
+  defaultSendBackReason,
   formatCents,
   formatClubTime,
   formatStepTime,
   limitsLine,
   needsAcknowledgement,
+  notesLabel,
   originLabel,
   parseAmountToCents,
+  reasonCount,
   requestSections,
   reviewButtonLabel,
   roleTitle,
+  SEND_BACK_REASON_MAX,
   signatureLine,
   signHint,
+  splitFindings,
   timelineRows,
   verdictLabel,
   waitingCount,
 } from "@/ui/judge/judge-model";
-import { boardView, fixtureClubData, glovesRequest, paintRequest, riskCard, sentRequest } from "../../fixtures/board-view";
+import { boardView, fixtureClubData, glovesRequest, paintRequest, riskCard, sentBackRequest, sentRequest } from "../../fixtures/board-view";
 
 describe("money", () => {
   it("prints cents as dollars with two decimals and separators", () => {
@@ -156,11 +163,86 @@ describe("sign hints (the server still decides)", () => {
 });
 
 describe("request sections", () => {
-  it("lists waiting requests first, then the rest, keeping the server's order", () => {
+  it("lists waiting requests first, then the signed ones, then the ones sent back, keeping the server's order", () => {
     const sent = { ...sentRequest(), requestId: "sent" };
-    const { waiting, closed } = requestSections(boardView({ requests: [sent, glovesRequest(), paintRequest()] }));
+    const back = { ...sentBackRequest(), requestId: "back" };
+    const { waiting, signed, sentBack } = requestSections(boardView({ requests: [back, sent, glovesRequest(), paintRequest()] }));
     expect(waiting.map((r) => r.requestId)).toEqual(["req_seed_gloves", "req_seed_paint"]);
-    expect(closed.map((r) => r.requestId)).toEqual(["sent"]);
+    expect(signed.map((r) => r.requestId)).toEqual(["sent"]);
+    expect(sentBack.map((r) => r.requestId)).toEqual(["back"]);
+  });
+
+  it("takes a sent-back request off the waiting count", () => {
+    expect(waitingCount(boardView({ requests: [glovesRequest(), sentBackRequest()] }))).toBe(1);
+  });
+});
+
+describe("sending a payout back", () => {
+  it("is offered to exactly the officers who could add key 2 (the server's eligible signers)", () => {
+    expect(canSendBack(paintRequest(), "president")).toBe(true);
+    expect(canSendBack(glovesRequest(), "secretary")).toBe(true);
+    // The payee, the requester (key 1), a reviewer and a parent never see it.
+    expect(canSendBack(paintRequest(), "treasurer")).toBe(false);
+    expect(canSendBack(paintRequest(), "secretary")).toBe(false);
+    expect(canSendBack(glovesRequest(), "treasurer")).toBe(false);
+    expect(canSendBack(paintRequest(), "reviewer")).toBe(false);
+    expect(canSendBack(paintRequest(), "parent")).toBe(false);
+  });
+
+  it("is not offered once the request has left the queue", () => {
+    expect(canSendBack({ ...sentRequest(), eligibleSigners: ["president"] }, "president")).toBe(false);
+    expect(canSendBack(sentBackRequest(), "president")).toBe(false);
+  });
+
+  it("starts the reason from the card's top flag, worst first", () => {
+    expect(defaultSendBackReason(paintRequest().risk)).toBe("The payee is an officer: this reimbursement goes to the treasurer.");
+    const stop = { severity: "stop" as const, text: "The receipt total doesn't match.", evidence: "", source: "ai" as const };
+    const warn = { severity: "warn" as const, text: "A warning.", evidence: "", source: "rule" as const };
+    expect(defaultSendBackReason(riskCard({ findings: [warn, stop] }))).toBe("The receipt total doesn't match.");
+  });
+
+  it("starts empty when the card has no flag, only notes or nothing", () => {
+    const note = { severity: "info" as const, text: "The total matches.", evidence: "", source: "ai" as const };
+    expect(defaultSendBackReason(riskCard({ findings: [note] }))).toBe("");
+    expect(defaultSendBackReason(null)).toBe("");
+  });
+
+  it("trims a long flag to the 200 characters a reason may have", () => {
+    const long = { severity: "warn" as const, text: `  ${"word ".repeat(60)}  `, evidence: "", source: "ai" as const };
+    const reason = defaultSendBackReason(riskCard({ findings: [long] }));
+    expect(reason.length).toBeLessThanOrEqual(SEND_BACK_REASON_MAX);
+    expect(reason.startsWith("word word")).toBe(true);
+    expect(reason.endsWith("…")).toBe(true);
+    expect(SEND_BACK_REASON_MAX).toBe(200);
+  });
+
+  it("checks the reason the way the server does: 3 to 200 characters once trimmed", () => {
+    expect(checkSendBackReason("  Not a league item.  ")).toEqual({ ok: true, reason: "Not a league item." });
+    expect(checkSendBackReason(" abc ")).toEqual({ ok: true, reason: "abc" });
+    expect(checkSendBackReason(" ok ")).toEqual({ ok: false, message: "Say why in a few words: at least 3 characters." });
+    expect(checkSendBackReason("   ")).toEqual({ ok: false, message: "Say why in a few words: at least 3 characters." });
+    expect(checkSendBackReason("x".repeat(201))).toEqual({ ok: false, message: "Keep the reason to 200 characters." });
+    expect(checkSendBackReason("x".repeat(200))).toMatchObject({ ok: true });
+  });
+
+  it("counts the reason's characters against the limit", () => {
+    expect(reasonCount("Not a league item.")).toBe("18 of 200 characters");
+  });
+});
+
+describe("a risk card's findings", () => {
+  const warn = { severity: "warn" as const, text: "A flag.", evidence: "", source: "ai" as const };
+  const stop = { severity: "stop" as const, text: "A stop.", evidence: "", source: "rule" as const };
+  const note = (text: string) => ({ severity: "info" as const, text, evidence: "", source: "ai" as const });
+
+  it("keeps warn and stop findings in view and folds the info notes, each in the card's order", () => {
+    expect(splitFindings([note("a"), warn, note("b"), stop])).toEqual({ flags: [warn, stop], notes: [note("a"), note("b")] });
+    expect(splitFindings([])).toEqual({ flags: [], notes: [] });
+  });
+
+  it("counts the folded notes", () => {
+    expect(notesLabel(1)).toBe("1 note");
+    expect(notesLabel(2)).toBe("2 notes");
   });
 });
 
@@ -178,6 +260,23 @@ describe("the timeline", () => {
     expect(rows[2]!.detail).toBe("Batch 5UXD2E8A7");
     expect(rows[2]!.time).toBe("10:42:07 AM CST");
     expect(rows[3]!.time).toBeNull();
+  });
+
+  it("counts the wait for PayPal from the time it was sent, on the confirmation row only", () => {
+    const rows = timelineRows(sentRequest(), now);
+    expect(rows[3]!.waitingSince).toBe("2026-11-05T16:42:07Z");
+    expect(rows.slice(0, 3).every((row) => row.waitingSince === undefined)).toBe(true);
+    const confirmed = timelineRows(sentRequest([{ step: "confirmed", label: "PayPal confirmed", at: "2026-11-05T16:42:24Z" }]), now);
+    expect(confirmed[3]!.waitingSince).toBeUndefined();
+  });
+
+  it("ends a sent-back request at the decision, with who sent it back and why", () => {
+    const rows = timelineRows(sentBackRequest("One line on the receipt is not a league item."), now);
+    expect(rows.map((r) => [r.label, r.state])).toEqual([
+      ["Requested", "done"],
+      ["Sent back by the President", "stopped"],
+    ]);
+    expect(rows[1]).toMatchObject({ key: "sent-back", time: "10:45:10 AM CST", detail: "One line on the receipt is not a league item." });
   });
 
   it("ticks the last step when PayPal confirms", () => {

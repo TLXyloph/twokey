@@ -121,6 +121,19 @@ const paintCard: RiskCard = {
       evidence: "Receipt line 2: patio string lights, $12.00",
       source: "ai",
     },
+    // The two notes the recorded card carries (src/disbursements/risk/recorded-cards.json).
+    {
+      severity: "info",
+      text: "The field marking paint fits the request and the budget line; that part comes to $24.50.",
+      evidence: "Receipt line 1: field marking paint white, 2 @ $12.25, $24.50",
+      source: "ai",
+    },
+    {
+      severity: "info",
+      text: "The receipt shows 3 items sold, but only two lines with 3 units in total are listed, which matches.",
+      evidence: "Items sold: 3",
+      source: "ai",
+    },
   ],
   receipt: {
     vendor: "Bluebird Hardware",

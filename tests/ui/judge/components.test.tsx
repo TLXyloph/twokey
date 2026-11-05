@@ -1,13 +1,16 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { EMPTY_SNAPSHOT } from "@/ui/judge/board-view-client";
+import { RequestSections } from "@/ui/judge/drawer";
 import { RiskBlock } from "@/ui/judge/drawer-risk";
 import { RequestCard } from "@/ui/judge/drawer-request";
+import { SendBackForm } from "@/ui/judge/drawer-send-back";
 import { JudgePanel, PARENT_PAGE_HREF } from "@/ui/judge/judge-panel";
 import { currentPage, SiteNav } from "@/ui/judge/site-nav";
 import { StartOverView } from "@/ui/judge/start-over";
 import { ReviewButton } from "@/ui/studio/review-button";
-import { glovesRequest, paintRequest, riskCard, sentRequest } from "../../fixtures/board-view";
+import { boardView, glovesRequest, paintRequest, riskCard, sentBackRequest, sentRequest } from "../../fixtures/board-view";
 
 const now = new Date("2026-11-05T17:00:00Z");
 /** Markup as text, tags dropped, entities decoded, so assertions read like the screen. */
@@ -174,13 +177,119 @@ describe("a request card", () => {
     expect(t).toContain("PayPal confirmed (not yet) Waiting");
   });
 
+  it("counts the wait for PayPal on the pending confirmation, in tabular figures", () => {
+    const html = renderToStaticMarkup(<RequestCard request={sentRequest()} role="president" now={new Date("2026-11-05T16:42:30Z")} />);
+    expect(text(html)).toContain("PayPal confirmed (not yet) Waiting Waiting · 0:23");
+    // The ticking figure is hidden from the live region, which would otherwise read it every second.
+    expect(html).toMatch(/<span aria-hidden="true">Waiting · <span class="judge-step__clock">0:23<\/span><\/span>/);
+  });
+
+  it("stops counting once PayPal confirms", () => {
+    const confirmed = { ...sentRequest([{ step: "confirmed", label: "PayPal confirmed", at: "2026-11-05T16:42:24Z" }]), status: "confirmed" as const };
+    const t = text(renderToStaticMarkup(<RequestCard request={confirmed} role="president" now={now} />));
+    expect(t).toContain("PayPal confirmed 10:42:24 AM CST");
+    expect(t).not.toContain("Waiting");
+  });
+
   it("labels a judge's own request as live sandbox", () => {
     const t = text(renderToStaticMarkup(<RequestCard request={{ ...glovesRequest(), sourceLabel: "live sandbox" }} role="president" now={now} />));
     expect(t).toContain("Live sandbox");
   });
 });
 
+describe("sending a payout back", () => {
+  const sendBackButton = (html: string) => html.match(/<button[^>]*>Send back<\/button>/)?.[0] ?? null;
+
+  it("offers the President, who could add key 2, a secondary Send back beside the sign action", () => {
+    const html = renderToStaticMarkup(<RequestCard request={paintRequest()} role="president" now={now} />);
+    const button = sendBackButton(html);
+    expect(button).toContain('class="judge-secondary-button"');
+    expect(button).toContain('aria-expanded="false"');
+    expect(text(html)).toMatch(/Send back Sign as President/);
+  });
+
+  it.each(["treasurer", "secretary", "reviewer", "parent"] as const)("offers nothing to the %s on the paint reimbursement", (role) => {
+    expect(sendBackButton(renderToStaticMarkup(<RequestCard request={paintRequest()} role={role} now={now} />))).toBeNull();
+  });
+
+  it("asks for the reason in a required field, its limit beside it and tied to it", () => {
+    const html = renderToStaticMarkup(
+      <SendBackForm id="sb" roleTitle="President" reason="One line on the receipt is not a league item." error={null} submitting={false} onReasonChange={() => {}} onCancel={() => {}} onSubmit={() => {}} />,
+    );
+    const field = html.match(/<textarea[^>]*>[^<]*<\/textarea>/)![0];
+    expect(field).toContain('id="sb-reason"');
+    expect(field).toMatch(/\brequired=""/);
+    expect(field).toContain('maxLength="200"');
+    expect(field).toContain('minLength="3"');
+    expect(field).toContain('aria-describedby="sb-count"');
+    expect(field).toContain(">One line on the receipt is not a league item.</textarea>");
+    expect(html).toContain('<label class="judge-field__label" for="sb-reason">');
+    expect("One line on the receipt is not a league item.".length).toBe(45);
+    expect(html).toMatch(/<p id="sb-count"[^>]*>45 of 200 characters<\/p>/);
+    expect(text(html)).toContain("The request closes with your reason on its timeline. Nothing is sent.");
+    expect(text(html)).toContain("Cancel Send back as President");
+  });
+
+  it("shows a problem with the reason inline, and says when it is working", () => {
+    const html = renderToStaticMarkup(
+      <SendBackForm id="sb" roleTitle="President" reason="no" error="Say why in a few words: at least 3 characters." submitting onReasonChange={() => {}} onCancel={() => {}} onSubmit={() => {}} />,
+    );
+    expect(html).toMatch(/<p id="sb-error" class="judge-form__error" role="alert">Say why in a few words: at least 3 characters.<\/p>/);
+    expect(html).toContain('aria-describedby="sb-count sb-error"');
+    expect(html).toContain('aria-invalid="true"');
+    expect(text(html)).toContain("Sending back…");
+    expect(html).toMatch(/<button type="submit"[^>]*aria-disabled="true"/);
+  });
+
+  it("shows a sent-back request with who sent it back and why, and no actions", () => {
+    const reason = "One line on the receipt is not a league item.";
+    const t = text(renderToStaticMarkup(<RequestCard request={sentBackRequest(reason)} role="president" now={now} />));
+    expect(t).toMatch(new RegExp(`Requested .* Sent back by the President :? ?10:45:10 AM CST ${reason}`));
+    expect(t).not.toContain("Sign as");
+    expect(t).not.toContain("Send back as");
+    expect(t).not.toContain("Sent to PayPal");
+  });
+
+  it("lists it under its own heading, out of the waiting list", () => {
+    const view = boardView({ requests: [glovesRequest(), sentBackRequest()] });
+    const t = text(renderToStaticMarkup(<RequestSections view={view} snapshot={EMPTY_SNAPSHOT} role="president" open={false} freshId={null} />));
+    expect(t).toMatch(/^Waiting for a second key 1 .*Riverbend Team Supply.* Sent back 1 .*Esther Huang/);
+    expect(t).not.toContain("Signed 0");
+  });
+});
+
 describe("the risk block", () => {
+  const notes = [
+    { severity: "info" as const, text: "The field marking paint fits the request.", evidence: "Receipt line 1", source: "ai" as const },
+    { severity: "info" as const, text: "The receipt shows 3 items sold.", evidence: "Items sold: 3", source: "ai" as const },
+  ];
+
+  const flags = paintRequest().risk!.findings.filter((finding) => finding.severity !== "info");
+
+  it("keeps the flags in view and folds the info notes under a closed disclosure", () => {
+    const card = { ...paintRequest().risk!, findings: [...flags, ...notes] };
+    const html = renderToStaticMarkup(<RiskBlock card={card} pending={false} />);
+    expect(text(html)).toContain("One line on the receipt is not a league item.");
+    expect(html).toMatch(/<details class="judge-notes">\s*<summary class="judge-notes__toggle">/);
+    expect(html).not.toMatch(/<details[^>]*\bopen/);
+    expect(text(html)).toContain("2 notes");
+    expect(text(html)).not.toContain("The receipt shows 3 items sold.");
+  });
+
+  it("folds a lone note too, with nothing else listed", () => {
+    const html = renderToStaticMarkup(<RiskBlock card={riskCard({ findings: [notes[0]!] })} pending={false} />);
+    expect(text(html)).toContain("1 note");
+    expect(html).not.toContain('class="judge-findings"');
+  });
+
+  it("adds no disclosure when there are no notes", () => {
+    expect(renderToStaticMarkup(<RiskBlock card={{ ...paintRequest().risk!, findings: flags }} pending={false} />)).not.toContain("judge-notes");
+  });
+
+  it("carries the recorded card's two notes on the dev fixture's paint reimbursement", () => {
+    expect(text(renderToStaticMarkup(<RiskBlock card={paintRequest().risk} pending={false} />))).toContain("2 notes");
+  });
+
   it("keeps the rules card up while the AI reads the receipt", () => {
     const t = text(renderToStaticMarkup(<RiskBlock card={riskCard({ origin: "rules" })} pending read="running" />));
     expect(t).toContain("Looks right");
