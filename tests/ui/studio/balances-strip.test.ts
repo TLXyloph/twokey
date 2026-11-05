@@ -23,7 +23,7 @@ describe("the balances strip's cells", () => {
         id: "balance",
         label: "Available balance",
         value: "$4,998.75",
-        caption: "PayPal sandbox · as of Nov 3, 10:30 AM CST",
+        caption: "This session's ledger · as of Nov 3, 10:30 AM CST",
         zero: false,
       },
       { id: "waiting", label: "Waiting for a second key", value: "$78.50", caption: "2 payouts", zero: false },
@@ -76,7 +76,7 @@ describe("the balances strip's cells", () => {
 
   it("drops the time and the month name when the as-of time is missing", () => {
     const [balance, , moneyIn] = balancesStripCells({ ...demo, asOf: null });
-    expect(balance!.caption).toBe("PayPal sandbox");
+    expect(balance!.caption).toBe("This session's ledger");
     expect(moneyIn).toMatchObject({ label: "Money in this month", caption: "Completed payments this month" });
   });
 
@@ -147,7 +147,7 @@ describe("the shared sandbox balance under the available balance", () => {
 
   it("leaves out the date when it is the same day as the balance above it", () => {
     const [balance] = balancesStripCells({ ...demo, asOf: "2026-11-05T15:39:00Z", shared });
-    expect(balance!.caption).toBe("PayPal sandbox · as of Nov 5, 9:39 AM CST");
+    expect(balance!.caption).toBe("This session's ledger · as of Nov 5, 9:39 AM CST");
     expect(balance!.note).toBe("Shared sandbox balance $4,997.50 · as of 8:30 AM CST");
     // A narrow strip (a tablet) drops one word rather than the time.
     expect(balance!.noteShort).toBe("Shared sandbox $4,997.50 · as of 8:30 AM CST");

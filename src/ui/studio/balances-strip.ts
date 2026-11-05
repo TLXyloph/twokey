@@ -66,7 +66,7 @@ export function balancesStripCells(figures: StripFigures, formatMoney: FormatMon
       id: "balance",
       label: "Available balance",
       value: formatMoney(figures.balance, "value"),
-      caption: asOf ? `PayPal sandbox · as of ${asOf}` : "PayPal sandbox",
+      caption: asOf ? `This session's ledger · as of ${asOf}` : "This session's ledger",
       ...(sharedFigures && { note: `Shared sandbox balance ${sharedFigures}`, noteShort: `Shared sandbox ${sharedFigures}` }),
       zero: figures.balance === 0,
     },

@@ -160,7 +160,7 @@ export const liveBalanceWidgetDefinition: LiveBalanceWidgetDefinition = {
     label: "Live Balance",
     description:
       "A strip of up to three figures in one card, split by thin dividers, each a grey label over a large figure " +
-      "over a grey caption: the account's available balance (captioned with the PayPal sandbox and its as-of time), " +
+      "over a grey caption: the account's available balance (captioned as this session's ledger with its as-of time, and PayPal's shared sandbox balance under it), " +
       "the total of payouts waiting for a second key (captioned with their count), and money in this month. " +
       "The second and third cells appear only when their slots are mapped.",
     usage:
