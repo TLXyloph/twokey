@@ -26,7 +26,8 @@ export function isAssetFetcher(value: unknown): value is AssetFetcher {
   return typeof value === "object" && value !== null && typeof (value as { fetch?: unknown }).fetch === "function";
 }
 
-const ASSET_ORIGIN = "https://assets.invalid";
+/** Cloudflare's convention (docs: Workers static assets, binding): only the pathname is matched. */
+const ASSET_ORIGIN = "https://assets.local";
 
 export function assetReceiptImages(assets: AssetFetcher): ReceiptImages {
   return {
