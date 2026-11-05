@@ -78,9 +78,9 @@ function HolderRowView({ row }: { row: HolderRow }) {
           ))}
         </span>
       </td>
-      <td role="cell" data-label="TwoKey key">
+      <td role="cell" data-label="Demo key">
         <span className="keys-cell">
-          {row.keyId ? <span className="keys-key">demo key {row.keyId}</span> : null}
+          {row.keyId ? <span className="keys-key">{row.keyId}</span> : null}
           <span className="keys-key__note">{row.keyNote}</span>
         </span>
       </td>
@@ -151,7 +151,7 @@ export function WhoHoldsTheKeys({ done, view, watch, settled, now = new Date() }
               PayPal access
             </th>
             <th role="columnheader" scope="col">
-              TwoKey key
+              TwoKey demo key
             </th>
             <th role="columnheader" scope="col">
               Last signed in this session

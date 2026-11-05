@@ -61,7 +61,8 @@ describe("who holds the keys", () => {
     const t = text(html);
     expect(t).toContain("Before key setup");
     expect(t).toContain("The Treasurer holds every key.");
-    expect(t).toContain("Esther Huang Treasurer Owner login, password only The club's personal Venmo, on her phone demo key 66da687e");
+    expect(t).toContain("Esther Huang Treasurer Owner login, password only The club's personal Venmo, on her phone 66da687e Signs payouts");
+    expect(t).toContain("TwoKey demo key");
     expect(t).toContain("Hasn't signed in this session");
     expect(t).toContain("Nora Lindgren Reviewer");
   });

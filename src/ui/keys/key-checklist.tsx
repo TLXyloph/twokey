@@ -140,9 +140,9 @@ export function KeyChecklist({ done, onAdvance, onBack, onReset }: KeyChecklistP
           />
         ))}
       </ol>
-      <div className="keys-checklist__foot">
-        {done === STEP_COUNT ? <p className="keys-checklist__all">All five changes are made.</p> : <span />}
-        {done > 0 ? (
+      {done > 0 ? (
+        <div className="keys-checklist__foot">
+          {done === STEP_COUNT ? <p className="keys-checklist__all">All five changes are made.</p> : null}
           <div className="keys-checklist__undo">
             <button ref={backRef} type="button" className="keys-text-button" onClick={onBack}>
               Undo the last step
@@ -151,8 +151,8 @@ export function KeyChecklist({ done, onAdvance, onBack, onReset }: KeyChecklistP
               Show the “before” again
             </button>
           </div>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
     </section>
   );
 }
