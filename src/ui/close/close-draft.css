@@ -1,0 +1,109 @@
+/*
+ * The AI's recorded draft of the close: its label, the summary beside the points to check, the
+ * "not recorded yet" state and the rule that a person signs. Tokens as in ./close.css.
+ */
+
+/* --- The draft ----------------------------------------------------------------------------------- */
+
+.close-chip {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: var(--radius-chip);
+  background: var(--active);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.close-draft__origin {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin: 0;
+}
+
+.close-draft__when {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* The summary beside its points: 1fr | 32 | 1fr. */
+.close-draft__body {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 32px;
+}
+
+.close-draft__summary {
+  margin: 0;
+  font-size: 14px;
+  line-height: 22px;
+  text-wrap: pretty;
+}
+
+.close-draft__points {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+
+.close-draft__subtitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.close-points {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.close-point {
+  display: grid;
+  gap: 2px;
+  padding-left: 12px;
+  border-left: 2px solid var(--border);
+}
+
+.close-point__check {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  text-wrap: pretty;
+}
+
+.close-point__basis {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.close-draft__missing {
+  display: grid;
+  gap: 4px;
+}
+
+.close-draft__note,
+.close-draft__rule {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+  text-wrap: pretty;
+}
+
+.close-draft__rule {
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+}
