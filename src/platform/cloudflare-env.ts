@@ -55,5 +55,8 @@ declare global {
     TWOKEY_AI_SESSION_TURNS_PER_MINUTE?: string;
     TWOKEY_AI_SESSIONS_PER_IP_PER_HOUR?: string;
     TWOKEY_AI_MODEL?: string;
+    /** Worker vars: the PayPal sandbox test-buyer login shown on the parent pay page (never committed). */
+    TWOKEY_TEST_BUYER_EMAIL?: string;
+    TWOKEY_TEST_BUYER_PASSWORD?: string;
   }
 }
