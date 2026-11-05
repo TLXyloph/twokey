@@ -1,113 +1,8 @@
 /*
- * The AI's recorded draft and the Reviewer's sign-off, the motion, then the narrow widths. Tokens
- * and motion rules as in ./close.css.
+ * The Reviewer's sign-off: the empty slot and the Sign button, the signature that replaces it, the
+ * refusals and the proof, then their motion (the rules are in ./close.css's header). Tokens as in
+ * ./close.css.
  */
-
-/* --- The draft ----------------------------------------------------------------------------------- */
-
-.close-chip {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  height: 20px;
-  padding: 0 8px;
-  border-radius: var(--radius-chip);
-  background: var(--active);
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.close-draft__origin {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 8px;
-  margin: 0;
-}
-
-.close-draft__when {
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 16px;
-}
-
-/* The summary beside its points: 1fr | 32 | 1fr. */
-.close-draft__body {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px 32px;
-}
-
-.close-draft__summary {
-  margin: 0;
-  font-size: 14px;
-  line-height: 22px;
-  text-wrap: pretty;
-}
-
-.close-draft__points {
-  display: grid;
-  align-content: start;
-  gap: 10px;
-}
-
-.close-draft__subtitle {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 20px;
-}
-
-.close-points {
-  display: grid;
-  gap: 12px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.close-point {
-  display: grid;
-  gap: 2px;
-  padding-left: 12px;
-  border-left: 2px solid var(--border);
-}
-
-.close-point__check {
-  margin: 0;
-  font-size: 14px;
-  line-height: 20px;
-  text-wrap: pretty;
-}
-
-.close-point__basis {
-  margin: 0;
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 18px;
-}
-
-.close-draft__missing {
-  display: grid;
-  gap: 4px;
-}
-
-.close-draft__note,
-.close-draft__rule,
-.close-signoff__rule {
-  margin: 0;
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 18px;
-  text-wrap: pretty;
-}
-
-.close-draft__rule {
-  padding-top: 12px;
-  border-top: 1px solid var(--rule);
-}
 
 /* --- The sign-off -------------------------------------------------------------------------------- */
 
@@ -153,6 +48,7 @@
   color: var(--muted);
 }
 
+.close-signoff__rule,
 .close-slot__meta,
 .close-signature__meta,
 .close-sign__hint {
@@ -215,8 +111,7 @@
   }
 }
 
-.close-text-button:focus-visible,
-.close-crumb:focus-visible {
+.close-text-button:focus-visible {
   outline: 2px solid var(--text);
   outline-offset: 2px;
 }
@@ -397,138 +292,5 @@
     .close-proof {
       opacity: 0;
     }
-  }
-}
-
-/* --- Narrow widths ------------------------------------------------------------------------------- */
-
-/* One column, in the order a Reviewer works: statement, exceptions, draft, sign-off, budget, rows. */
-@media (max-width: 1179px) {
-  .close-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .close-main,
-  .close-rail {
-    display: contents;
-  }
-
-  .close-statement {
-    order: 1;
-  }
-
-  .close-exceptions-panel {
-    order: 2;
-  }
-
-  .close-draft {
-    order: 3;
-  }
-
-  .close-signoff {
-    order: 4;
-  }
-
-  .close-budget {
-    order: 5;
-  }
-
-  .close-rows-panel {
-    order: 6;
-  }
-}
-
-@media (max-width: 719px) {
-  .close-strip {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px 0;
-  }
-
-  .close-strip__cell:nth-child(odd) {
-    padding-left: 0;
-    border-left: 0;
-  }
-
-  .close-strip__cell:nth-child(even) {
-    padding-right: 0;
-  }
-
-  .close-draft__body {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  /* The table folds into two-line rows: what and amount, then date, payee and what it's checked against. */
-  .close-table,
-  .close-table tbody {
-    display: block;
-  }
-
-  .close-table thead,
-  .close-table__date,
-  .close-table__who,
-  .close-table__against {
-    display: none;
-  }
-
-  .close-table tr {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    column-gap: 12px;
-    border-top: 1px solid var(--rule);
-  }
-
-  .close-table .close-table__group {
-    border-top: 0;
-  }
-
-  .close-table th,
-  .close-table td,
-  .close-table tbody td {
-    padding: 10px 0;
-    border-top: 0;
-  }
-
-  .close-table tbody + tbody .close-table__group > * {
-    padding-top: 20px;
-  }
-
-  .close-table__sub {
-    display: block;
-    margin-top: 2px;
-    color: var(--muted);
-    font-size: 13px;
-    line-height: 18px;
-  }
-}
-
-@media (max-width: 640px) {
-  .close {
-    --gap: 16px;
-  }
-
-  .close-grid {
-    padding: 0 16px;
-  }
-
-  .close-panel {
-    padding: 16px;
-  }
-
-  .close-strip__value {
-    font-size: 20px;
-    line-height: 28px;
-  }
-
-  .close-strip__cell[data-cell="closing"] .close-strip__value {
-    font-size: 24px;
-    line-height: 28px;
-  }
-
-  .close-sign__button {
-    flex: 1 1 100%;
-  }
-
-  .close-text-button {
-    min-height: 44px;
   }
 }

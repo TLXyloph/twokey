@@ -9,7 +9,9 @@ import { JudgePanel } from "@/ui/judge/judge-panel";
 import { boardCssVars } from "@/ui/studio/tokens";
 import "@/ui/studio/board.css";
 import "@/ui/close/close.css";
-import "@/ui/close/close-rail.css";
+import "@/ui/close/close-draft.css";
+import "@/ui/close/close-signoff.css";
+import "@/ui/close/close-narrow.css";
 
 export const metadata: Metadata = {
   title: `Monthly close, ${CLOSE_MONTH_NAME} · TwoKey`,

@@ -1,0 +1,139 @@
+/*
+ * The close below 1180px (one column, in the order a Reviewer works), below 720px (the statement
+ * in two columns, the draft stacked, the table as two-line rows) and at 640px and under (phone
+ * margins and 44px targets). Loaded last: it overrides ./close.css, ./close-draft.css and
+ * ./close-signoff.css.
+ */
+
+/* --- Narrow widths ------------------------------------------------------------------------------- */
+
+/* One column, in the order a Reviewer works: statement, exceptions, draft, sign-off, budget, rows. */
+@media (max-width: 1179px) {
+  .close-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .close-main,
+  .close-rail {
+    display: contents;
+  }
+
+  .close-statement {
+    order: 1;
+  }
+
+  .close-exceptions-panel {
+    order: 2;
+  }
+
+  .close-draft {
+    order: 3;
+  }
+
+  .close-signoff {
+    order: 4;
+  }
+
+  .close-budget {
+    order: 5;
+  }
+
+  .close-rows-panel {
+    order: 6;
+  }
+}
+
+@media (max-width: 719px) {
+  .close-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 0;
+  }
+
+  .close-strip__cell:nth-child(odd) {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .close-strip__cell:nth-child(even) {
+    padding-right: 0;
+  }
+
+  .close-draft__body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* The table folds into two-line rows: what and amount, then date, payee and what it's checked against. */
+  .close-table,
+  .close-table tbody {
+    display: block;
+  }
+
+  .close-table thead,
+  .close-table__date,
+  .close-table__who,
+  .close-table__against {
+    display: none;
+  }
+
+  .close-table tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 12px;
+    border-top: 1px solid var(--rule);
+  }
+
+  .close-table .close-table__group {
+    border-top: 0;
+  }
+
+  .close-table th,
+  .close-table td,
+  .close-table tbody td {
+    padding: 10px 0;
+    border-top: 0;
+  }
+
+  .close-table tbody + tbody .close-table__group > * {
+    padding-top: 20px;
+  }
+
+  .close-table__sub {
+    display: block;
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 18px;
+  }
+}
+
+@media (max-width: 640px) {
+  .close {
+    --gap: 16px;
+  }
+
+  .close-grid {
+    padding: 0 16px;
+  }
+
+  .close-panel {
+    padding: 16px;
+  }
+
+  .close-strip__value {
+    font-size: 20px;
+    line-height: 28px;
+  }
+
+  .close-strip__cell[data-cell="closing"] .close-strip__value {
+    font-size: 24px;
+    line-height: 28px;
+  }
+
+  .close-sign__button {
+    flex: 1 1 100%;
+  }
+
+  .close-text-button {
+    min-height: 44px;
+  }
+}
