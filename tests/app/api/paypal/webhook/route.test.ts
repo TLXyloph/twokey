@@ -14,6 +14,10 @@ import {
   webhookRequest,
   type FakePaypal,
 } from "../../../../payments/paypal/fixtures";
+import { createD1LedgerTable } from "@/ledger/d1-ledger-table";
+import { createLedgerStore } from "@/ledger/ledger-store";
+import { sqliteD1 } from "../../../../agents/llm/sqlite-d1";
+import { payoutRequested } from "../../../../ledger/fixtures";
 
 // The seams replaced: OpenNext's context (env + D1) and the global fetch. No network.
 const context = vi.hoisted(() => ({ env: undefined as CloudflareEnv | undefined }));
@@ -39,6 +43,8 @@ function fakeD1() {
           rows.set(id, values);
           return { meta: { changes: 1 } };
         },
+        // Ledger linking's lookups: no judge session owns these events.
+        all: async <Row,>() => ({ results: [] as Row[] }),
       }),
       run: async () => {
         throw new Error("run without bind");
@@ -127,6 +133,23 @@ describe("POST /api/paypal/webhook", () => {
     expect(d1.rows.size).toBe(1);
     expect(paypal.tokenCalls()).toHaveLength(1);
     expect(paypal.verifyCalls()).toHaveLength(2);
+  });
+
+  it("links a payout's success to the judge session that sent it (real SQLite, real migrations)", async () => {
+    const d1 = sqliteD1();
+    const ledger = createLedgerStore(createD1LedgerTable(d1.db), { seedHash: async () => "5eed".repeat(16) });
+    const senderBatchId = payoutsBatchSuccessEvent.resource.batch_header.sender_batch_header.sender_batch_id;
+    await ledger.append("judge-session-1", payoutRequested({ requestId: "R-1", requestHash: senderBatchId }));
+    context.env = secrets({ DB: d1.db });
+    const { POST } = await loadRoute();
+    const body = rawEvent(payoutsBatchSuccessEvent);
+    expect((await POST(webhookRequest({ body }))).status).toBe(200);
+    expect((await POST(webhookRequest({ body }))).status).toBe(200);
+    const confirmed = (await ledger.read("judge-session-1")).filter((e) => e.type === "payout.confirmed");
+    expect(confirmed.map((e) => e.payload)).toEqual([
+      expect.objectContaining({ requestId: "R-1", payoutBatchId: "BATCHTEST0001", status: "SUCCESS", paypalEventId: payoutsBatchSuccessEvent.id }),
+    ]);
+    expect(logs[1]).toBe(`[paypal/webhook] link=payout.confirmed outcome=stored session=judge-se event_id=${payoutsBatchSuccessEvent.id}`);
   });
 
   it("builds a new PayPal client when a secret changes", async () => {

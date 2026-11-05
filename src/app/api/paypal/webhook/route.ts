@@ -5,9 +5,14 @@
  *
  * Reads PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET, PAYPAL_WEBHOOK_ID (Worker secrets), optional
  * PAYPAL_API_BASE (sandbox only), and the D1 binding DB. Anything missing answers 503.
+ * A stored event is then linked to its judge session's ledger (src/ledger/paypal-link.ts); the
+ * ledger store here has no session opener, so linking only ever appends to sessions that exist.
  */
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { createD1LedgerTable } from "@/ledger/d1-ledger-table";
 import { createD1PaypalEventStore } from "@/ledger/event-store";
+import { createLedgerStore } from "@/ledger/ledger-store";
+import { linkPaypalEvent } from "@/ledger/paypal-link";
 import { createPaypalClient } from "@/payments/paypal/client";
 import { createWebhookVerifier, type WebhookVerifier } from "@/payments/paypal/verify-webhook";
 import { handlePaypalWebhook, type PaypalWebhookConfig } from "@/payments/paypal/webhook-handler";
@@ -38,6 +43,7 @@ function cloudflareEnv(): CloudflareEnv {
 
 export async function POST(request: Request): Promise<Response> {
   const env = cloudflareEnv();
+  const db = env.DB;
   return handlePaypalWebhook(request, {
     env: {
       PAYPAL_CLIENT_ID: env.PAYPAL_CLIENT_ID,
@@ -45,7 +51,8 @@ export async function POST(request: Request): Promise<Response> {
       PAYPAL_WEBHOOK_ID: env.PAYPAL_WEBHOOK_ID,
       PAYPAL_API_BASE: env.PAYPAL_API_BASE,
     },
-    store: env.DB ? createD1PaypalEventStore(env.DB) : undefined,
+    store: db ? createD1PaypalEventStore(db) : undefined,
     verifierFor,
+    linker: db ? (raw) => linkPaypalEvent(createLedgerStore(createD1LedgerTable(db)), raw) : undefined,
   });
 }
