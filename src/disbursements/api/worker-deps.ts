@@ -10,6 +10,8 @@ import { createInMemoryLedgerTable, type InMemoryLedgerTable, type LedgerTable }
 import { createSharedBalanceReader, type SharedBalance } from "@/payments/paypal/balances";
 import { createPaypalClient, resolveSandboxApiBase, type PaypalClient } from "@/payments/paypal/client";
 import { workerContext } from "@/platform/worker-context";
+import { createD1WatchtowerStore } from "@/watchtower/d1-store";
+import { readWatchtowerView } from "@/watchtower/view";
 import { riskAssessorFor } from "../risk-wiring";
 import type { JudgeApiDeps } from "./judge-context";
 
@@ -48,6 +50,7 @@ export function judgeDepsFromWorker(): JudgeApiDeps {
   const read = (name: StringEnvName): string | undefined => env[name] ?? process.env[name];
   const development = process.env.NODE_ENV === "development";
   const table = ledgerTableFor(env);
+  const db = env.DB;
   const paypal = paypalFor(read("PAYPAL_CLIENT_ID"), read("PAYPAL_CLIENT_SECRET"), read("PAYPAL_API_BASE"));
   return {
     env: {
@@ -62,5 +65,7 @@ export function judgeDepsFromWorker(): JudgeApiDeps {
     risk: riskAssessorFor(env),
     paypal: paypal?.client,
     ...(paypal && { sharedBalance: paypal.balance }),
+    // The global Watchtower (D1 only; under plain `next dev` there is none, so the board shows none).
+    ...(db && { watchtower: () => readWatchtowerView(createD1WatchtowerStore(db), new Date()) }),
   };
 }
