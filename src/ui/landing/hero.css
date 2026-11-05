@@ -3,7 +3,7 @@
 /* ---- Navigation: small furniture on the page ground ---- */
 .lp-nav {
   align-items: center;
-  min-height: 5.5rem;
+  height: var(--nav-h);
   padding-inline: var(--margin);
   font-size: var(--step-small);
 }
@@ -61,7 +61,6 @@
     display: inline-flex;
     align-items: center;
     min-height: 2.75rem;
-    padding-inline: 0.25rem;
     list-style: none;
     font-size: var(--step-body);
     font-weight: 500;
@@ -125,14 +124,15 @@
 }
 
 /* ---- Hero: the sentence, with two keys where the words would be ---- */
-/* Sized to its content: the sentence sits a fifth of the way down and the evidence follows at the
-   normal section gap, so the first screen holds no empty band. */
-.lp-hero__body {
-  padding: clamp(3rem, 19vh, 12rem) var(--margin) 0;
+.lp-hero {
+  padding: clamp(3rem, 15vh, 10rem) var(--margin) 0;
 }
 
 .lp-hero__title {
-  margin: 0 0 0 -0.045em;
+  /* The C's left side bearing, measured in the screenshot (5.0px at 163px): the box starts this far
+     left of the margin so the letter itself stands on it. */
+  --lsb: 0.0306em;
+  margin: 0 0 0 calc(-1 * var(--lsb));
   font-family: var(--display);
   font-size: var(--step-display);
   font-weight: 600;
@@ -167,12 +167,12 @@
 }
 
 .lp-hero__foot {
-  align-items: end;
-  margin-top: 2.5rem;
+  align-items: start;
+  margin-top: 3.5rem;
 }
 
 .lp-hero__lead {
-  grid-column: 1 / 7;
+  grid-column: 1 / 9;
   max-width: 40ch;
   font-size: var(--step-lead);
   line-height: 1.35;
@@ -183,14 +183,55 @@
   justify-self: end;
 }
 
-@media (max-width: 1099px) {
+/* Desktop: the whole line, the keys included, runs from the left margin to the right one. Every part
+   of it is set in em, so its width is a fixed number of ems: the C's ink edge to the frame's right
+   edge measures --fit em, and the size is the content width divided by it. */
+@media (min-width: 900px) {
+  .lp-hero {
+    container-type: inline-size;
+  }
+
+  .lp-hero__title {
+    /* Measured at 1440: the C's ink at 29.7px and the frame's right edge at 1416.8px, at 163.42px.
+       The optical size is held at its largest (96), so the line keeps that width in em at every
+       desktop size, below 96px too. */
+    --fit: 8.488;
+    font-size: calc(100cqi / var(--fit));
+    font-variation-settings: "opsz" 96;
+  }
+
+  /* The supporting sentence in columns 1-6; its action in columns 10-12, its top on the sentence's
+     first line (the trimmed box starts at the cap line). */
+  .lp-hero__foot {
+    margin-top: var(--head-gap);
+  }
+
   .lp-hero__lead {
-    grid-column: 1 / 9;
+    grid-column: 1 / 7;
+    max-width: none;
+  }
+
+  .lp-hero__action {
+    grid-column: 10 / 13;
+  }
+}
+
+/* One screen with the proof: claim at the top, evidence as the screen's bottom zone. The hero's cap
+   line sits the shared --screen-top below the navigation. */
+@media (min-width: 900px) and (min-height: 640px) {
+  .lp-first {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    padding-block: var(--screen-top) var(--screen-foot);
+  }
+
+  .lp-hero {
+    padding-top: 0;
   }
 }
 
 /* Tablet: two lines, "Club money" over "takes [keys]", so the picture keeps its size. */
-@media (min-width: 600px) and (max-width: 1099px) {
+@media (min-width: 600px) and (max-width: 899px) {
   .lp-hero__title {
     font-size: 15vw;
     white-space: normal;
@@ -206,8 +247,8 @@
     --step-display: 17vw;
   }
 
-  .lp-hero__body {
-    padding-block: 1.5rem 0;
+  .lp-hero {
+    padding-top: 1.5rem;
   }
 
   .lp-hero__title {
@@ -221,15 +262,15 @@
 
   .lp-keys {
     display: block;
-    width: 100%;
+    width: calc(100% - var(--lsb));
     height: auto;
-    margin: 0.16em 0 0 0.045em;
+    margin: 0.16em 0 0 var(--lsb);
   }
 
   .lp-hero__foot {
     grid-template-columns: 1fr;
     row-gap: 1.75rem;
-    margin-top: 1.75rem;
+    margin-top: 2rem;
   }
 
   .lp-hero__lead,

@@ -1,25 +1,35 @@
 /* TwoKey landing page: the questions, the inverted close and the footer. Tokens live in landing.css. */
 
 /* ---- Questions: a wide heading, the questions indented under it ---- */
-.lp-faq {
-  padding: var(--section) var(--margin) 0;
+/* The W's side bearing (1px at 81.6px, measured in the screenshot). */
+#faq .lp-head {
+  --lsb: 0.012em;
 }
 
 .lp-faq__list {
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-columns: var(--columns);
   column-gap: var(--gutter);
-  margin-top: 5rem;
+  margin-top: var(--head-gap);
 }
 
+/* The question starts exactly on column 5. Its tile opens one gutter to the left of it (column 4's
+   right edge, a column line) and stops on the right margin, so the chevron sits one gutter inside it. */
 .lp-faq__item {
   grid-column: 5 / 13;
-  margin-inline: -1.5rem;
-  padding: 1.125rem 1.5rem;
+  margin-left: calc(-1 * var(--gutter));
+  padding: 1.125rem var(--gutter);
 }
 
 .lp-faq__item[open] {
   background: var(--surface);
+}
+
+/* Desktop: 18px above and below each question on a 900px-tall window, 8px at 720. */
+@media (min-width: 900px) {
+  .lp-faq__item {
+    padding-block: clamp(0.5rem, 5.556svh - 2rem, 1.125rem);
+  }
 }
 
 .lp-faq__q {
@@ -68,21 +78,18 @@
     margin-inline: calc(-1 * var(--margin));
     padding: 0.875rem var(--margin);
   }
-
-  .lp-faq__q {
-    font-size: var(--step-lead);
-  }
 }
 
 /* ---- The close: the page's colours inverted ---- */
+/* Below the snap breakpoint the field takes its natural height: the title, a clear gap, the foot. */
 .lp-cta {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 4rem;
-  min-height: 90svh;
+  gap: clamp(4rem, 10vw, 6rem);
   margin-top: var(--section);
-  padding: clamp(4rem, 12vh, 8rem) var(--margin) 2.5rem;
+  padding: clamp(4rem, 12vw, 6rem) var(--margin) 2.5rem;
+  container-type: inline-size;
   background: var(--ink);
   color: var(--bg);
 }
@@ -97,19 +104,40 @@
 }
 
 .lp-cta__title {
-  margin: 0 0 0 -0.045em;
+  margin: 0;
   font-family: var(--display);
-  font-size: var(--step-display);
   font-weight: 600;
   line-height: 0.9;
-  letter-spacing: -0.04em;
 }
 
+/* The two lines are set as one justified block, like the hero line: each is fitted from margin to
+   margin by its own ink (measured with the optical size held at 96), so "Try being" stands taller
+   than "the second key" and together they fill the field's upper half. Each line also stands on the
+   margin by its first letter's ink (the T and the t sit 0.015em and 0.0083em inside their boxes).
+   The mask clips only below the line (the line rises out of it), so the letters' tops stay whole;
+   its 0.3em of padding, given back by the margin, keeps the descenders of y and g whole too. */
 .lp-cta__mask {
   display: block;
-  overflow: clip;
-  padding-bottom: 0.1em;
-  margin-bottom: -0.1em;
+  white-space: nowrap;
+  margin: 0 0 -0.3em calc(-1 * var(--lsb));
+  padding-bottom: 0.3em;
+  font-size: calc(100cqi / var(--fit));
+  font-variation-settings: "opsz" 96;
+  /* Tracking is set here, on each line's own size: an em on the title would be the body's. */
+  letter-spacing: -0.04em;
+  clip-path: inset(-0.5em -0.5em 0 -0.5em);
+}
+
+/* Ink widths, measured in the page across each line's own band: "Try being" 3.6134em, "the second
+   key" 6.048em. */
+.lp-cta__mask:nth-child(1) {
+  --fit: 3.6134;
+  --lsb: 0.015em;
+}
+
+.lp-cta__mask:nth-child(2) {
+  --fit: 6.048;
+  --lsb: 0.0083em;
 }
 
 .lp-cta__line {
@@ -118,13 +146,13 @@
 
 .lp-cta__foot {
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-columns: var(--columns);
   column-gap: var(--gutter);
   align-items: end;
 }
 
 .lp-cta__sentence {
-  grid-column: 1 / 6;
+  grid-column: 1 / 7;
   font-size: var(--step-lead);
   line-height: 1.35;
 }
@@ -134,25 +162,24 @@
   justify-self: end;
 }
 
-@media (max-width: 1099px) {
-  .lp-cta__title {
-    font-size: 14vw;
+/* One screen: the field starts hard against the screen above, the title's cap line on the shared
+   offset, the sentence's last baseline and the button's foot on the closing line. */
+@media (min-width: 900px) and (min-height: 640px) {
+  .lp-cta {
+    gap: var(--head-gap);
+    min-height: 100svh;
+    margin-top: 0;
+    padding: var(--screen-top) var(--margin) var(--screen-foot);
   }
+}
 
+@media (min-width: 600px) and (max-width: 899px) {
   .lp-cta__sentence {
     grid-column: 1 / 8;
   }
 }
 
 @media (max-width: 599px) {
-  :root:has(.lp) .lp-cta {
-    min-height: 80svh;
-  }
-
-  .lp-cta__title {
-    font-size: 13.5vw;
-  }
-
   .lp-cta__foot {
     grid-template-columns: 1fr;
     row-gap: 2rem;
@@ -171,12 +198,13 @@
   }
 }
 
-/* ---- Footer: the repository address is the headline ---- */
+/* ---- Footer: the repository address is the headline; the last snap point ---- */
+/* Natural height below the snap breakpoint; a 70svh field where every screen snaps (its top is the
+   last snap point, which the browser clamps to the end of the page). */
 .lp-foot {
   display: flex;
   flex-direction: column;
-  min-height: 70svh;
-  padding: 2.5rem var(--margin) 2rem;
+  padding: 2.5rem var(--margin) var(--screen-foot);
   background: var(--field);
   color: var(--ink);
   font-size: var(--step-small);
@@ -185,7 +213,7 @@
 .lp-foot__top,
 .lp-foot__meta {
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-columns: var(--columns);
   column-gap: var(--gutter);
   align-items: start;
 }
@@ -214,7 +242,9 @@
 }
 
 .lp-foot__line {
-  margin: auto 0 0 -0.04em;
+  /* The g's side bearing (1.5px at 118.6px, measured in the screenshot). */
+  --lsb: 0.0126em;
+  margin: auto 0 0 calc(-1 * var(--lsb));
   padding-top: 4rem;
   font-family: var(--display);
   font-size: var(--step-foot);
@@ -229,8 +259,16 @@
   text-decoration: none;
 }
 
+/* The meta row is the closing row: links, credits and year on one last baseline. */
 .lp-foot__meta {
+  align-items: last baseline;
   margin-top: 2rem;
+}
+
+.lp-foot__meta li,
+.lp-foot__credits,
+.lp-foot__year {
+  text-box: trim-both cap alphabetic;
 }
 
 .lp-foot__links {
@@ -247,6 +285,31 @@
 .lp-foot__year {
   grid-column: 12;
   justify-self: end;
+}
+
+/* The footer is as tall as the close's title block plus 24px, so the last snap point (the page's end)
+   always opens in the gold gap between the title and its sentence, never through a letter. The
+   title's ink ends --screen-top + 0.367 x the content width down the close (measured at 1024, 1280,
+   1440 and 1920: 0.3663-0.3671). */
+@media (min-width: 900px) and (min-height: 640px) {
+  .lp-foot {
+    min-height: calc(var(--screen-top) + 0.367 * (100vw - 2 * var(--margin)) + 1.5rem);
+  }
+}
+
+/* Tablet and desktop: the address is fitted from margin to margin by its ink. */
+@media (min-width: 600px) {
+  .lp-foot {
+    container-type: inline-size;
+  }
+
+  .lp-foot__line {
+    /* The g's ink to the y's, measured at 118.2px, with the optical size held at 96 so the width
+       holds where the line is set smaller than that (windows under about 1180px). */
+    --fit: 11.653;
+    font-size: calc(100cqi / var(--fit));
+    font-variation-settings: "opsz" 96;
+  }
 }
 
 @media (max-width: 899px) {

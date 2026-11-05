@@ -3,7 +3,9 @@
 /**
  * The live thing: the section's headline is a real field, prefilled with a parent's question, and the
  * ledger answers as the visitor types, from the fictional demo club's data (no network, no AI). The
- * server renders the prefilled question's answer, so the section reads whole without script.
+ * server renders the prefilled question's answer, so the section reads whole without script. On desktop
+ * the answer and the screenshot are one pair of equal blocks (columns 1-6 and 7-12), with the examples
+ * and the caption on one closing baseline beneath them.
  */
 import { useEffect, useId, useRef, useState } from "react";
 import { DEFAULT_QUESTION, EXAMPLE_QUESTIONS, askLedger } from "./ask-ledger";
@@ -28,7 +30,7 @@ export function AskLedgerSection() {
   }, []);
 
   return (
-    <section id="ask" className="lp-ask" aria-labelledby={`${inputId}-label`}>
+    <section id="ask" className="lp-ask lp-screen" aria-labelledby={`${inputId}-label`}>
       <h2 className="lp-head lp-ask__head" id={`${inputId}-label`} data-reveal="rise">
         <label htmlFor={inputId}>Ask the ledger</label>
       </h2>
@@ -89,10 +91,10 @@ export function AskLedgerSection() {
                 </tbody>
               </table>
             )}
+            <p className="ui-answer__note" id={noteId}>
+              Demo data from the fictional Riverbend Youth Football League. In TwoKey, an AI agent answers from PayPal&rsquo;s records.
+            </p>
           </div>
-          <p className="lp-ask__note" id={noteId} data-reveal="rise">
-            Demo data from the fictional Riverbend Youth Football League. In TwoKey, an AI agent answers from PayPal&rsquo;s records.
-          </p>
           <div className="lp-ask__examples" data-reveal="rise">
             {EXAMPLE_QUESTIONS.map((q) => (
               <button key={q} type="button" className="lp-example" aria-pressed={q === question} onClick={() => setQuestion(q)}>

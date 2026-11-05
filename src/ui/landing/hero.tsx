@@ -2,7 +2,7 @@ import { NAV_LINKS, SUPPORTING } from "./content";
 import { vars } from "./style-vars";
 
 /** Wordmark, four plain links and one quiet action; on a phone the links fold into a "Menu" sheet. */
-function Nav() {
+export function Nav() {
   return (
     <nav className="lp-nav" aria-label="Main">
       <a className="lp-wordmark" href="#top">
@@ -44,45 +44,43 @@ function Nav() {
 
 /**
  * The idea: the product's rule, two keys, is set into the sentence as a photograph where the words
- * would be. Screen readers hear "Club money takes two keys".
+ * would be. Screen readers hear "Club money takes two keys". On desktop the line, keys included, is
+ * fitted from margin to margin (hero.css).
  */
 export function Hero() {
   return (
-    <header className="lp-hero" id="top">
-      <Nav />
-      <div className="lp-hero__body">
-        <h1 className="lp-hero__title">
-          <span className="lp-hero__mask">
-            <span className="lp-hero__words">
-              Club money
-            </span>
-          </span>{" "}
-          <span className="lp-hero__mask">
-            <span className="lp-hero__words">
-              takes
-            </span>
-          </span>{" "}
-          <span className="lp-keys">
-            <img
-              src="/landing/img/keys-duotone.jpg"
-              width={1200}
-              height={800}
-              alt=""
-              fetchPriority="high"
-              decoding="async"
-            />
+    <div className="lp-hero">
+      <h1 className="lp-hero__title">
+        <span className="lp-hero__mask">
+          <span className="lp-hero__words">
+            Club money
           </span>
-          <span className="lp-sr-only"> two keys</span>
-        </h1>
-        <div className="lp-hero__foot">
-          <p className="lp-hero__lead" data-load style={vars({ "--d": "420ms" })}>
-            {SUPPORTING}
-          </p>
-          <a className="lp-button lp-hero__action" href="/demo" data-load style={vars({ "--d": "500ms" })}>
-            Open the demo
-          </a>
-        </div>
+        </span>{" "}
+        <span className="lp-hero__mask">
+          <span className="lp-hero__words">
+            takes
+          </span>
+        </span>{" "}
+        <span className="lp-keys">
+          <img
+            src="/landing/img/keys-duotone.jpg"
+            width={1200}
+            height={800}
+            alt=""
+            fetchPriority="high"
+            decoding="async"
+          />
+        </span>
+        <span className="lp-sr-only"> two keys</span>
+      </h1>
+      <div className="lp-hero__foot">
+        <p className="lp-hero__lead" data-load style={vars({ "--d": "420ms" })}>
+          {SUPPORTING}
+        </p>
+        <a className="lp-button lp-hero__action" href="/demo" data-load style={vars({ "--d": "500ms" })}>
+          Open the demo
+        </a>
       </div>
-    </header>
+    </div>
   );
 }

@@ -4,7 +4,7 @@ import { vars } from "./style-vars";
 /** The honest limits, as six native disclosure rows indented under a wide heading. */
 export function Questions() {
   return (
-    <section id="faq" className="lp-faq" aria-labelledby="faq-title">
+    <section id="faq" className="lp-faq lp-screen" aria-labelledby="faq-title">
       <h2 id="faq-title" className="lp-head" data-reveal="rise">
         What TwoKey can&rsquo;t do
       </h2>

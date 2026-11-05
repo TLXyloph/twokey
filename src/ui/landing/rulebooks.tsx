@@ -18,10 +18,14 @@ function Rows({ rules, offset }: { rules: Rule[]; offset: number }) {
   ));
 }
 
-/** The rulebooks already demand two keys; the table sets their words beside what TwoKey enforces. */
+/**
+ * The rulebooks already demand two keys; the table sets their words beside what TwoKey enforces. On
+ * desktop the photograph (columns 1-5) and the table (columns 7-12) start on one line; the table's two
+ * group headings name it, so it needs no label of its own.
+ */
 export function Rulebooks() {
   return (
-    <section id="rules" className="lp-rules" aria-labelledby="rules-title">
+    <section id="rules" className="lp-rules lp-screen" aria-labelledby="rules-title">
       <h2 id="rules-title" className="lp-head lp-rules__head" data-reveal="rise">
         <span className="lp-rules__first">Your rulebook</span> <span>already says so</span>
       </h2>
@@ -39,9 +43,6 @@ export function Rulebooks() {
           </div>
           <figcaption>A youth football game at a high school in Washington, D.C., 2010.</figcaption>
         </figure>
-        <p className="lp-rules__word" aria-hidden="true">
-          Rules
-        </p>
         <table className="lp-rules__table">
           <caption className="lp-sr-only">Rules</caption>
           <tbody>

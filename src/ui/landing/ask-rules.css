@@ -1,38 +1,26 @@
 /* TwoKey landing page: the live question and the rulebook table. Tokens live in landing.css. */
 
 /* ---- Ask the ledger: the headline is a field you can type in ---- */
-.lp-ask {
-  padding: var(--section) var(--margin) 0;
-}
-
 .lp-ask__head label {
   cursor: text;
 }
 
+/* Side bearings of each heading's first letter, measured in the screenshot at 81.6px: A 0.5px, Y 0. */
+#ask .lp-head {
+  --lsb: 0.006em;
+}
+
 .lp-ask__body {
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-columns: var(--columns);
   column-gap: var(--gutter);
-  align-items: start;
   margin-top: 3rem;
-}
-
-.lp-ask__left {
-  grid-column: 1 / 7;
-}
-
-.lp-ask__note {
-  max-width: 46ch;
-  margin-top: 1.25rem;
-  color: var(--muted);
-  font-size: var(--step-small);
 }
 
 .lp-ask__examples {
   display: flex;
   flex-wrap: wrap;
   gap: 0.25rem 1.5rem;
-  margin-top: 2rem;
 }
 
 :root:not(.js) .lp-ask__examples {
@@ -59,7 +47,6 @@
 }
 
 .lp-shot {
-  grid-column: 7 / 13;
   margin: 0;
 }
 
@@ -83,6 +70,60 @@
   font-size: var(--step-small);
 }
 
+/* Desktop: the answer fills columns 1-6 and the screenshot columns 7-12, tops level and one height
+   (the answer stretches to the picture's 16:9). Beneath them, the examples and the caption share one
+   baseline, the screen's closing row; the room a screen has to spare opens above the pair. */
+@media (min-width: 900px) {
+  .lp-ask {
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+    container-type: inline-size;
+  }
+
+  .lp-ask__body {
+    grid-template-rows: auto auto;
+    row-gap: 1.25rem;
+    align-self: end;
+    margin-top: var(--head-gap);
+  }
+
+  .lp-ask__left,
+  .lp-shot {
+    display: grid;
+    grid-row: 1 / 3;
+    grid-template-rows: subgrid;
+  }
+
+  .lp-ask__left {
+    grid-column: 1 / 7;
+  }
+
+  .lp-shot {
+    grid-column: 7 / 13;
+  }
+
+  /* Both are trimmed to their last baseline, so ending them on the row's foot puts the two on one
+     baseline (baseline alignment is not shared across the two subgrids). */
+  .lp-ask__examples,
+  .lp-shot figcaption {
+    align-self: end;
+  }
+
+  .lp-shot figcaption {
+    margin-top: 0;
+    text-box: trim-both cap alphabetic;
+  }
+
+  /* Text buttons trimmed to cap and baseline; the negative margin gives the padding back, so each
+     keeps a 44px target without pushing the row's baseline off the closing line. */
+  .lp-example {
+    min-height: 0;
+    margin-block: -0.875rem;
+    padding-block: 0.875rem;
+    text-box: trim-both cap alphabetic;
+  }
+}
+
 @media (max-width: 899px) {
   .lp-ask__body {
     grid-template-columns: 1fr;
@@ -90,9 +131,9 @@
     margin-top: 1.75rem;
   }
 
-  .lp-ask__left,
-  .lp-shot {
-    grid-column: 1 / -1;
+  .lp-ask__left {
+    display: grid;
+    row-gap: 1.5rem;
   }
 
   .lp-ask__examples {
@@ -111,30 +152,18 @@
   }
 }
 
-/* ---- Rulebooks: the statement, the table pushed right, the photograph low on the left ---- */
-.lp-rules {
-  padding: var(--section) var(--margin) 0;
-}
-
+/* ---- Rulebooks: the statement, the photograph and the table starting on one line ---- */
 .lp-rules__head span {
   display: block;
 }
 
-.lp-rules__first {
-  padding-left: 3vw;
-}
-
 .lp-rules__grid {
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-columns: var(--columns);
   column-gap: var(--gutter);
-  margin-top: 6rem;
 }
 
 .lp-rules__photo {
-  grid-column: 1 / 5;
-  grid-row: 1;
-  align-self: end;
   margin: 0;
 }
 
@@ -150,19 +179,7 @@
   object-fit: cover;
 }
 
-.lp-rules__word {
-  grid-column: 7;
-  grid-row: 1;
-  align-self: start;
-  padding-top: 0.1rem;
-  font-size: var(--step-small);
-  font-weight: 600;
-}
-
 .lp-rules__table {
-  grid-column: 8 / 13;
-  grid-row: 1;
-  align-self: start;
   width: 100%;
   border-collapse: collapse;
   font-size: var(--step-body);
@@ -171,7 +188,7 @@
 
 .lp-rules__table th,
 .lp-rules__table td {
-  padding: 0 0 1.625rem;
+  padding: 0 0 1.125rem;
   vertical-align: top;
   text-align: left;
   font-weight: 400;
@@ -184,42 +201,95 @@
 }
 
 .lp-rules__rule {
-  padding-right: 1rem;
+  padding-right: 2rem;
 }
 
-.lp-rules__src {
+/* Right-aligned, so every source ends on the right margin (the th/td rule above would otherwise
+   win on specificity and set it left). */
+.lp-rules__table .lp-rules__src {
   text-align: right;
   white-space: nowrap;
 }
 
-@media (min-width: 900px) {
-  .lp-rules__table {
-    font-size: 1rem;
-  }
-}
-
 .lp-rules__group th {
-  padding-bottom: 1rem;
+  padding-bottom: 0.875rem;
   font-weight: 600;
 }
 
 .lp-rules__table tbody + tbody .lp-rules__group th {
-  padding-top: 2.75rem;
+  padding-top: 1.75rem;
+}
+
+/* Desktop: the heading on one line, flush left; then the photograph in columns 1-5 and the table in
+   columns 7-12, both starting on the same line. The photograph fills the screen's remaining height
+   (cropped to it) and hangs its caption on the closing baseline. */
+@media (min-width: 900px) {
+  .lp-rules {
+    display: grid;
+    grid-template-rows: auto 1fr;
+  }
+
+  .lp-rules__head span {
+    display: inline;
+  }
+
+  .lp-rules__grid {
+    margin-top: var(--head-gap);
+  }
+
+  .lp-rules__photo {
+    display: flex;
+    flex-direction: column;
+    grid-column: 1 / 6;
+    grid-row: 1;
+  }
+
+  .lp-rules__frame {
+    position: relative;
+    flex: 1 1 0;
+    min-height: 15rem;
+    aspect-ratio: auto;
+  }
+
+  .lp-rules__frame img {
+    position: absolute;
+    inset: 0;
+  }
+
+  .lp-rules__photo figcaption {
+    text-box: trim-both cap alphabetic;
+  }
+
+  /* Rows sit 18px apart on a 900px-tall window and close to 8px at 720, so the screen still fits. */
+  .lp-rules__table {
+    --row-gap: clamp(0.5rem, 5.556svh - 2rem, 1.125rem);
+    grid-column: 7 / 13;
+    grid-row: 1;
+    align-self: start;
+    font-size: var(--step-small);
+  }
+
+  .lp-rules__table th[scope="row"],
+  .lp-rules__table td {
+    padding-bottom: var(--row-gap);
+  }
+
+  .lp-rules__table tbody + tbody .lp-rules__group th {
+    padding-top: clamp(1rem, 6.667svh - 2rem, 1.75rem);
+  }
+
+  /* The first group heading's cap line is the photograph's top edge. */
+  .lp-rules__table tbody:first-child .lp-rules__group th {
+    padding-top: 0;
+    text-box: trim-start cap alphabetic;
+  }
 }
 
 @media (max-width: 899px) {
-  .lp-rules__first {
-    padding-left: 0;
-  }
-
   .lp-rules__grid {
     grid-template-columns: 1fr;
     row-gap: 2.5rem;
     margin-top: 2.5rem;
-  }
-
-  .lp-rules__word {
-    display: none;
   }
 
   .lp-rules__table {

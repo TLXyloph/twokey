@@ -1,6 +1,6 @@
 import { AskLedgerSection } from "./ask-ledger-section";
 import { Cta, Footer } from "./closing";
-import { Hero } from "./hero";
+import { Hero, Nav } from "./hero";
 import { Motion } from "./motion";
 import { HowItWorks } from "./how-it-works";
 import { Proof } from "./proof";
@@ -18,14 +18,23 @@ import "./motion.css";
 // hydration fails). Scroll reveals wait for their own flag, set by script once it runs.
 const JS_FLAG = "document.documentElement.classList.add('js')";
 
-/** The TwoKey landing page: one sentence with two keys in it, then its evidence, section by section. */
+/**
+ * The TwoKey landing page: one sentence with two keys in it, then its evidence, screen by screen.
+ * On desktop every screen is one snap point (landing.css): the navigation and the first block share
+ * the first screen (claim, then evidence), then one section per screen, then the footer.
+ */
 export function LandingPage() {
   return (
     <div className="lp">
       <script dangerouslySetInnerHTML={{ __html: JS_FLAG }} />
-      <Hero />
+      <header className="lp-banner" id="top">
+        <Nav />
+      </header>
       <main>
-        <Proof />
+        <div className="lp-first">
+          <Hero />
+          <Proof />
+        </div>
         <HowItWorks />
         <AskLedgerSection />
         <Rulebooks />

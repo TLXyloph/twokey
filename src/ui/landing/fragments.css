@@ -17,6 +17,24 @@
   --ask-size: min(var(--step-head), calc((100vw - 2 * var(--margin)) / 15.8));
 }
 
+/* Desktop: the prefilled question and its caret are fitted from margin to margin, the W's ink on the
+   left margin; a longer question scrolls inside the field. */
+@media (min-width: 900px) {
+  [data-ui].lp-ask__line {
+    /* Measured at 1440 with the optical size held at 96: the W's ink 1.0px right of the box, and the
+       default question with its caret 14.115em wide from that ink. */
+    --fit: 14.115;
+    --lsb: 0.0115;
+    --ask-size: calc(100cqi / var(--fit));
+    margin-left: calc(-1 * var(--lsb) * var(--ask-size));
+  }
+
+  [data-ui] .lp-ask__input,
+  [data-ui] .lp-ask__ghost {
+    font-variation-settings: "opsz" 96;
+  }
+}
+
 [data-ui] .lp-ask__input,
 [data-ui] .lp-ask__ghost {
   font-family: var(--display);
@@ -72,12 +90,23 @@
 
 /* ---- The ledger's answer ---- */
 [data-ui].ui-answer {
-  max-width: 35rem;
+  display: flex;
+  flex-direction: column;
   min-height: 15.5rem;
-  padding: 1.25rem 1.5rem 0.75rem;
+  padding: 1.25rem 1.5rem 1.125rem;
   border-radius: var(--ui-radius);
   background: var(--surface);
   font-family: var(--text);
+}
+
+/* Where the answer comes from, at the card's foot: the card is as tall as the screenshot beside it. */
+[data-ui] .ui-answer__note {
+  max-width: 52ch;
+  margin-top: auto;
+  padding-top: 1rem;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  line-height: 1.45;
 }
 
 [data-ui] .ui-answer__sentence {
@@ -249,6 +278,17 @@
 @media (max-width: 560px) {
   [data-ui] .ui-payout__keys {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Phone: the answer and the payout slip bleed to both screen edges, square, with their words on the
+   20px margin like every other block. */
+@media (max-width: 599px) {
+  [data-ui].ui-answer,
+  [data-ui].ui-card {
+    margin-inline: calc(-1 * var(--margin));
+    padding-inline: var(--margin);
+    border-radius: 0;
   }
 }
 

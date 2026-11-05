@@ -6,6 +6,8 @@
 }
 
 .lp-proof__statement {
+  /* The C's side bearing at statement size (1px at 36px). */
+  margin-left: -0.028em;
   color: var(--muted);
   font-family: var(--display);
   font-size: var(--step-statement);
@@ -37,9 +39,10 @@
   color: var(--ink);
 }
 
+/* The caption and its source in columns 1-7; Pause on the caption's last baseline, flush right. */
 .lp-proof__foot {
-  align-items: start;
-  margin-top: 2rem;
+  align-items: last baseline;
+  margin-top: 1.75rem;
 }
 
 .lp-proof__captions {
@@ -47,8 +50,11 @@
   grid-column: 1 / 8;
 }
 
+/* Every caption shares one cell and ends on its foot, so whichever is lit, its last line stands on
+   the same baseline and the statement above never moves. */
 .lp-proof__caption {
   grid-area: 1 / 1;
+  align-self: end;
   max-width: 62ch;
   visibility: hidden;
 }
@@ -63,20 +69,31 @@
   visibility: visible;
 }
 
+/* Trimmed to cap and baseline, with the hit area kept by padding the negative margin gives back, so
+   the control adds nothing below the caption's baseline. */
 .lp-proof__pause {
   grid-column: 11 / 13;
   justify-self: end;
-  min-height: 2.75rem;
-  padding: 0;
+  margin-block: -1rem;
+  padding: 1rem 0;
   border: 0;
   background: none;
   font: inherit;
   font-size: var(--step-small);
+  line-height: 1.5;
+  text-box: trim-both cap alphabetic;
   cursor: pointer;
 }
 
 :root:not(.js) .lp-proof__pause {
   display: none;
+}
+
+@media (min-width: 900px) and (min-height: 640px) {
+  .lp-proof {
+    grid-row: 3;
+    padding-top: var(--head-gap);
+  }
 }
 
 @media (max-width: 599px) {
@@ -86,7 +103,7 @@
 
   .lp-proof__foot {
     grid-template-columns: 1fr;
-    row-gap: 0.5rem;
+    row-gap: 1.5rem;
   }
 
   .lp-proof__captions,
@@ -98,27 +115,18 @@
 
 /* ---- How it works: the progress bar, enlarged to the page ---- */
 .lp-how {
-  padding: var(--section) var(--margin) 0;
+  --bar-h: clamp(8rem, 18svh, 12rem);
 }
 
-.lp-how .lp-head {
-  margin-bottom: 4rem;
+/* The O's side bearing (2.5px at 81.6px, measured in the screenshot). */
+#how .lp-head {
+  --lsb: 0.0306em;
 }
 
 .lp-bar {
-  display: grid;
-  grid-template-columns: var(--cols);
-  grid-template-rows: max(22vh, 10.5rem) auto;
-  column-gap: 6px;
   margin: 0;
   padding: 0;
   list-style: none;
-}
-
-.lp-bar__stage {
-  display: grid;
-  grid-row: span 2;
-  grid-template-rows: subgrid;
 }
 
 .lp-bar__stage[data-stage="0"] { --seg: var(--field); --seg-ink: var(--ink); }
@@ -139,21 +147,67 @@
 
 .lp-bar__clause {
   max-width: 22ch;
-  margin-top: 1.5rem;
+  margin-top: 1.25rem;
   padding-right: 0.5rem;
 }
 
-/* The payout slip sits under the stage it explains ("Usually the same day": the two signatures) and
-   spans exactly that stage's track: shares are percentages of the bar's width minus its three 6px gaps. */
-.lp-how .ui-card {
-  width: calc(var(--second) * (100% - 18px));
-  margin: 3rem 0 0 calc(var(--first) * (100% - 18px) + 6px);
+/* Desktop: the section is the bar's grid. Its four tracks are the stages' shares (--cols, set from
+   the real durations); the heading spans them, the bar and its clauses fill them, and the payout slip
+   sits in the second track, under the short clause of the stage it explains, so its two edges are the
+   "Usually the same day" segment's own. The longer clauses of the narrow stages run on beside it. */
+@media (min-width: 900px) {
+  .lp-how {
+    display: grid;
+    grid-template-columns: var(--cols);
+    grid-template-rows: auto var(--bar-h) auto auto;
+    align-content: start;
+    column-gap: 6px;
+  }
+
+  .lp-how .lp-head {
+    grid-column: 1 / -1;
+    margin-bottom: var(--head-gap);
+  }
+
+  .lp-bar {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-row: 2 / 5;
+    grid-template-columns: subgrid;
+    grid-template-rows: subgrid;
+  }
+
+  .lp-bar__stage {
+    display: grid;
+    grid-row: 1 / 4;
+    grid-template-rows: subgrid;
+  }
+
+  .lp-bar__clause {
+    grid-row: 2 / 4;
+  }
+
+  /* The wide stage's clause takes two lines, so the slip under it rises and the screen fits. */
+  .lp-bar__stage[data-stage="1"] .lp-bar__clause {
+    grid-row: 2;
+    max-width: 40ch;
+  }
+
+  .lp-how .ui-card {
+    grid-column: 2;
+    grid-row: 4;
+    margin-top: 1.5rem;
+  }
 }
 
-@media (max-width: 1099px) {
+/* Tablet and phone: the bar turns vertical, each stage a block as tall as its share. */
+@media (max-width: 899px) {
+  .lp-how .lp-head {
+    margin-bottom: 2.5rem;
+  }
+
   .lp-bar {
-    grid-template-columns: 1fr;
-    grid-template-rows: none;
+    display: grid;
     row-gap: 6px;
   }
 
@@ -161,7 +215,6 @@
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    grid-row: auto;
     min-height: max(4.5rem, calc(var(--share) * 70svh));
     padding: 1rem 1.25rem 1.25rem;
     background: var(--seg);
@@ -181,7 +234,18 @@
   }
 
   .lp-how .ui-card {
-    width: auto;
-    margin: 2rem 0 0;
+    margin-top: 2rem;
+  }
+}
+
+/* Phone: every block on the one left edge. The stages bleed to both screen edges and set their
+   words on the 20px margin (the payout slip does the same, in fragments.css). */
+@media (max-width: 599px) {
+  .lp-bar {
+    margin-inline: calc(-1 * var(--margin));
+  }
+
+  .lp-bar__stage {
+    padding-inline: var(--margin);
   }
 }
