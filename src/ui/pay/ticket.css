@@ -1,0 +1,406 @@
+/*
+ * The ticket itself: its stripe, its name, the checkout printed on it, the stamp after payment and
+ * the stub that tears off with the sandbox test login. Tokens are in pay.css.
+ */
+
+.ticket {
+  position: relative;
+  align-self: start;
+  container-type: inline-size;
+  background: var(--paper);
+  color: var(--paper-ink);
+}
+
+/* The varsity stripe, as on the team's sleeves: thick, thin, thick, printed just under the top edge. */
+.ticket__stripes {
+  display: grid;
+  gap: 7px;
+  padding: var(--pad) var(--pad) 0;
+}
+
+.ticket__stripes span {
+  display: block;
+  height: 14px;
+  background: var(--paper-ink);
+}
+
+.ticket__stripes span:nth-child(2) {
+  height: 6px;
+}
+
+.ticket__body {
+  padding: var(--pad);
+  padding-top: calc(var(--pad) * 0.85);
+}
+
+/* The name is the largest thing on the ticket: sized to the card, so it never breaks inside "End-of-season". */
+.ticket__title {
+  font-family: var(--display);
+  font-size: clamp(2.5rem, 13cqi, 5.5rem);
+  font-weight: 600;
+  font-variation-settings: "opsz" 96;
+  line-height: 0.92;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+
+.ticket__nowrap {
+  white-space: nowrap;
+}
+
+.ticket__when {
+  margin-top: 1rem;
+  font-size: var(--step-lead);
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.ticket__what {
+  max-width: 42ch;
+  margin-top: 0.5rem;
+  font-size: max(1.125rem, var(--step-body));
+}
+
+.ticket__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  padding: 1.25rem var(--pad) 1.75rem;
+  font-size: var(--step-small);
+  font-weight: 600;
+}
+
+.ticket__links a,
+.sheet__strip,
+.postcard a,
+.pay-foot__credits a {
+  color: inherit;
+  text-decoration-line: underline;
+  text-decoration-thickness: 0.06em;
+  text-underline-offset: 0.22em;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+}
+
+/* ---- The checkout, printed on the ticket ---- */
+.checkout {
+  margin-top: clamp(1.75rem, 1.2rem + 1.5vw, 2.5rem);
+}
+
+.checkout__count {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+}
+
+.stepper {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+/* Read by screen readers; on screen the total beside it says "for 2 tickets". */
+.stepper__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.stepper__controls {
+  display: flex;
+  align-items: center;
+}
+
+.stepper__button {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: var(--paper-ink);
+  color: var(--paper);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.stepper__button:disabled {
+  opacity: 0.32;
+  cursor: not-allowed;
+}
+
+.stepper__value {
+  min-width: 4rem;
+  font-family: var(--display);
+  font-size: var(--step-head);
+  font-weight: 600;
+  line-height: 1;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.checkout__total {
+  display: grid;
+  justify-items: end;
+  text-align: right;
+}
+
+.checkout__total-label {
+  font-size: var(--step-small);
+  font-weight: 600;
+}
+
+.checkout__total-value {
+  display: block;
+  font-family: var(--display);
+  font-size: var(--step-head);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.checkout__price {
+  margin-top: 0.75rem;
+  font-size: var(--step-small);
+  color: var(--paper-soft);
+}
+
+.checkout__wallets {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  min-height: 3.25rem;
+}
+
+@media (min-width: 560px) {
+  .checkout__wallets:has(> :nth-child(2)) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.checkout__wallets paypal-button,
+.checkout__wallets venmo-button {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  --paypal-button-border-radius: 0px;
+  --paypal-mark-border-radius: 0px;
+}
+
+.checkout[data-busy] .checkout__wallets {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.checkout__calm {
+  padding: 0.875rem 1.125rem;
+  background: var(--paper-shade);
+  font-weight: 500;
+}
+
+.checkout__status {
+  margin-top: 0.875rem;
+  font-weight: 600;
+}
+
+.checkout__status:empty {
+  margin-top: 0;
+}
+
+.checkout__note {
+  margin-top: 0.75rem;
+}
+
+.checkout__note {
+  font-size: var(--step-small);
+  color: var(--paper-soft);
+}
+
+/* After PayPal has the money: the ticket is stamped. */
+.checkout--paid {
+  position: relative;
+}
+
+.checkout__stamp {
+  display: inline-block;
+  padding: 0.25rem 1rem 0.375rem;
+  background: var(--paper-ink);
+  color: var(--paper);
+  font-family: var(--display);
+  font-size: var(--step-head);
+  font-weight: 700;
+  line-height: 1;
+  rotate: -4deg;
+}
+
+.checkout__paid-title {
+  margin-top: 1.25rem;
+  font-family: var(--display);
+  font-size: var(--step-lead);
+  font-weight: 600;
+}
+
+.checkout__paid-line {
+  margin-top: 0.5rem;
+}
+
+.checkout__capture {
+  margin-top: 0.25rem;
+  overflow-wrap: anywhere;
+}
+
+.checkout__capture strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.checkout__after {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  margin-top: 1.25rem;
+}
+
+/* ---- The stub: where the ticket tears off ---- */
+.perforation {
+  position: relative;
+  height: 8px;
+  background: var(--paper);
+  color: var(--bg);
+}
+
+.perforation--field {
+  color: var(--field);
+}
+
+.perforation svg {
+  display: block;
+  width: calc(100% - 3rem);
+  margin-inline: 1.5rem;
+}
+
+.perforation::before,
+.perforation::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: currentColor;
+  translate: 0 -50%;
+}
+
+.perforation::before {
+  left: -14px;
+}
+
+.perforation::after {
+  right: -14px;
+}
+
+.stub {
+  padding: 1.5rem var(--pad) 0.25rem;
+}
+
+.stub__title {
+  font-family: var(--display);
+  font-size: var(--step-lead);
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.stub__note {
+  max-width: 52ch;
+  margin-top: 0.375rem;
+  font-size: var(--step-small);
+  color: var(--paper-soft);
+}
+
+.stub__login {
+  display: grid;
+  gap: 0.625rem;
+  margin-top: 1rem;
+}
+
+.stub__row {
+  display: grid;
+  grid-template-columns: 6rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.25rem 1rem;
+}
+
+.stub__row dt {
+  font-size: var(--step-small);
+  font-weight: 600;
+}
+
+.stub__row dd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.stub__value {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-weight: 500;
+}
+
+.stub__copy {
+  display: grid;
+  flex: none;
+  min-height: 40px;
+  min-width: 5.25rem;
+  padding: 0 0.875rem;
+  border: 0;
+  border-radius: 0;
+  background: var(--paper-ink);
+  color: var(--paper);
+  font: inherit;
+  font-size: var(--step-small);
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.stub__copy-word {
+  grid-area: 1 / 1;
+  place-self: center;
+  opacity: 0;
+}
+
+.stub__copy-word[data-on] {
+  opacity: 1;
+}
+
+@media (max-width: 699px) {
+  .stub__row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* An email address stays whole: the Copy button drops under it instead. */
+  .stub__row dd {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 0.5rem;
+  }
+
+  .stub__value {
+    flex-basis: 100%;
+  }
+
+  .checkout__count {
+    align-items: center;
+  }
+}
