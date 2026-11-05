@@ -22,7 +22,14 @@ export type Layout = Record<WidgetId, AgWidgetLayoutState>;
 /** Rows per widget. The balance holds a 60px figure; the ledger shows about fourteen rows. */
 const ROWS: Record<WidgetId, number> = { balance: 11, "takings-chart": 26, takings: 26, waiting: 14, ledger: 48 };
 
-const box = (xTrack: number, yTrack: number, xSpan: number, id: WidgetId): AgWidgetLayoutState => ({ xTrack, yTrack, xSpan, ySpan: ROWS[id] });
+/**
+ * Stacked (720-1099px), a widget no longer shares its row, so it takes only what it needs. The events
+ * table matches the chart beside it when wide; alone it needs its title, a 41px header and 46px rows
+ * (measured): three events, a fourth once a banquet ticket is bought, and the total, in 22 rows.
+ */
+const STACKED_ROWS: Partial<Record<WidgetId, number>> = { takings: 22 };
+
+const box = (xTrack: number, yTrack: number, xSpan: number, id: WidgetId, ySpan = ROWS[id]): AgWidgetLayoutState => ({ xTrack, yTrack, xSpan, ySpan });
 
 /** 1100px and up: the chart and the events table side by side. */
 export function wideLayout(): Layout {
@@ -44,8 +51,9 @@ export function stackedLayout(): Layout {
   const order: WidgetId[] = ["balance", "takings-chart", "takings", "waiting", "ledger"];
   return Object.fromEntries(
     order.map((id) => {
-      const placed = box(0, yTrack, 24, id);
-      yTrack += ROWS[id];
+      const rows = STACKED_ROWS[id] ?? ROWS[id];
+      const placed = box(0, yTrack, 24, id, rows);
+      yTrack += rows;
       return [id, placed];
     }),
   ) as Layout;

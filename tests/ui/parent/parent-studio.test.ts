@@ -94,6 +94,19 @@ describe("the parent's Studio page", () => {
     expect(Object.values(stacked).every((b) => b.xTrack === 0 && b.xSpan === 24)).toBe(true);
   });
 
+  it("gives the events table its own height when stacked, not the chart's", () => {
+    const wide = wideLayout();
+    const stacked = stackedLayout();
+    // Side by side, the table matches the chart. Alone below 1100px it needs its title, a 41px header
+    // and 46px rows: the seed's three events, a fourth (the banquet, once a ticket is bought) and the
+    // total fit in 22 rows of 16px.
+    expect(wide[WIDGET_IDS.events].ySpan).toBe(wide[WIDGET_IDS.chart].ySpan);
+    expect(stacked[WIDGET_IDS.events].ySpan).toBe(22);
+    expect(stacked[WIDGET_IDS.chart].ySpan).toBe(wide[WIDGET_IDS.chart].ySpan);
+    // The widgets below it move up with it, so nothing is left between them.
+    expect(stacked[WIDGET_IDS.waiting].yTrack).toBe(stacked[WIDGET_IDS.events].yTrack + 22);
+  });
+
   it("never overlaps two widgets", () => {
     for (const layout of [wideLayout(), stackedLayout()]) {
       const boxes = Object.values(layout);

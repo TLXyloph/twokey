@@ -4,9 +4,10 @@
  * The club's books: AG Studio from 720px, the stacked version below it. CSS decides which one shows
  * (so a phone gets the server-rendered stacked books with no flash); script decides whether Studio
  * loads at all, so a phone never downloads it. Once loaded, Studio stays: narrowing the window below
- * 720px only hides it.
+ * 720px only hides it. Each widget Studio draws is marked as an interface fragment (./fragment-marks.ts).
  */
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { watchFragments } from "./fragment-marks";
 import { PARENT_BREAKPOINTS, STUDIO_HEIGHTS } from "./parent-grid";
 import { StackedBooks } from "./stacked-books";
 import { ParentStudioLoader } from "./studio-loader";
@@ -35,9 +36,14 @@ function useStudioFits(): boolean {
 
 export function BooksBody({ licenseKey }: { licenseKey?: string }) {
   const fits = useStudioFits();
+  const place = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = place.current;
+    return el ? watchFragments(el) : undefined;
+  }, []);
   return (
     <>
-      <div className="books__studio" style={studioPlace}>
+      <div ref={place} className="books__studio" style={studioPlace}>
         {fits ? (
           <ParentStudioLoader licenseKey={licenseKey} />
         ) : (
