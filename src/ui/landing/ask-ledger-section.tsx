@@ -109,7 +109,7 @@ export function AskLedgerSection() {
               src="/landing/img/demo-dashboard.png"
               width={1417}
               height={797}
-              alt="The TwoKey board in AG Studio. Under the title, the finding: car wash, October 24, $1,290.00 of $1,305.00 expected has no record. A strip shows the $4,998.75 balance from the PayPal sandbox, $489.00 in two payouts waiting for a second key, and $630.00 in for November. A chart compares received against expected takings for each event, beside the events table, above the queue of payouts waiting for a second officer's signature."
+              alt="The TwoKey board in AG Studio. Under the title, the finding: car wash, October 24, $1,290.00 of $1,305.00 expected has no record. A strip shows the $4,998.75 balance in the session's ledger, $78.50 in two payouts waiting for a second key, and $630.00 in for November. A chart compares received against expected takings for each event, beside the events table, above the queue of payouts waiting for a second officer's signature: $42.00 for goalkeeper gloves and a $36.50 field-paint reimbursement to the treasurer."
               loading="lazy"
               decoding="async"
             />
