@@ -1,6 +1,6 @@
 /**
  * The close's figures, as the Reviewer reads them: the month statement (opening + in − out =
- * closing, and that it carries forward), the exceptions, the month's rows behind the statement, and
+ * closing, that it carries forward, what was open at month end and the payments' two keys), the exceptions, the month's rows behind the statement, and
  * the money out against each budget line. Presentational: everything comes from ./close-model.ts.
  *
  * Colour: the club maroon goes on a shortfall's figure only, as on the board; spending is drawn in
@@ -8,10 +8,11 @@
  */
 import type { CloseFigures } from "@/close/contracts";
 import { AlertGlyph, TickGlyph } from "@/ui/judge/glyphs";
-import { approvedTotal, budgetRows, carriedForwardLine, exceptionView, ledgerSections, money, openItemsLine, statementCells } from "./close-model";
+import { approvedTotal, budgetRows, carriedForwardLine, exceptionView, ledgerSections, money, openItemsLine, statementCells, twoKeyLine } from "./close-model";
 
 export function Statement({ figures }: { figures: CloseFigures }) {
   const carried = carriedForwardLine(figures);
+  const twoKeys = twoKeyLine(figures);
   return (
     <section className="close-panel close-statement" aria-labelledby="close-statement-title">
       <h2 id="close-statement-title" className="board-visually-hidden">
@@ -36,6 +37,10 @@ export function Statement({ figures }: { figures: CloseFigures }) {
         <li className="close-check" data-ok={figures.openItems.length === 0 || undefined}>
           <span className="close-check__mark">{figures.openItems.length === 0 ? <TickGlyph /> : <AlertGlyph />}</span>
           <span>{openItemsLine(figures)}</span>
+        </li>
+        <li className="close-check" data-ok={twoKeys.ok || undefined}>
+          <span className="close-check__mark">{twoKeys.ok ? <TickGlyph /> : <AlertGlyph />}</span>
+          <span>{twoKeys.text}</span>
         </li>
       </ul>
     </section>
@@ -151,7 +156,7 @@ export function BudgetLines({ figures }: { figures: CloseFigures }) {
                 {row.figures}
               </span>
             </p>
-            <span className="close-bar" role="img" aria-label={`${row.label}: ${row.figures} approved spent`}>
+            <span className="close-bar" role="img" aria-label={`${row.label}: ${row.figures} spent`}>
               {row.share > 0 && <span className="close-bar__fill" style={{ inlineSize: `${(row.share * 100).toFixed(2)}%` }} />}
             </span>
             <p className="close-row__meta num">{row.meta}</p>

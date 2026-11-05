@@ -64,6 +64,27 @@ export function openItemsLine(figures: CloseFigures): string {
   return `Open at month end: ${plural(figures.openItems.length, "payout", "payouts")} (${money(total)}) waiting for a second key on ${end}.`;
 }
 
+/**
+ * Every payment out has two officers' approval on record, and on what basis: the seed's payments are
+ * demo data with no signatures, so they are taken as approved, and the line says so. A payment with
+ * neither is under Exceptions.
+ */
+export function twoKeyLine(figures: CloseFigures): { ok: boolean; text: string } {
+  const { payments, signed, seedApproved } = figures.twoKeyRecord;
+  if (payments === 0) return { ok: true, text: "Two keys: no payments went out this month." };
+  const approved = signed + seedApproved;
+  const missing = payments - approved;
+  const basis = seedApproved === 0 ? "" : seedApproved === payments ? " (demo data, taken as approved)" : ` (${seedApproved} ${seedApproved === 1 ? "is" : "are"} demo data, taken as approved)`;
+  if (missing === 0) {
+    const all = payments === 1 ? "the one payment out is" : `all ${payments} payments out are`;
+    return { ok: true, text: `Two keys: ${all} approved by two officers${basis}.` };
+  }
+  return {
+    ok: false,
+    text: `Two keys: ${approved} of ${payments} payments out are approved by two officers${basis}. ${plural(missing, "payment is", "payments are")} under Exceptions.`,
+  };
+}
+
 /** The sentence under the title: does the month add up, and what is left for the Reviewer. */
 export function closeFinding(figures: CloseFigures): string {
   const count = figures.exceptions.length;
@@ -107,7 +128,7 @@ export function exceptionView(exception: CloseException, figures: CloseFigures):
         figure: money(exception.totalCents),
         shortfall: false,
         lines: [
-          `${plural(exception.count, "payment", "payments")} out have no two officers' signatures on record.`,
+          `${plural(exception.count, "payment", "payments")} out ${exception.count === 1 ? "has" : "have"} no two officers' signatures on record.`,
           allBefore && first
             ? `All predate TwoKey's first signed request (${shortDay(first)}): check them against the officers' paper approvals.`
             : "Check them against the officers' approvals.",

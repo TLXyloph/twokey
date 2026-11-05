@@ -29,12 +29,12 @@ const FIXTURE_KEY_ID = "7c1e5a90";
 export const SAMPLE_DRAFT: CloseDraft = {
   summary:
     "October adds up. The month opened at $2,549.00, took in $4,175.00 and paid out $2,355.25, closing at $4,368.75, which carries forward to the account's balance on Nov 3. " +
-    "Every budget line is within its season approval; fundraising costs have $51.25 left. Nothing was waiting for a second key at month end. " +
-    "Two things need the Reviewer: the car wash logged 87 cars but only $15.00 reached the account, and October's 7 payments have no two-key record.",
+    "Every budget line is within its season approval; fundraising costs have $51.25 left. Nothing was waiting for a second key at month end, and all 7 payments count as approved by two officers (demo data). " +
+    "One thing needs the Reviewer: the car wash logged 87 cars but only $15.00 reached the account.",
   points: [
     { check: "Ask the car-wash volunteers how the other 86 cars paid, and where that money is now.", basis: "Car wash, Oct 24: 87 cars logged, $15.00 received" },
-    { check: "Check each October payment against the officers' paper approvals for two signatures.", basis: "7 payments out, $2,355.25, no two-key record" },
     { check: "Ask the Treasurer whether fundraising costs will stay within the $51.25 left this season.", basis: "Fundraising costs: $948.75 of $1,000.00" },
+    { check: "Check the account's balance with the Treasurer against the $4,998.75 the close carries forward.", basis: "$4,368.75 + $630.00 completed after Oct 31 = $4,998.75" },
   ],
 };
 

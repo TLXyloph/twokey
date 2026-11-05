@@ -33,7 +33,8 @@ const longTime = new Intl.DateTimeFormat("en-US", {
   timeZoneName: "short",
 });
 
-function Proof({ signoff, id }: { signoff: CloseSignoffView; id: string }) {
+/** What the signature binds; opened by "Show proof". */
+export function Proof({ signoff, id }: { signoff: CloseSignoffView; id: string }) {
   return (
     <div id={id} className="close-proof">
       <dl className="close-proof__fields">
