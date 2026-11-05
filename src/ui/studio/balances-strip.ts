@@ -7,6 +7,7 @@
  * optional slots; an unmapped slot means its cell is not drawn.
  */
 import { formatAsOf, formatUsd, monthNameOf } from "@/demo/board-figures";
+import { CLUB_TIME_ZONE } from "@/demo/riverbend";
 
 export type StripSlot = "value" | "asOf" | "waitingCount" | "waitingTotal" | "moneyIn";
 export const STRIP_SLOTS: readonly StripSlot[] = ["value", "asOf", "waitingCount", "waitingTotal", "moneyIn"];
@@ -34,6 +35,8 @@ export interface StripCell {
   caption: string;
   /** A second caption line: the shared sandbox balance, under the available balance only. */
   note?: string;
+  /** The same line for a narrow strip, one word shorter. */
+  noteShort?: string;
   /** A zero figure: drawn in grey, with a caption that says so. */
   zero: boolean;
 }
@@ -42,17 +45,29 @@ export type FormatMoney = (amount: number, slot: StripSlot) => string;
 
 const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? "" : "s"}`;
 
+const clubDay = new Intl.DateTimeFormat("en-CA", { timeZone: CLUB_TIME_ZONE });
+const clubClock = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", timeZone: CLUB_TIME_ZONE, timeZoneName: "short" });
+
+/** "8:30 AM CST" when on the same club day as `reference` (the caption above names it), else "Nov 5, 8:30 AM CST". */
+function asOfBeside(value: AsOf, reference: AsOf | null | undefined): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const ref = reference == null ? null : new Date(reference);
+  return ref && !Number.isNaN(ref.getTime()) && clubDay.format(ref) === clubDay.format(date) ? clubClock.format(date) : formatAsOf(date);
+}
+
 export function balancesStripCells(figures: StripFigures, formatMoney: FormatMoney = formatUsd): StripCell[] {
   const asOf = figures.asOf == null ? "" : formatAsOf(figures.asOf);
   const month = figures.asOf == null ? "" : monthNameOf(figures.asOf);
   const shared = figures.shared;
+  const sharedFigures = shared && `${formatUsd(shared.availableCents / 100)} · as of ${asOfBeside(shared.asOf, figures.asOf)}`;
   const cells: StripCell[] = [
     {
       id: "balance",
       label: "Available balance",
       value: formatMoney(figures.balance, "value"),
       caption: asOf ? `PayPal sandbox · as of ${asOf}` : "PayPal sandbox",
-      ...(shared && { note: `Shared sandbox balance ${formatUsd(shared.availableCents / 100)} · as of ${formatAsOf(shared.asOf)}` }),
+      ...(sharedFigures && { note: `Shared sandbox balance ${sharedFigures}`, noteShort: `Shared sandbox ${sharedFigures}` }),
       zero: figures.balance === 0,
     },
   ];

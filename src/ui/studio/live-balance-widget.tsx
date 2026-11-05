@@ -88,13 +88,18 @@ export function LiveBalanceWidget({ dataMapping, widgetApi }: AgWidgetParams<Liv
     : undefined;
 
   return (
-    <dl className="tk-strip" style={stripColours} aria-live="polite">
+    <dl className="tk-strip" style={stripColours} aria-live="polite" data-has-note={cells?.some((cell) => cell.note) || undefined}>
       {cells?.map((cell) => (
         <div key={cell.id} className="tk-strip__cell" data-zero={cell.zero || undefined}>
           <dt className="tk-strip__label">{cell.label}</dt>
           <dd className="tk-strip__value">{cell.value}</dd>
           <dd className="tk-strip__caption">{cell.caption}</dd>
-          {cell.note && <dd className="tk-strip__caption tk-strip__note">{cell.note}</dd>}
+          {cell.note && (
+            <dd className="tk-strip__caption tk-strip__note" title={cell.note}>
+              <span className="tk-strip__note-long">{cell.note}</span>
+              <span className="tk-strip__note-short">{cell.noteShort ?? cell.note}</span>
+            </dd>
+          )}
         </div>
       ))}
     </dl>

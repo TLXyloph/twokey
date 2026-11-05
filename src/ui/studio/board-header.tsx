@@ -42,7 +42,7 @@ export function BoardHeader({ model = boardHeaderModel() }: { model?: BoardHeade
           <h1 className="board-header__title">{model.title}</h1>
           <p className="board-header__finding">{model.finding}</p>
         </div>
-        {model.review && <ReviewButton label={model.review.label} />}
+        <ReviewButton seedCount={model.review?.count ?? 0} />
       </div>
     </header>
   );

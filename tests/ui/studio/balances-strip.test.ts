@@ -145,6 +145,14 @@ describe("the shared sandbox balance under the available balance", () => {
     expect(waiting!.note).toBeUndefined();
   });
 
+  it("leaves out the date when it is the same day as the balance above it", () => {
+    const [balance] = balancesStripCells({ ...demo, asOf: "2026-11-05T15:39:00Z", shared });
+    expect(balance!.caption).toBe("PayPal sandbox · as of Nov 5, 9:39 AM CST");
+    expect(balance!.note).toBe("Shared sandbox balance $4,997.50 · as of 8:30 AM CST");
+    // A narrow strip (a tablet) drops one word rather than the time.
+    expect(balance!.noteShort).toBe("Shared sandbox $4,997.50 · as of 8:30 AM CST");
+  });
+
   it("says nothing when PayPal's balance can't be read", () => {
     expect(balancesStripCells({ ...demo, shared: null })[0]).not.toHaveProperty("note");
     expect(balancesStripCells(demo)[0]).not.toHaveProperty("note");
