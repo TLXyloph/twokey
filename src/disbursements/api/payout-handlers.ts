@@ -35,7 +35,7 @@ const REQUEST_ID = /^[A-Za-z0-9_-]{1,64}$/;
 
 const signBodySchema = z
   .object({
-    actingAs: z.enum(["president", "treasurer", "secretary", "parent"]),
+    actingAs: z.enum(["president", "treasurer", "secretary", "parent", "reviewer"]),
     acknowledgedFlags: z.boolean().default(false),
   })
   .strict();

@@ -12,8 +12,11 @@ import type { ClubDemoData, OfficerRole } from "@/demo/riverbend";
 import type { WatchtowerView } from "@/watchtower/contracts";
 
 export type { OfficerRole };
-/** Who a judge is acting as. A parent can pay, but can't request or sign. */
-export type ActingRole = OfficerRole | "parent";
+/**
+ * Who a judge is acting as. A parent can pay, but can't request or sign. The reviewer is the
+ * non-signer who signs the monthly close (spec §4): never a payout key.
+ */
+export type ActingRole = OfficerRole | "parent" | "reviewer";
 export type Currency = "USD";
 
 // ---------------------------------------------------------------------------------------------

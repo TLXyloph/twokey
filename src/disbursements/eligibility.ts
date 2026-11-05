@@ -34,9 +34,15 @@ const CLOSED: Record<"sent" | "confirmed" | "blocked" | "failed", string> = {
   failed: "PayPal didn't take this payout, so it can't be signed again.",
 };
 
+const NON_OFFICER: Record<Exclude<ActingRole, OfficerRole>, string> = { parent: "A parent", reviewer: "The reviewer" };
+const NON_OFFICER_SIGN: Record<Exclude<ActingRole, OfficerRole>, string> = {
+  parent: "A parent can't sign payouts. Only the club's officers hold keys.",
+  reviewer: "The reviewer signs the monthly close, never a payout, so the reviewer holds no payout key.",
+};
+
 /** May `actingAs` request a payout to this payee? */
 export function requestRefusal(actingAs: ActingRole, payeeOfficer: OfficerRole | null): Refusal | null {
-  if (!isOfficer(actingAs)) return { code: "not_an_officer", message: "A parent can't request payouts. Only the club's officers can." };
+  if (!isOfficer(actingAs)) return { code: "not_an_officer", message: `${NON_OFFICER[actingAs]} can't request payouts. Only the club's officers can.` };
   if (payeeOfficer === actingAs) {
     const title = titleOf(actingAs);
     return { code: "payee_cannot_sign", message: `The ${title} is the payee, so the ${title} can't request (and sign) this payout.` };
@@ -46,7 +52,7 @@ export function requestRefusal(actingAs: ActingRole, payeeOfficer: OfficerRole |
 
 /** May `actingAs` add a key to this request now? */
 export function signRefusal(state: RequestState, actingAs: ActingRole, acknowledgedFlags: boolean): Refusal | null {
-  if (!isOfficer(actingAs)) return { code: "not_an_officer", message: "A parent can't sign payouts. Only the club's officers hold keys." };
+  if (!isOfficer(actingAs)) return { code: "not_an_officer", message: NON_OFFICER_SIGN[actingAs] };
   const status = requestStatus(state);
   if (status !== "waiting") return { code: "request_closed", message: CLOSED[status] };
   if (hasBothKeys(state)) return { code: "request_closed", message: "This payout already has both keys." };

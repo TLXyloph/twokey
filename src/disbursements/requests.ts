@@ -17,7 +17,7 @@ import type { DemoSigner } from "./signing";
 /** A judge session can make at most this many requests of its own (it keeps the demo's chain small). */
 export const MAX_SESSION_REQUESTS = 20;
 
-const ACTING_ROLES = ["president", "treasurer", "secretary", "parent"] as const satisfies readonly ActingRole[];
+const ACTING_ROLES = ["president", "treasurer", "secretary", "parent", "reviewer"] as const satisfies readonly ActingRole[];
 const PAYEE_IDS = PAYEES.map((payee) => payee.id) as [CreatePayoutRequestBody["payeeId"], ...CreatePayoutRequestBody["payeeId"][]];
 const BUDGET_LINE_IDS = BUDGET_LINES.map((line) => line.id) as [BudgetLineId, ...BudgetLineId[]];
 
@@ -64,7 +64,7 @@ export async function createPayoutRequest(deps: RequestDeps, sessionId: string, 
     return { ok: false, refusal };
   }
   if (existing.filter((request) => request.source === "session").length >= MAX_SESSION_REQUESTS) return { ok: false, tooMany: true };
-  if (input.actingAs === "parent") throw new Error("unreachable: a parent is refused above");
+  if (input.actingAs === "parent" || input.actingAs === "reviewer") throw new Error("unreachable: a non-officer is refused above");
 
   const request = await buildRequestPayload(sessionId, {
     requestId,

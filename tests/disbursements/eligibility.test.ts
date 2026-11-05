@@ -142,3 +142,10 @@ describe("eligibleSigners", () => {
     expect(eligibleSigners(ready(payoutSent("req-1", requestedPayload().requestHash)))).toEqual([]);
   });
 });
+
+describe("the reviewer holds no payout key", () => {
+  it("can't request or sign a payout, and the refusal says why", async () => {
+    const { requestRefusal } = await import("@/disbursements/eligibility");
+    expect(requestRefusal("reviewer", null)).toEqual({ code: "not_an_officer", message: "The reviewer can't request payouts. Only the club's officers can." });
+  });
+});

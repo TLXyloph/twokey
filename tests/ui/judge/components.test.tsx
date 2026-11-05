@@ -20,11 +20,11 @@ const text = (html: string) =>
 describe("the judge panel", () => {
   const html = renderToStaticMarkup(<JudgePanel />);
 
-  it("is labelled Judge mode, with the four roles and the Treasurer chosen first", () => {
+  it("is labelled Judge mode, with the five roles and the Treasurer chosen first", () => {
     expect(text(html)).toContain("Judge mode");
-    for (const role of ["President", "Treasurer", "Secretary", "Parent"]) expect(text(html)).toContain(role);
+    for (const role of ["President", "Treasurer", "Secretary", "Reviewer", "Parent"]) expect(text(html)).toContain(role);
     const radios = html.match(/<input[^>]*type="radio"[^>]*>/g) ?? [];
-    expect(radios).toHaveLength(4);
+    expect(radios).toHaveLength(5);
     expect(radios.filter((tag) => /\bchecked\b/.test(tag)).map((tag) => /value="(\w+)"/.exec(tag)?.[1])).toEqual(["treasurer"]);
     expect(html).toContain('role="radiogroup"');
   });

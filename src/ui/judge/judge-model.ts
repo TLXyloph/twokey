@@ -22,18 +22,19 @@ import {
 } from "@/ledger/contracts";
 import { reviewLabel } from "@/ui/studio/board-header-model";
 
-export const ACTING_ROLES: readonly ActingRole[] = ["president", "treasurer", "secretary", "parent"];
+export const ACTING_ROLES: readonly ActingRole[] = ["president", "treasurer", "secretary", "reviewer", "parent"];
 export const DEFAULT_ROLE: ActingRole = "treasurer";
 
 const ROLE_TITLES: Record<ActingRole, string> = {
   president: "President",
   treasurer: "Treasurer",
   secretary: "Secretary",
+  reviewer: "Reviewer",
   parent: "Parent",
 };
 
 export const roleTitle = (role: ActingRole) => ROLE_TITLES[role];
-export const isOfficer = (role: ActingRole): role is OfficerRole => role !== "parent";
+export const isOfficer = (role: ActingRole): role is OfficerRole => role !== "parent" && role !== "reviewer";
 export const isActingRole = (value: unknown): value is ActingRole => ACTING_ROLES.includes(value as ActingRole);
 
 /** "the President or the Secretary". */
@@ -100,7 +101,7 @@ export function waitingCount(view: BoardView | null): number | null {
 }
 
 export function reviewButtonLabel(role: ActingRole, count: number): string {
-  if (role === "parent") return "See payouts";
+  if (!isOfficer(role)) return "See payouts";
   return count > 0 ? reviewLabel(count) : "No payouts waiting";
 }
 
