@@ -7,7 +7,9 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-OUT="$(mktemp -d)"
+# The physical path: on macOS the temp folder sits behind a symlink, and the script runs its main
+# only when its own URL matches the path Node was given.
+OUT="$(cd "$(mktemp -d)" && pwd -P)"
 trap 'rm -rf "$OUT"' EXIT
 
 # Bundles the TypeScript (tsconfig paths, the SDK and zod) into one ES module for Node.
