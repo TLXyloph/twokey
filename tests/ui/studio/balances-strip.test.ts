@@ -26,7 +26,7 @@ describe("the balances strip's cells", () => {
         caption: "PayPal sandbox · as of Nov 3, 10:30 AM CST",
         zero: false,
       },
-      { id: "waiting", label: "Waiting for a second key", value: "$489.00", caption: "2 payouts", zero: false },
+      { id: "waiting", label: "Waiting for a second key", value: "$78.50", caption: "2 payouts", zero: false },
       {
         id: "moneyIn",
         label: "Money in, November",
@@ -42,8 +42,8 @@ describe("the balances strip's cells", () => {
     const queue = secondKeyQueue();
     expect(balance!.caption).toContain(formatAsOf(asOf));
     expect(waiting!.caption).toBe(`${queue.count} payouts`);
-    expect(waiting!.value).toBe("$489.00");
-    expect(queue.total).toBe(489);
+    expect(waiting!.value).toBe("$78.50");
+    expect(queue.total).toBe(78.5);
     expect(moneyIn!.label).toBe(`Money in, ${moneyInThisMonth().monthName}`);
     expect(moneyIn!.value).toBe("$630.00");
   });
@@ -83,7 +83,7 @@ describe("the balances strip's cells", () => {
   it("formats money with the formatter it is given, slot by slot", () => {
     const format = vi.fn((amount: number, _slot: StripSlot) => `USD ${amount}`);
     const cells = balancesStripCells(demo, format);
-    expect(cells.map((c) => c.value)).toEqual(["USD 4998.75", "USD 489", "USD 630"]);
+    expect(cells.map((c) => c.value)).toEqual(["USD 4998.75", "USD 78.5", "USD 630"]);
     expect(format.mock.calls.map(([, slot]) => slot)).toEqual(["value", "waitingTotal", "moneyIn"]);
   });
 });

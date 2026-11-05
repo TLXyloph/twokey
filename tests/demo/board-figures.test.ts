@@ -94,10 +94,7 @@ describe("waiting for a second key", () => {
     expect(rows.reduce((t, r) => t + r.awaitingSecondKey, 0)).toBe(queue.count);
     expect(sumCents(rows.map((r) => r.pendingAmount))).toBe(cents(queue.total));
     expect(rows.filter((r) => r.awaitingSecondKey === 1).map((r) => r.signedBy)).toEqual(queue.payouts.map((p) => p.signedBy));
-    // "Still to sign" for a payee who is an officer needs studio-data.ts to call stillToSignFor(row)
-    // (integration step; that file belongs to the UI work). Rows with a non-officer payee agree now.
-    const nonOfficerPayee = queue.payouts.filter((p) => p.id === "L14").map((p) => p.stillToSign);
-    expect(rows.filter((r) => r.id === "L14").map((r) => r.stillToSign)).toEqual(nonOfficerPayee);
+    expect(rows.filter((r) => r.awaitingSecondKey === 1).map((r) => r.stillToSign)).toEqual(queue.payouts.map((p) => p.stillToSign));
   });
 
   it("is not part of the available balance (pending money has not left)", () => {
