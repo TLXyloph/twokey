@@ -41,7 +41,16 @@ interface Harness {
   lines: string[];
 }
 
-function harness(over: { env?: PaypalWebhookEnv; store?: "none"; verified?: boolean; verifyError?: unknown; appendResult?: AppendOutcome | Error } = {}): Harness {
+function harness(
+  over: {
+    env?: PaypalWebhookEnv;
+    store?: "none";
+    verified?: boolean;
+    verifyError?: unknown;
+    appendResult?: AppendOutcome | Error;
+    linker?: WebhookHandlerDeps["linker"];
+  } = {},
+): Harness {
   const verify = vi.fn<WebhookVerifier["verify"]>(async () => {
     if (over.verifyError) throw over.verifyError;
     return over.verified ?? true;
@@ -59,6 +68,7 @@ function harness(over: { env?: PaypalWebhookEnv; store?: "none"; verified?: bool
     verifierFor,
     now: () => new Date(RECEIVED_AT),
     log: (line) => lines.push(line),
+    ...(over.linker && { linker: over.linker }),
   };
   return { deps, verify, verifierFor, append, lines };
 }
@@ -129,6 +139,51 @@ describe("handlePaypalWebhook", () => {
     expect(response.status).toBe(200);
     expect(json).toEqual({ ok: true, outcome: "duplicate" });
     expect(h.lines[0]).toMatch(/outcome=duplicate status=200/);
+  });
+
+  describe("linking to the ledger, after the event is stored", () => {
+    const linked = vi.fn<NonNullable<WebhookHandlerDeps["linker"]>>(async () => ({
+      kind: "linked",
+      type: "payout.confirmed",
+      sessionId: "sessionAbcdefghijklmnop",
+      outcome: "stored",
+    }));
+
+    it("hands the linker the raw event and logs what it linked on a second line", async () => {
+      const h = harness({ linker: linked });
+      const raw = rawEvent(payoutsBatchSuccessEvent);
+      const { response } = await run(h, webhookRequest({ body: raw }));
+      expect(response.status).toBe(200);
+      expect(linked).toHaveBeenCalledWith(raw);
+      expect(h.append.mock.invocationCallOrder[0]).toBeLessThan(linked.mock.invocationCallOrder.at(-1) ?? 0);
+      expect(h.lines[1]).toBe("[paypal/webhook] link=payout.confirmed outcome=stored session=sessionA event_id=WH-TEST0002-PAYOUTSBATCH");
+    });
+
+    it("links a redelivery too (linking is idempotent by PayPal's event id)", async () => {
+      const linker = vi.fn<NonNullable<WebhookHandlerDeps["linker"]>>(async () => ({ kind: "unlinked", reason: "no_session" }));
+      const h = harness({ appendResult: "duplicate", linker });
+      expect((await run(h)).response.status).toBe(200);
+      expect(linker).toHaveBeenCalledTimes(1);
+      expect(h.lines).toHaveLength(1);
+    });
+
+    it("still answers 200 when linking fails, and logs one line without the error's text", async () => {
+      const linker = vi.fn<NonNullable<WebhookHandlerDeps["linker"]>>(async () => {
+        throw new Error(`D1_ERROR near ${PAYEE_EMAIL}`);
+      });
+      const h = harness({ linker });
+      const { response, json } = await run(h);
+      expect(response.status).toBe(200);
+      expect(json).toEqual({ ok: true, outcome: "stored" });
+      expect(h.lines[1]).toBe("[paypal/webhook] link=error event_id=WH-TEST0002-PAYOUTSBATCH detail=link_failed");
+    });
+
+    it("never links an event that wasn't verified and stored", async () => {
+      const linker = vi.fn<NonNullable<WebhookHandlerDeps["linker"]>>();
+      await run(harness({ verified: false, linker }));
+      await run(harness({ appendResult: new Error("D1 down"), linker }));
+      expect(linker).not.toHaveBeenCalled();
+    });
   });
 
   it("hands the verifier and the store the received bytes unchanged", async () => {

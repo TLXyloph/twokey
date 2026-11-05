@@ -14,8 +14,13 @@
  *
  * One log line per request: outcome, status, the event's id, type, resource type and resource
  * id, and a fixed detail code. Never the body, the headers, emails, tokens or secrets.
+ *
+ * Ledger linking (optional `linker`): once an event is stored (or was already), it is linked to
+ * the judge session it belongs to (src/ledger/paypal-link.ts). Best effort: whatever linking does,
+ * PayPal still gets the 200. A link, or a linking failure, adds one more log line.
  */
 import type { PaypalEventStore } from "@/ledger/event-store";
+import type { LinkOutcome } from "@/ledger/paypal-link";
 import { PaypalApiError, resolveSandboxApiBase } from "./client";
 import { summarizePaypalEvent, type PaypalEventSummary } from "./event-summary";
 import { readTransmission, WEBHOOK_ID_MAX_LENGTH, type WebhookVerifier } from "./verify-webhook";
@@ -63,6 +68,8 @@ export interface WebhookHandlerDeps {
   store: PaypalEventStore | undefined;
   /** Builds (or reuses) the verifier for this config; the route caches the PayPal client. */
   verifierFor(config: PaypalWebhookConfig): WebhookVerifier;
+  /** Links a stored event to its judge session's ledger; undefined skips linking. */
+  linker?: (raw: string) => Promise<LinkOutcome>;
   now?: () => Date;
   log?: (line: string) => void;
 }
@@ -126,6 +133,19 @@ function logLine(outcome: WebhookOutcome, fields: LogFields): string {
   }
   if (detail) parts.push(`detail=${detail}`);
   return parts.join(" ");
+}
+
+/** Runs the linker; logs a line only for a link or a failure (never the error's text). */
+async function linkStored(linker: NonNullable<WebhookHandlerDeps["linker"]>, raw: string, eventId: string, log: (line: string) => void) {
+  const id = `event_id=${loggable(eventId)}`;
+  try {
+    const result = await linker(raw);
+    if (result.kind === "linked") {
+      log(`[paypal/webhook] link=${result.type} outcome=${result.outcome} session=${loggable(result.sessionId.slice(0, 8))} ${id}`);
+    }
+  } catch {
+    log(`[paypal/webhook] link=error ${id} detail=link_failed`);
+  }
 }
 
 function respond(outcome: WebhookOutcome): Response {
@@ -244,7 +264,9 @@ export async function handlePaypalWebhook(request: Request, deps: WebhookHandler
     } catch (error) {
       return finish("store_error", { summary, detail: storeErrorDetail(error) });
     }
-    return finish(outcome, { summary });
+    const response = finish(outcome, { summary });
+    if (deps.linker) await linkStored(deps.linker, raw, summary.eventId, log);
+    return response;
   } catch {
     return finish("internal_error", { summary });
   }

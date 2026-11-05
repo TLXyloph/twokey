@@ -57,8 +57,14 @@ export interface PaypalJsonResponse {
 export interface PaypalClient {
   readonly apiBase: string;
   getAccessToken(): Promise<string>;
-  /** POSTs `jsonBody` exactly as given, with the bearer token. Throws only when no response arrives. */
-  postJson(path: string, jsonBody: string, operation: string): Promise<PaypalJsonResponse>;
+  /**
+   * POSTs `jsonBody` exactly as given, with the bearer token. `headers` adds request headers (e.g.
+   * `PayPal-Request-Id`); it can't replace the token or the content type. Throws only when no
+   * response arrives.
+   */
+  postJson(path: string, jsonBody: string, operation: string, headers?: Record<string, string>): Promise<PaypalJsonResponse>;
+  /** GETs `path` with the bearer token. Throws only when no response arrives. */
+  getJson(path: string, operation: string): Promise<PaypalJsonResponse>;
 }
 
 const tokenResponseSchema = z.object({
@@ -122,26 +128,35 @@ export function createPaypalClient(options: PaypalClientOptions): PaypalClient {
     return inFlight;
   }
 
+  async function callJson(
+    method: "GET" | "POST",
+    path: string,
+    operation: string,
+    jsonBody?: string,
+    extraHeaders: Record<string, string> = {},
+  ): Promise<PaypalJsonResponse> {
+    const token = await getAccessToken();
+    const headers = new Headers(extraHeaders);
+    headers.set("authorization", `Bearer ${token}`);
+    headers.set("accept", "application/json");
+    if (jsonBody !== undefined) headers.set("content-type", "application/json");
+    const response = await send(operation, path, { method, headers, ...(jsonBody !== undefined && { body: jsonBody }) });
+    // A revoked or expired token: forget it, so the next request (PayPal retries) gets a new one.
+    if (response.status === 401 && cached?.token === token) cached = undefined;
+    const text = await response.text().catch(() => "");
+    let body: unknown;
+    try {
+      body = text ? JSON.parse(text) : undefined;
+    } catch {
+      body = undefined;
+    }
+    return { status: response.status, body };
+  }
+
   return {
     apiBase,
     getAccessToken,
-    async postJson(path, jsonBody, operation) {
-      const token = await getAccessToken();
-      const response = await send(operation, path, {
-        method: "POST",
-        headers: { authorization: `Bearer ${token}`, "content-type": "application/json", accept: "application/json" },
-        body: jsonBody,
-      });
-      // A revoked or expired token: forget it, so the next request (PayPal retries) gets a new one.
-      if (response.status === 401 && cached?.token === token) cached = undefined;
-      const text = await response.text().catch(() => "");
-      let body: unknown;
-      try {
-        body = text ? JSON.parse(text) : undefined;
-      } catch {
-        body = undefined;
-      }
-      return { status: response.status, body };
-    },
+    postJson: (path, jsonBody, operation, headers) => callJson("POST", path, operation, jsonBody, headers),
+    getJson: (path, operation) => callJson("GET", path, operation),
   };
 }

@@ -124,6 +124,38 @@ describe("createPaypalClient", () => {
     expect(call?.headers.get("content-type")).toBe("application/json");
   });
 
+  it("adds a caller's headers (e.g. PayPal-Request-Id) to a POST, never replacing the token or content type", async () => {
+    const paypal = fakePaypal({ handle: () => Response.json({ ok: true }, { status: 201 }) });
+    const response = await client(paypal.fetch).postJson("/v1/payments/payouts", "{}", "payout", {
+      "PayPal-Request-Id": "req-hash-1",
+      authorization: "Bearer forged",
+      "content-type": "text/plain",
+    });
+    expect(response).toEqual({ status: 201, body: { ok: true } });
+    const call = paypal.calls.at(-1)!;
+    expect(call.headers.get("paypal-request-id")).toBe("req-hash-1");
+    expect(call.headers.get("authorization")).toBe(`Bearer ${FAKE_TOKEN}`);
+    expect(call.headers.get("content-type")).toBe("application/json");
+  });
+
+  it("GETs JSON with the bearer token and no body", async () => {
+    const paypal = fakePaypal({ handle: (call) => (call.method === "GET" ? Response.json({ balances: [] }) : undefined) });
+    const response = await client(paypal.fetch).getJson("/v1/reporting/balances?currency_code=USD", "balances");
+    expect(response).toEqual({ status: 200, body: { balances: [] } });
+    const call = paypal.calls.at(-1)!;
+    expect(call.url).toBe(`${SANDBOX}/v1/reporting/balances?currency_code=USD`);
+    expect(call.method).toBe("GET");
+    expect(call.body).toBe("");
+    expect(call.headers.get("authorization")).toBe(`Bearer ${FAKE_TOKEN}`);
+  });
+
+  it("reads a GET's empty or non-JSON body as undefined, and reports no response as status 0", async () => {
+    const paypal = fakePaypal({ handle: () => new Response("<html>", { status: 502 }) });
+    expect(await client(paypal.fetch).getJson("/v1/payments/payouts/B", "payout_get")).toEqual({ status: 502, body: undefined });
+    const down = fakePaypal({ networkError: true });
+    await expect(client(down.fetch).getJson("/v1/payments/payouts/B", "payout_get")).rejects.toMatchObject({ status: 0 });
+  });
+
   it("drops a cached token that PayPal answers with 401, so the next call fetches a new one", async () => {
     const paypal = fakePaypal({ verifyStatus: 401 });
     const paypalClient = client(paypal.fetch);
