@@ -1,0 +1,427 @@
+/*
+ * The monthly close (/demo/close): an officer screen in the board's achromatic ledger
+ * (design-taste-frontend app style, seed 1298923909; tokens from boardCssVars on .close). Stone
+ * ground, white panels with a 1px edge, radii 8/6/4, no shadows, Geist with tabular figures. The
+ * club maroon is on a shortfall's figure only, as on the board.
+ *
+ * Grid at 1440: 24 + [952 main | 24 | 416 rail] + 24 = 1440; inside the main column the draft's
+ * summary and points split 952 - 2 x 20 padding = 912 as 1fr | 32 | 1fr. Below 1180px one column;
+ * below 720px the table becomes two-line rows; at 640px and under the phone margins are 16px.
+ *
+ * Motion (animate): the Reviewer's signature lands when it is made on this page: the line fades up
+ * 4px (220ms) and its tick draws left to right (clip-path, 260ms, after 80ms). Refusals and the
+ * proof fade 4px, as in the payout drawer. Transitions only; under reduced motion every move keeps
+ * its fade and drops the travel and the draw.
+ */
+
+.close {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --gap: 24px;
+
+  min-height: 100dvh;
+  background: var(--ground);
+  color: var(--text);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+
+.close .num {
+  font-variant-numeric: tabular-nums;
+}
+
+.close-page {
+  padding-bottom: 48px;
+}
+
+.close-crumb {
+  border-radius: var(--radius-chip);
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--control);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 150ms ease;
+}
+
+@media (hover: hover) {
+  .close-crumb:hover {
+    text-decoration-color: currentColor;
+  }
+}
+
+.close-read-error {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.close-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 416px;
+  gap: var(--gap);
+  align-items: start;
+  padding: 0 24px;
+}
+
+.close-main,
+.close-rail {
+  display: grid;
+  gap: var(--gap);
+  min-width: 0;
+}
+
+/* --- Panels -------------------------------------------------------------------------------------- */
+
+.close-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+}
+
+.close-panel__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 16px;
+}
+
+.close-panel__head--stack {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.close-panel__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.close-panel__aside {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.close-empty {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* --- The statement: one divided strip, opening + in − out = closing ------------------------------ */
+
+.close-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+}
+
+.close-strip__cell {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  min-width: 0;
+  padding: 0 20px;
+  border-left: 1px solid var(--rule);
+}
+
+.close-strip__cell:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+
+.close-strip__cell:last-child {
+  padding-right: 0;
+}
+
+.close-strip__label {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.close-strip__note {
+  color: var(--faint);
+}
+
+.close-strip__value {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 32px;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+/* The answer: the month's closing balance leads, at 1.25x its siblings. */
+.close-strip__cell[data-cell="closing"] .close-strip__value {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 32px;
+}
+
+.close-checks {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 16px 0 0;
+  border-top: 1px solid var(--rule);
+  list-style: none;
+}
+
+.close-check {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  gap: 8px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.close-check__mark {
+  display: grid;
+  place-items: center;
+  height: 20px;
+  color: var(--data);
+}
+
+.close-check[data-ok] .close-check__mark {
+  color: var(--text);
+}
+
+/* --- Exceptions: stacked, split by a rule ------------------------------------------------------- */
+
+.close-exceptions {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.close-exception {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  min-width: 0;
+}
+
+.close-exception + .close-exception {
+  padding-top: 16px;
+  border-top: 1px solid var(--rule);
+}
+
+.close-exception__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 2px;
+}
+
+.close-exception__title {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.close-exception__figure {
+  flex: none;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 28px;
+}
+
+.close-exception__figure[data-shortfall] {
+  color: var(--data);
+}
+
+.close-exception__line {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  text-wrap: pretty;
+}
+
+.close-exception__line + .close-exception__line {
+  color: var(--muted);
+}
+
+/* --- October's rows: a ledger table, rules and alignment, no bands -------------------------------- */
+
+.close-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.close-table th,
+.close-table td {
+  padding: 8px 12px;
+  text-align: left;
+  vertical-align: baseline;
+}
+
+.close-table th:first-child,
+.close-table td:first-child {
+  padding-left: 0;
+}
+
+.close-table th:last-child,
+.close-table td:last-child {
+  padding-right: 0;
+}
+
+.close-table thead th {
+  padding-top: 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.close-table tbody td {
+  border-top: 1px solid var(--rule);
+}
+
+.close-table__group th,
+.close-table__group td {
+  padding-top: 20px;
+  font-weight: 600;
+}
+
+.close-table tbody:first-of-type .close-table__group th,
+.close-table tbody:first-of-type .close-table__group td {
+  padding-top: 12px;
+}
+
+.close-table__group td {
+  border-top: 0;
+}
+
+.close-table__count {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.close-table .close-table__num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.close-table__date {
+  width: 64px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.close-table__who,
+.close-table__against {
+  color: var(--muted);
+}
+
+.close-table__against {
+  white-space: nowrap;
+}
+
+.close-table__none {
+  color: var(--faint);
+}
+
+.close-table__short {
+  color: var(--data);
+  font-weight: 500;
+}
+
+/* The second line of a row, shown only when the table folds into two-line rows. */
+.close-table__sub {
+  display: none;
+}
+
+/* --- Budget lines: rows, a thin bar, a total pinned to the foot ---------------------------------- */
+
+.close-rows {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.close-row {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.close-row__line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.close-row__label {
+  min-width: 0;
+  font-weight: 500;
+}
+
+.close-row__amount {
+  flex: none;
+}
+
+.close-row__amount[data-zero] {
+  color: var(--muted);
+}
+
+.close-row__meta {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+/* A progress bar at the true ratio: the track is the expected (or approved) amount. */
+.close-bar {
+  display: block;
+  height: 6px;
+  margin: 2px 0;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--active);
+}
+
+.close-bar__fill {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--text);
+}
+
+.close-total {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: auto 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.close-total__of {
+  color: var(--muted);
+  font-weight: 400;
+}

@@ -1,0 +1,534 @@
+/*
+ * The AI's recorded draft and the Reviewer's sign-off, the motion, then the narrow widths. Tokens
+ * and motion rules as in ./close.css.
+ */
+
+/* --- The draft ----------------------------------------------------------------------------------- */
+
+.close-chip {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: var(--radius-chip);
+  background: var(--active);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.close-draft__origin {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin: 0;
+}
+
+.close-draft__when {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* The summary beside its points: 1fr | 32 | 1fr. */
+.close-draft__body {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 32px;
+}
+
+.close-draft__summary {
+  margin: 0;
+  font-size: 14px;
+  line-height: 22px;
+  text-wrap: pretty;
+}
+
+.close-draft__points {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+
+.close-draft__subtitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.close-points {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.close-point {
+  display: grid;
+  gap: 2px;
+  padding-left: 12px;
+  border-left: 2px solid var(--border);
+}
+
+.close-point__check {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  text-wrap: pretty;
+}
+
+.close-point__basis {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.close-draft__missing {
+  display: grid;
+  gap: 4px;
+}
+
+.close-draft__note,
+.close-draft__rule,
+.close-signoff__rule {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+  text-wrap: pretty;
+}
+
+.close-draft__rule {
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+}
+
+/* --- The sign-off -------------------------------------------------------------------------------- */
+
+.close-signoff__body {
+  display: grid;
+  gap: 12px;
+}
+
+.close-slot,
+.close-signature__line {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: start;
+}
+
+.close-slot__mark,
+.close-signature__mark {
+  display: grid;
+  place-items: center;
+  height: 20px;
+  color: var(--muted);
+}
+
+.close-signature__mark {
+  color: var(--text);
+}
+
+.close-slot__text {
+  display: grid;
+  gap: 2px;
+}
+
+.close-slot__title,
+.close-signature__text {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.close-slot__title {
+  color: var(--muted);
+}
+
+.close-slot__meta,
+.close-signature__meta,
+.close-sign__hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+  text-wrap: pretty;
+}
+
+.close-signature {
+  display: grid;
+  gap: 2px;
+  border-radius: var(--radius-control);
+  outline: none;
+}
+
+.close-signature:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 4px;
+}
+
+.close-signature__meta {
+  padding-left: 24px;
+}
+
+.close-sign {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+
+.close-sign__button[aria-disabled="true"] {
+  cursor: progress;
+}
+
+.close-text-button {
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-chip);
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 20px;
+  text-decoration: underline;
+  text-decoration-color: var(--control);
+  text-underline-offset: 3px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: text-decoration-color 150ms ease;
+}
+
+@media (hover: hover) {
+  .close-text-button:hover {
+    text-decoration-color: currentColor;
+  }
+}
+
+.close-text-button:focus-visible,
+.close-crumb:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
+/* Refusals: the drawer's calm, inline record (here nothing is stored, so it says nothing was signed). */
+.close-refusals {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.close-refusal {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+}
+
+.close-refusal__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.close-refusal__tag {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: var(--radius-chip);
+  background: var(--short-tint);
+  color: var(--data);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.close-refusal__who,
+.close-refusal__note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.close-refusal__message {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* The proof: what the signature binds. Hashes are the one monospace on the screen. */
+.close-proof {
+  display: grid;
+  gap: 10px;
+  margin: 8px 0 0;
+  padding: 12px;
+  border-radius: var(--radius-control);
+  background: var(--ground);
+}
+
+.close-proof__fields {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 6px 16px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.close-proof__fields dt {
+  color: var(--muted);
+}
+
+.close-proof__fields dd {
+  min-width: 0;
+  margin: 0;
+}
+
+.close-proof__aside {
+  color: var(--muted);
+}
+
+.close-proof__hash {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.close-proof__check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--data);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+}
+
+.close-proof__check[data-ok] {
+  color: var(--text);
+}
+
+.close-proof__note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 16px;
+  text-wrap: pretty;
+}
+
+/* --- Motion -------------------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  .close-signature[data-fresh] {
+    transition:
+      opacity 220ms var(--ease-out),
+      translate 220ms var(--ease-out);
+  }
+
+  .close-signature[data-fresh] .close-signature__mark svg {
+    clip-path: inset(0 0 0 0);
+    transition: clip-path 260ms var(--ease-out) 80ms;
+  }
+
+  .close-signature[data-fresh] .close-signature__meta {
+    transition: opacity 220ms var(--ease-out) 60ms;
+  }
+
+  .close-refusal,
+  .close-proof {
+    transition:
+      opacity 200ms var(--ease-out),
+      translate 200ms var(--ease-out);
+  }
+
+  @starting-style {
+    .close-signature[data-fresh] {
+      opacity: 0;
+      translate: 0 4px;
+    }
+
+    .close-signature[data-fresh] .close-signature__mark svg {
+      clip-path: inset(0 100% 0 0);
+    }
+
+    .close-signature[data-fresh] .close-signature__meta {
+      opacity: 0;
+    }
+
+    .close-refusal {
+      opacity: 0;
+      translate: 0 4px;
+    }
+
+    .close-proof {
+      opacity: 0;
+      translate: 0 -4px;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .close-signature[data-fresh],
+  .close-refusal,
+  .close-proof {
+    transition: opacity 200ms ease;
+  }
+
+  @starting-style {
+    .close-signature[data-fresh],
+    .close-refusal,
+    .close-proof {
+      opacity: 0;
+    }
+  }
+}
+
+/* --- Narrow widths ------------------------------------------------------------------------------- */
+
+/* One column, in the order a Reviewer works: statement, exceptions, draft, sign-off, budget, rows. */
+@media (max-width: 1179px) {
+  .close-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .close-main,
+  .close-rail {
+    display: contents;
+  }
+
+  .close-statement {
+    order: 1;
+  }
+
+  .close-exceptions-panel {
+    order: 2;
+  }
+
+  .close-draft {
+    order: 3;
+  }
+
+  .close-signoff {
+    order: 4;
+  }
+
+  .close-budget {
+    order: 5;
+  }
+
+  .close-rows-panel {
+    order: 6;
+  }
+}
+
+@media (max-width: 719px) {
+  .close-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 0;
+  }
+
+  .close-strip__cell:nth-child(odd) {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .close-strip__cell:nth-child(even) {
+    padding-right: 0;
+  }
+
+  .close-draft__body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* The table folds into two-line rows: what and amount, then date, payee and what it's checked against. */
+  .close-table,
+  .close-table tbody {
+    display: block;
+  }
+
+  .close-table thead,
+  .close-table__date,
+  .close-table__who,
+  .close-table__against {
+    display: none;
+  }
+
+  .close-table tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 12px;
+    border-top: 1px solid var(--rule);
+  }
+
+  .close-table .close-table__group {
+    border-top: 0;
+  }
+
+  .close-table th,
+  .close-table td,
+  .close-table tbody td {
+    padding: 10px 0;
+    border-top: 0;
+  }
+
+  .close-table tbody + tbody .close-table__group > * {
+    padding-top: 20px;
+  }
+
+  .close-table__sub {
+    display: block;
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 18px;
+  }
+}
+
+@media (max-width: 640px) {
+  .close {
+    --gap: 16px;
+  }
+
+  .close-grid {
+    padding: 0 16px;
+  }
+
+  .close-panel {
+    padding: 16px;
+  }
+
+  .close-strip__value {
+    font-size: 20px;
+    line-height: 28px;
+  }
+
+  .close-strip__cell[data-cell="closing"] .close-strip__value {
+    font-size: 24px;
+    line-height: 28px;
+  }
+
+  .close-sign__button {
+    flex: 1 1 100%;
+  }
+
+  .close-text-button {
+    min-height: 44px;
+  }
+}
