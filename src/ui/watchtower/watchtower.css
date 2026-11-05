@@ -75,13 +75,8 @@
 .watch-alerts {
   display: grid;
   gap: 8px;
-  margin-top: 12px;
   font-size: 14px;
   line-height: 20px;
-}
-
-.watch-alerts[data-empty] {
-  margin-top: 0;
 }
 
 /*
@@ -122,20 +117,30 @@
   color: var(--text);
 }
 
-.watch-alert .watch-mark {
+.watch-alert .watch-mark,
+.watch-explained .watch-mark {
   margin-top: 7px;
+}
+
+.watch-alert .watch-mark {
   background: var(--data);
 }
 
-.watch-alert__list {
-  display: grid;
-  gap: 8px;
+.watch-alert__list,
+.watch-explained__list {
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.watch-alert__row {
+.watch-alert__list {
+  display: grid;
+  gap: 8px;
+}
+
+/* A mark, then the words: in the band and in the explained list alike. */
+.watch-alert__row,
+.watch-explained__item {
   display: grid;
   grid-template-columns: 6px minmax(0, 1fr);
   gap: 10px;
@@ -153,12 +158,14 @@
   min-width: 0;
 }
 
-.watch-sentence {
+.watch-sentence,
+.watch-quiet__text {
   margin: 0;
   text-wrap: pretty;
 }
 
-.watch-facts {
+.watch-facts,
+.watch-explained__note {
   margin: 0;
   color: var(--muted);
   font-size: 13px;
@@ -227,25 +234,12 @@
   background: var(--surface);
 }
 
-.watch-explained__list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
 .watch-explained__item {
-  display: grid;
-  grid-template-columns: 6px minmax(0, 1fr);
-  gap: 10px;
   padding: 10px 0;
 }
 
 .watch-explained__item + .watch-explained__item {
   border-top: 1px solid var(--rule);
-}
-
-.watch-explained .watch-mark {
-  margin-top: 7px;
 }
 
 /* Explained money is still money that left: in ink, not in the alert's maroon. */
@@ -254,11 +248,7 @@
 }
 
 .watch-explained__note {
-  margin: 2px 0 0;
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 18px;
-  text-wrap: pretty;
+  margin-top: 2px;
 }
 
 .watch-explained__tag {
@@ -274,10 +264,6 @@
   color: var(--muted);
   font-size: 13px;
   line-height: 18px;
-}
-
-.watch-quiet__text {
-  margin: 0;
 }
 
 /* --- Controls ----------------------------------------------------------------------------------- */
