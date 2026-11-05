@@ -5,10 +5,16 @@
  * split by 1px dividers (available balance, waiting for a second key, money in this month). The
  * cells come from ./balances-strip.ts; this file only fetches through Studio (`widgetApi.getData`,
  * so page filters and the data panel's formatting apply) and draws them.
+ *
+ * It queries again whenever the judge UI pushes new board data into Studio (Studio's own refresh
+ * re-renders a custom widget without re-running its query), and it adds the shared sandbox balance
+ * under the available balance straight from the live board view, which Studio does not hold.
  */
 import type { AgWidgetField, AgWidgetParams } from "ag-studio";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { balancesStripCells, planStripQueries, STRIP_SLOTS, toStripFigures, type StripCell, type StripSlot } from "./balances-strip";
+import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
+import { useBoardView } from "@/ui/judge/use-judge";
+import { balancesStripCells, planStripQueries, STRIP_SLOTS, toStripFigures, type StripFigures, type StripSlot } from "./balances-strip";
+import { getStudioDataRevision, subscribeStudioData } from "./studio-handle";
 import { tokens } from "./tokens";
 import type { LiveBalanceWidgetState } from "./widgets";
 import "./live-balance-widget.css";
@@ -20,9 +26,11 @@ const stripColours = {
 } as CSSProperties;
 
 export function LiveBalanceWidget({ dataMapping, widgetApi }: AgWidgetParams<LiveBalanceWidgetState>) {
-  const [cells, setCells] = useState<StripCell[]>();
+  const [loaded, setLoaded] = useState<{ figures: StripFigures; mapped: Partial<Record<StripSlot, AgWidgetField>> }>();
   // After the first load, a refresh keeps the old figures on screen under a quiet loading indicator.
   const hasLoaded = useRef(false);
+  const dataRevision = useSyncExternalStore(subscribeStudioData, getStudioDataRevision, () => 0);
+  const shared = useBoardView().view?.sharedBalance ?? null;
 
   useEffect(() => {
     const mapped: Partial<Record<StripSlot, AgWidgetField>> = {};
@@ -38,7 +46,7 @@ export function LiveBalanceWidget({ dataMapping, widgetApi }: AgWidgetParams<Liv
     let stale = false;
     const fail = () => {
       hasLoaded.current = false;
-      setCells(undefined);
+      setLoaded(undefined);
       widgetApi.setDisplayState("noData");
     };
     widgetApi.setDisplayState("loading", { prominent: !hasLoaded.current });
@@ -60,7 +68,7 @@ export function LiveBalanceWidget({ dataMapping, widgetApi }: AgWidgetParams<Liv
         const figures = toStripFigures(values, new Set(Object.keys(mapped) as StripSlot[]));
         if (!figures) return fail();
         hasLoaded.current = true;
-        setCells(balancesStripCells(figures, (amount, slot) => widgetApi.formatFieldValue(mapped[slot]!, amount)));
+        setLoaded({ figures, mapped });
         widgetApi.setDisplayState("displayed");
       })
       .catch((error: unknown) => {
@@ -72,15 +80,26 @@ export function LiveBalanceWidget({ dataMapping, widgetApi }: AgWidgetParams<Liv
     return () => {
       stale = true;
     };
-  }, [dataMapping, widgetApi]);
+    // dataRevision: each push of new board data into Studio means the sums have changed.
+  }, [dataMapping, widgetApi, dataRevision]);
+
+  const cells = loaded
+    ? balancesStripCells({ ...loaded.figures, shared }, (amount, slot) => widgetApi.formatFieldValue(loaded.mapped[slot]!, amount))
+    : undefined;
 
   return (
-    <dl className="tk-strip" style={stripColours} aria-live="polite">
+    <dl className="tk-strip" style={stripColours} aria-live="polite" data-has-note={cells?.some((cell) => cell.note) || undefined}>
       {cells?.map((cell) => (
         <div key={cell.id} className="tk-strip__cell" data-zero={cell.zero || undefined}>
           <dt className="tk-strip__label">{cell.label}</dt>
           <dd className="tk-strip__value">{cell.value}</dd>
           <dd className="tk-strip__caption">{cell.caption}</dd>
+          {cell.note && (
+            <dd className="tk-strip__caption tk-strip__note" title={cell.note}>
+              <span className="tk-strip__note-long">{cell.note}</span>
+              <span className="tk-strip__note-short">{cell.noteShort ?? cell.note}</span>
+            </dd>
+          )}
         </div>
       ))}
     </dl>

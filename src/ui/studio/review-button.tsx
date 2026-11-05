@@ -1,35 +1,22 @@
 "use client";
 
 /**
- * The board's one primary action: select the "Waiting for a second key" widget in Studio and bring
- * it into view. Studio loads in the browser after the header, so until it is ready the button stays
- * legible but inert, and says why to assistive tech.
+ * The board's one primary action: open the payout drawer. "Review N payouts" counts the waiting
+ * requests in the session's live view ("No payouts waiting" at zero); until the first view arrives it
+ * counts the seed's, so the first paint matches the server's. A parent's reads "See payouts", and
+ * the drawer it opens is read-only.
  */
-import { useSyncExternalStore } from "react";
-import { focusSecondKeyQueue, isStudioReady, subscribeStudioReady } from "./studio-handle";
+import { drawerStore } from "@/ui/judge/drawer-store";
+import { reviewButtonLabel, waitingCount } from "@/ui/judge/judge-model";
+import { useActingRole, useBoardView } from "@/ui/judge/use-judge";
 
-const LOADING_NOTE_ID = "board-review-loading";
-
-export function ReviewButton({ label }: { label: string }) {
-  const ready = useSyncExternalStore(subscribeStudioReady, isStudioReady, () => false);
+export function ReviewButton({ seedCount }: { seedCount: number }) {
+  const { view } = useBoardView();
+  const role = useActingRole();
+  const label = reviewButtonLabel(role, waitingCount(view) ?? seedCount);
   return (
-    <>
-      <button
-        type="button"
-        className="board-button"
-        aria-disabled={ready ? undefined : true}
-        aria-describedby={ready ? undefined : LOADING_NOTE_ID}
-        onClick={() => {
-          if (ready) focusSecondKeyQueue();
-        }}
-      >
-        {label}
-      </button>
-      {!ready && (
-        <span id={LOADING_NOTE_ID} className="board-visually-hidden">
-          The dashboard is still loading.
-        </span>
-      )}
-    </>
+    <button type="button" className="board-button" aria-haspopup="dialog" onClick={(event) => drawerStore.open(event.currentTarget)}>
+      {label}
+    </button>
   );
 }

@@ -1,0 +1,46 @@
+/* Fictional till receipts for the TwoKey demo (demo data). Rendered to PNG by render.sh. */
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: #f6f3ea;
+  color: #151413;
+}
+body {
+  font-family: Menlo, "Courier New", monospace;
+  font-size: 22px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+.paper {
+  box-sizing: border-box;
+  width: 720px;
+  padding: 44px 56px 40px;
+}
+.center {
+  text-align: center;
+}
+.store {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.rule {
+  border-top: 2px dashed #3a3634;
+  margin: 14px 0;
+}
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+.indent {
+  padding-left: 28px;
+}
+.total {
+  font-size: 26px;
+  font-weight: 700;
+}
+.small {
+  font-size: 18px;
+}

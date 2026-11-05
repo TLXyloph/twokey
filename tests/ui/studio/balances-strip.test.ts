@@ -23,10 +23,10 @@ describe("the balances strip's cells", () => {
         id: "balance",
         label: "Available balance",
         value: "$4,998.75",
-        caption: "PayPal sandbox · as of Nov 3, 10:30 AM CST",
+        caption: "This session's ledger · as of Nov 3, 10:30 AM CST",
         zero: false,
       },
-      { id: "waiting", label: "Waiting for a second key", value: "$489.00", caption: "2 payouts", zero: false },
+      { id: "waiting", label: "Waiting for a second key", value: "$78.50", caption: "2 payouts", zero: false },
       {
         id: "moneyIn",
         label: "Money in, November",
@@ -42,8 +42,8 @@ describe("the balances strip's cells", () => {
     const queue = secondKeyQueue();
     expect(balance!.caption).toContain(formatAsOf(asOf));
     expect(waiting!.caption).toBe(`${queue.count} payouts`);
-    expect(waiting!.value).toBe("$489.00");
-    expect(queue.total).toBe(489);
+    expect(waiting!.value).toBe("$78.50");
+    expect(queue.total).toBe(78.5);
     expect(moneyIn!.label).toBe(`Money in, ${moneyInThisMonth().monthName}`);
     expect(moneyIn!.value).toBe("$630.00");
   });
@@ -76,14 +76,14 @@ describe("the balances strip's cells", () => {
 
   it("drops the time and the month name when the as-of time is missing", () => {
     const [balance, , moneyIn] = balancesStripCells({ ...demo, asOf: null });
-    expect(balance!.caption).toBe("PayPal sandbox");
+    expect(balance!.caption).toBe("This session's ledger");
     expect(moneyIn).toMatchObject({ label: "Money in this month", caption: "Completed payments this month" });
   });
 
   it("formats money with the formatter it is given, slot by slot", () => {
     const format = vi.fn((amount: number, _slot: StripSlot) => `USD ${amount}`);
     const cells = balancesStripCells(demo, format);
-    expect(cells.map((c) => c.value)).toEqual(["USD 4998.75", "USD 489", "USD 630"]);
+    expect(cells.map((c) => c.value)).toEqual(["USD 4998.75", "USD 78.5", "USD 630"]);
     expect(format.mock.calls.map(([, slot]) => slot)).toEqual(["value", "waitingTotal", "moneyIn"]);
   });
 });
@@ -133,5 +133,28 @@ describe("toStripFigures", () => {
   it("reads a mapped but empty sum as null, which the cells show as zero", () => {
     const mapped = new Set(["value", "asOf", "waitingCount", "waitingTotal", "moneyIn"] as const);
     expect(toStripFigures({ value: 1, asOf }, mapped)).toMatchObject({ waiting: { count: null, total: null }, moneyIn: null });
+  });
+});
+
+describe("the shared sandbox balance under the available balance", () => {
+  const shared = { availableCents: 499_750, currency: "USD" as const, asOf: "2026-11-05T14:30:00Z" };
+
+  it("adds PayPal's real balance for the shared account, with its own time", () => {
+    const [balance, waiting] = balancesStripCells({ ...demo, shared });
+    expect(balance!.note).toBe("Shared sandbox balance $4,997.50 · as of Nov 5, 8:30 AM CST");
+    expect(waiting!.note).toBeUndefined();
+  });
+
+  it("leaves out the date when it is the same day as the balance above it", () => {
+    const [balance] = balancesStripCells({ ...demo, asOf: "2026-11-05T15:39:00Z", shared });
+    expect(balance!.caption).toBe("This session's ledger · as of Nov 5, 9:39 AM CST");
+    expect(balance!.note).toBe("Shared sandbox balance $4,997.50 · as of 8:30 AM CST");
+    // A narrow strip (a tablet) drops one word rather than the time.
+    expect(balance!.noteShort).toBe("Shared sandbox $4,997.50 · as of 8:30 AM CST");
+  });
+
+  it("says nothing when PayPal's balance can't be read", () => {
+    expect(balancesStripCells({ ...demo, shared: null })[0]).not.toHaveProperty("note");
+    expect(balancesStripCells(demo)[0]).not.toHaveProperty("note");
   });
 });

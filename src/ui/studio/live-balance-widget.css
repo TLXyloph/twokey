@@ -54,6 +54,49 @@
   line-clamp: 2;
 }
 
+/*
+ * With the shared sandbox balance under the available balance, the first cell carries four lines:
+ * it gets a wider column, every cell starts at the top so the labels stay on one line across the
+ * strip, and the note is one 12px line (its full text in a tooltip if a narrow strip cuts it).
+ */
+.tk-strip[data-has-note] {
+  grid-template-columns: minmax(0, 1.5fr);
+}
+
+.tk-strip[data-has-note] .tk-strip__cell {
+  justify-content: flex-start;
+  padding-top: 4px;
+}
+
+.tk-strip__note {
+  margin-top: -2px;
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+}
+
+/* One of the two forms is shown (and so read); a strip under 840px takes the shorter. */
+.tk-strip {
+  container-type: inline-size;
+}
+
+.tk-strip__note-short {
+  display: none;
+}
+
+@container (max-width: 839px) {
+  .tk-strip__note-long {
+    display: none;
+  }
+
+  .tk-strip__note-short {
+    display: inline;
+  }
+}
+
 .tk-strip__label {
   font-size: 14px;
   line-height: 20px;
@@ -93,5 +136,15 @@
   .tk-strip__cell + .tk-strip__cell {
     border-left: 0;
     border-top: 1px solid var(--tk-strip-border);
+  }
+
+  /* Stacked: the first cell's extra line takes a taller first row instead of a wider column. */
+  .tk-strip[data-has-note] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1.25fr);
+  }
+
+  .tk-strip[data-has-note] .tk-strip__cell {
+    justify-content: center;
   }
 }

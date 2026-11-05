@@ -1,0 +1,183 @@
+/*
+ * The judge-mode band and the role switch (achromatic ledger: tokens from boardCssVars on .board).
+ * The band is the one white strip on the stone ground, split from the board by a 1px rule, so it
+ * reads as a layer for judges rather than part of the club's board. 13px, the board's meta size.
+ */
+
+.judge-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+  padding: 8px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.judge-bar__title {
+  flex: none;
+  margin: 0;
+  font-weight: 600;
+}
+
+.judge-bar__link {
+  flex: none;
+  border-radius: var(--radius-chip);
+  color: var(--text);
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: var(--control);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 150ms ease;
+}
+
+@media (hover: hover) {
+  .judge-bar__link:hover {
+    text-decoration-color: currentColor;
+  }
+}
+
+.judge-bar__link:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
+.judge-bar__note {
+  flex: 1 1 280px;
+  margin: 0;
+  color: var(--muted);
+  text-align: right;
+  text-wrap: pretty;
+}
+
+/* --- The role switch: a segmented track, as wide as its options ---------------------------------- */
+
+.judge-role {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.judge-role__label {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* Outer 6px = inner 4px + 2px of track padding. */
+.judge-role__track {
+  display: inline-grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  padding: 2px;
+  border-radius: var(--radius-control);
+  background: var(--active);
+}
+
+.judge-role__option {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  height: 28px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-chip);
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  /* A role switch is pressed many times a session: colour only, no movement. */
+  transition-property: background-color, color, border-color;
+  transition-duration: 120ms;
+  transition-timing-function: ease;
+}
+
+.judge-role__input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+}
+
+.judge-role__option:has(.judge-role__input:checked) {
+  border-color: var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 500;
+}
+
+@media (hover: hover) {
+  .judge-role__option:not(:has(.judge-role__input:checked)):hover {
+    color: var(--text);
+  }
+}
+
+.judge-role__option:has(.judge-role__input:focus-visible) {
+  outline: 2px solid var(--text);
+  outline-offset: 1px;
+}
+
+/* Narrower than the band's one line: the note takes its own line, left-aligned. */
+@media (max-width: 1279px) {
+  .judge-bar__note {
+    text-align: left;
+  }
+}
+
+/* Phone: the switch spans the width (four 44px targets), then the link, then the note. */
+@media (max-width: 639px) {
+  .judge-bar {
+    gap: 8px 16px;
+    padding: 10px 16px 12px;
+  }
+
+  .judge-role {
+    flex: 1 1 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  /* Under "Judge mode", the four roles explain themselves; the label still names the group. */
+  .judge-bar .judge-role__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .judge-role__track {
+    display: grid;
+  }
+
+  .judge-role__option {
+    height: 40px;
+    padding: 0 4px;
+  }
+
+  .judge-bar__title {
+    order: -2;
+  }
+
+  .judge-bar__link {
+    order: -1;
+    margin-left: auto;
+  }
+
+  .judge-bar__note {
+    flex-basis: 100%;
+    font-size: 12px;
+    line-height: 16px;
+  }
+}

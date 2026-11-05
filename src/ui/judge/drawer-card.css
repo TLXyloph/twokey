@@ -1,0 +1,424 @@
+/*
+ * Inside a request card: the risk card, signatures and their proof, the sign action, refusals and
+ * the timeline; and the "Request a payout" form. Tokens and motion curves come from .board and
+ * .judge-drawer (./drawer.css). Colour stays on meaning: amber for "Check this", the club maroon for
+ * "Stop" and for a refusal's tag, ink for a tick; everything else is neutral.
+ */
+
+/* --- Risk card -------------------------------------------------------------------------------- */
+
+.judge-risk {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: var(--radius-control);
+  background: var(--ground);
+}
+
+.judge-risk__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
+}
+
+.judge-verdict {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 8px 0 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-chip);
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.judge-verdict svg {
+  width: 14px;
+  height: 14px;
+}
+
+.judge-verdict[data-verdict="check"] {
+  border-color: var(--warn-border);
+  background: var(--warn-bg);
+  color: var(--warn-ink);
+}
+
+.judge-verdict[data-verdict="stop"] {
+  border-color: color-mix(in oklab, var(--data) 24%, var(--short-tint));
+  background: var(--short-tint);
+  color: var(--data);
+}
+
+.judge-risk__status {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* "The AI is reading the receipt…": a quiet breathing dot before the words. */
+.judge-risk__status[data-reading]::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  vertical-align: 1px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .judge-risk__status[data-reading]::before {
+    animation: judge-breathe 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes judge-breathe {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.judge-risk__summary {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+.judge-findings {
+  display: grid;
+  gap: 8px;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.judge-finding {
+  display: grid;
+  grid-template-columns: 6px minmax(0, 1fr);
+  gap: 10px;
+}
+
+.judge-finding__mark {
+  width: 6px;
+  height: 6px;
+  margin-top: 7px;
+  border-radius: 50%;
+  background: var(--comparison);
+}
+
+.judge-finding[data-severity="warn"] .judge-finding__mark {
+  background: var(--warn-mark);
+}
+
+.judge-finding[data-severity="stop"] .judge-finding__mark {
+  background: var(--data);
+}
+
+.judge-finding__text,
+.judge-finding__evidence {
+  margin: 0;
+}
+
+.judge-finding__evidence {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+/* --- Signatures ------------------------------------------------------------------------------- */
+
+.judge-sigs__list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.judge-sig__line {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.judge-sig__mark {
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+}
+
+.judge-sig__mark[data-signed] {
+  color: var(--text);
+}
+
+.judge-sig__text--missing {
+  color: var(--muted);
+}
+
+.judge-proof {
+  display: grid;
+  justify-items: start;
+  gap: 10px;
+  margin: 8px 0 4px 24px;
+  padding: 12px;
+  border-radius: var(--radius-control);
+  background: var(--ground);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .judge-proof {
+    transition:
+      opacity 180ms var(--ease-out),
+      transform 180ms var(--ease-out);
+  }
+
+  @starting-style {
+    .judge-proof {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+  }
+}
+
+.judge-proof__fields {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 6px 16px;
+  width: 100%;
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.judge-proof__fields dt {
+  color: var(--muted);
+}
+
+.judge-proof__fields dd {
+  min-width: 0;
+  margin: 0;
+}
+
+.judge-proof__aside {
+  color: var(--muted);
+}
+
+/* The one monospace on the board: hashes and the signature, which are code-like values. */
+.judge-proof__hash {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+/* --- Sign action and refusals ----------------------------------------------------------------- */
+
+.judge-sign {
+  display: grid;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--rule);
+}
+
+/* The hint beside the button; on a narrow card the button drops under it, right-aligned. */
+.judge-sign__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+}
+
+.judge-sign__hint {
+  flex: 1 1 220px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+  text-wrap: pretty;
+}
+
+.judge-sign__button {
+  margin-left: auto;
+}
+
+.judge-check {
+  display: inline-flex;
+  justify-self: start;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.judge-check input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--text);
+}
+
+.judge-refusals {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.judge-refusals:empty {
+  display: none;
+}
+
+.judge-refusal {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .judge-refusal {
+    transition:
+      opacity 200ms var(--ease-out),
+      transform 200ms var(--ease-out);
+  }
+
+  @starting-style {
+    .judge-refusal {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+  }
+}
+
+.judge-refusal__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.judge-refusal__tag {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: var(--radius-chip);
+  background: var(--short-tint);
+  color: var(--data);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.judge-refusal__who,
+.judge-refusal__note {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.judge-refusal__message,
+.judge-refusal__note {
+  margin: 0;
+}
+
+/* --- Timeline --------------------------------------------------------------------------------- */
+
+.judge-timeline {
+  padding-top: 16px;
+  border-top: 1px solid var(--rule);
+}
+
+.judge-steps {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.judge-step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  gap: 2px 10px;
+  align-items: center;
+}
+
+/* The thread from one step's mark down to the next. */
+.judge-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 16px;
+  bottom: -8px;
+  left: 7.5px;
+  width: 1px;
+  background: var(--border);
+}
+
+.judge-step__mark {
+  justify-self: center;
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid var(--control);
+  border-radius: 50%;
+  background: var(--surface);
+  transform: scale(0.8);
+  transition:
+    background-color 200ms var(--ease-out),
+    border-color 200ms var(--ease-out),
+    transform 200ms var(--ease-out);
+}
+
+.judge-step[data-state="done"] .judge-step__mark {
+  border-color: var(--text);
+  background: var(--text);
+  transform: scale(1);
+}
+
+.judge-step[data-state="stopped"] .judge-step__mark {
+  border-color: var(--data);
+  background: var(--data);
+  transform: scale(1);
+}
+
+.judge-step[data-state="pending"] .judge-step__label {
+  color: var(--muted);
+}
+
+.judge-step__time {
+  color: var(--muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  transition: opacity 200ms var(--ease-out);
+}
+
+@starting-style {
+  .judge-step__time {
+    opacity: 0;
+  }
+}
+
+.judge-step__detail {
+  grid-column: 2 / -1;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .judge-step__mark,
+  .judge-step[data-state="done"] .judge-step__mark,
+  .judge-step[data-state="stopped"] .judge-step__mark {
+    transform: none;
+  }
+}

@@ -68,7 +68,7 @@ describe("askLedger: pending payouts", () => {
     expect(answer.kind).toBe("pending");
     expect(answer.rows.map((r) => r.id)).toEqual(["L14", "L15"]);
     expect(answer.sentence).toBe(
-      "Two payouts are waiting for a second approver, $489 in all. Nothing leaves the account until a second officer signs.",
+      "Two payouts are waiting for a second approver, $78.50 in all. Nothing leaves the account until a second officer signs.",
     );
   });
 
@@ -96,7 +96,7 @@ describe("askLedger: payees", () => {
     expect(answer.kind).toBe("payee");
     expect(answer.rows.map((r) => r.id)).toEqual(["L03", "L14"]);
     expect(answer.sentence).toBe(
-      "Riverbend Team Supply: two payouts, $412.50 paid and $129 waiting for a second approver.",
+      "Riverbend Team Supply: two payouts, $412.50 paid and $42 waiting for a second approver.",
     );
   });
 
@@ -107,7 +107,7 @@ describe("askLedger: payees", () => {
 
   it("names a payee as the ledger does, parenthetical dropped", () => {
     expect(askLedger("referee pool").sentence).toBe(
-      "Referee pool: two payouts, $480 paid and $360 waiting for a second approver.",
+      "Referee pool: one payout, $480 paid.",
     );
   });
 

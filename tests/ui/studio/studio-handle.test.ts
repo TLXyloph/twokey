@@ -1,13 +1,19 @@
 import type { AgReportState, AgStudioApi } from "ag-studio";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { buildStudioData } from "@/demo/studio-data";
 import {
   SECOND_KEY_WIDGET_ID,
   focusSecondKeyQueue,
+  getStudioDataRevision,
   isStudioReady,
+  pushBoardData,
   setStudioApi,
+  setStudioDataApi,
+  subscribeStudioData,
   subscribeStudioReady,
 } from "@/ui/studio/studio-handle";
 import type { TwoKeyRegistry } from "@/ui/studio/widgets";
+import { fixtureClubData } from "../../fixtures/board-view";
 
 type State = AgReportState<TwoKeyRegistry>;
 type Api = AgStudioApi<TwoKeyRegistry>;
@@ -151,5 +157,59 @@ describe("outside a browser", () => {
     setStudioApi(api);
     expect(focusSecondKeyQueue()).toBe(true);
     expect(setState).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("pushing the session's board data into Studio", () => {
+  /** The handle only calls `setProperty("data", …)` on the API Studio hands over when it is ready. */
+  function dataApi() {
+    const setProperty = vi.fn();
+    return { api: { setProperty } as unknown as Api, setProperty };
+  }
+
+  afterEach(() => {
+    setStudioDataApi(null);
+  });
+
+  it("holds the data until Studio's data engine is ready, then pushes it once", () => {
+    const data = fixtureClubData();
+    pushBoardData(data);
+    const { api, setProperty } = dataApi();
+    const revision = getStudioDataRevision();
+
+    setStudioDataApi(api);
+
+    expect(setProperty).toHaveBeenCalledTimes(1);
+    expect(setProperty).toHaveBeenCalledWith("data", buildStudioData(data));
+    expect(getStudioDataRevision()).toBe(revision + 1);
+  });
+
+  it("pushes only when the data object changes, and tells the strip each time", () => {
+    const { api, setProperty } = dataApi();
+    setStudioDataApi(api);
+    setProperty.mockClear(); // the previous test's data went in on wiring
+    const listener = vi.fn();
+    const unsubscribe = subscribeStudioData(listener);
+    const data = fixtureClubData();
+
+    pushBoardData(data);
+    pushBoardData(data);
+    pushBoardData(fixtureClubData());
+
+    expect(setProperty).toHaveBeenCalledTimes(2);
+    expect(listener).toHaveBeenCalledTimes(2);
+    unsubscribe();
+  });
+
+  it("pushes the latest data again into a new Studio (it starts from the seed)", () => {
+    const first = dataApi();
+    setStudioDataApi(first.api);
+    const data = fixtureClubData();
+    pushBoardData(data);
+    setStudioDataApi(null);
+
+    const second = dataApi();
+    setStudioDataApi(second.api);
+    expect(second.setProperty).toHaveBeenCalledWith("data", buildStudioData(data));
   });
 });

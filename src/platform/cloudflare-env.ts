@@ -55,5 +55,16 @@ declare global {
     TWOKEY_AI_SESSION_TURNS_PER_MINUTE?: string;
     TWOKEY_AI_SESSIONS_PER_IP_PER_HOUR?: string;
     TWOKEY_AI_MODEL?: string;
+    /**
+     * Worker secrets: the officers' demo signing keys (Ed25519, PKCS8 DER, base64), written by
+     * scripts/gen-demo-keys.sh and never printed. Their public keys are committed in
+     * src/disbursements/demo-public-keys.json; a missing or mismatched key fails closed (503).
+     */
+    TWOKEY_DEMO_KEY_PRESIDENT?: string;
+    TWOKEY_DEMO_KEY_TREASURER?: string;
+    TWOKEY_DEMO_KEY_SECRETARY?: string;
+    /** Worker vars: the PayPal sandbox test-buyer login shown on the parent pay page (never committed). */
+    TWOKEY_TEST_BUYER_EMAIL?: string;
+    TWOKEY_TEST_BUYER_PASSWORD?: string;
   }
 }

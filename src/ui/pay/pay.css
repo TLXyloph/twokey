@@ -1,0 +1,167 @@
+/*
+ * The parent pay page. Direction "The page is the object" (seed 1942769807, hero redrawn to "Striped
+ * card beside the room"): the page is the club's banquet ticket, gold paper printed in maroon, with the
+ * varsity stripe across its top, beside a photograph of the field. Colours and faces are the landing's
+ * (src/ui/landing/landing.css); the fonts come from the root layout. Scoped to pages that render .pay.
+ */
+
+:root:has(.pay) {
+  --bg: #3d0012;
+  --surface: #4d0519;
+  --ink: #f5cf6b;
+  --muted: #c79b4a;
+  --field: #7d0a26;
+  /* The stationery: gold paper printed in the team's maroon. */
+  --paper: var(--ink);
+  --paper-ink: var(--bg);
+  --paper-soft: var(--field);
+  /* A tone step on the paper, for the calm notice where the buttons would be. */
+  --paper-shade: color-mix(in srgb, var(--paper) 86%, var(--paper-ink));
+  /* One treatment for every picture: warm monochrome, so archive scans and colour photographs read as one set. */
+  --picture-treatment: grayscale(1) sepia(0.32) contrast(1.06) brightness(0.9);
+
+  --display: var(--font-display), "Helvetica Neue", Arial, sans-serif;
+  --text: var(--font-text), "Helvetica Neue", Arial, sans-serif;
+
+  /* Five sizes: the ticket's name (sized to the card, .ticket__title), section heads and the total, the
+     lead, body text, and small print. */
+  --step-head: clamp(1.75rem, 1.3rem + 1.6vw, 2.5rem);
+  --step-lead: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+  --step-body: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+  --step-small: clamp(0.875rem, 0.84rem + 0.15vw, 0.9375rem);
+
+  /* The landing's frame: twelve columns between two equal margins. */
+  --margin: 2rem;
+  --gutter: 1.5rem;
+  --section: clamp(5rem, 2.5rem + 8vw, 10rem);
+  --pad: clamp(1.5rem, 1rem + 2vw, 3rem);
+
+  color-scheme: dark;
+  height: auto;
+  background: var(--bg);
+}
+
+@media (max-width: 699px) {
+  :root:has(.pay) {
+    --margin: 1.25rem;
+    --gutter: 1rem;
+  }
+}
+
+:root:has(.pay) body {
+  height: auto;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--text);
+  font-size: var(--step-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.pay {
+  overflow-x: clip;
+}
+
+.pay :where(h1, h2, h3, p, figure, ul, ol, dl, dd) {
+  margin: 0;
+}
+
+.pay img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.pay :focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.ticket :focus-visible,
+.sheet :focus-visible,
+.postcard :focus-visible {
+  outline-color: var(--paper-ink);
+}
+
+.pay ::selection {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+/* ---- Buttons: square, one fill ---- */
+.button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 1.25rem;
+  border: 0;
+  border-radius: 0;
+  background: var(--paper-ink);
+  color: var(--paper);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.button--quiet {
+  padding-inline: 0.25rem;
+  background: transparent;
+  color: var(--paper-ink);
+  text-decoration: underline;
+  text-decoration-thickness: 0.06em;
+  text-underline-offset: 0.22em;
+}
+
+/* ---- The first screen: the ticket beside the field ---- */
+.pay-hero {
+  display: grid;
+  gap: var(--gutter);
+  padding: var(--margin);
+}
+
+/* ---- The field beside the ticket ---- */
+.pay-hero__photo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pay-hero__frame {
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  background: var(--surface);
+}
+
+.pay-hero__frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 42% 62%;
+  filter: var(--picture-treatment);
+}
+
+.pay figcaption {
+  font-size: var(--step-small);
+  color: var(--muted);
+}
+
+@media (min-width: 1024px) {
+  .pay-hero {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pay-hero__photo {
+    position: sticky;
+    top: var(--margin);
+    height: calc(100svh - 2 * var(--margin));
+    min-height: 32rem;
+  }
+
+  .pay-hero__frame {
+    flex: 1;
+    aspect-ratio: auto;
+    min-height: 0;
+  }
+}

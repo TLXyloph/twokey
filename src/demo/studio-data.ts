@@ -14,7 +14,7 @@ import type {
   AgFormat,
   AgRelationDefinition,
 } from "ag-studio";
-import { balanceMonth, isMoneyInThisMonth, secondKeyQueue, stillToSign } from "./board-figures";
+import { balanceMonth, isMoneyInThisMonth, secondKeyQueue, stillToSignFor } from "./board-figures";
 import { CLUB_NAME, OFFICERS, riverbend, type ClubDemoData } from "./riverbend";
 
 /**
@@ -71,7 +71,7 @@ export function ledgerRows(data: ClubDemoData = riverbend) {
       ...row,
       accountId,
       signedBy: requestedBy ? (OFFICERS.find((o) => o.role === requestedBy)?.title ?? null) : null,
-      stillToSign: requestedBy ? stillToSign(requestedBy) : null,
+      stillToSign: stillToSignFor({ ...row, requestedBy }),
       awaitingSecondKey: waiting ? 1 : 0,
       pendingAmount: waiting ? roundCents(-row.amount) : 0,
       moneyInThisMonth: isMoneyInThisMonth(row, month) ? row.amount : 0,
@@ -181,7 +181,7 @@ export function buildStudioData<TRegistry extends AgBaseRegistry = AgDefaultRegi
           ["description", "Description", "textFormat"],
           ["amount", "Amount", "currencyFormat", { description: "The payout, as a positive amount." }],
           ["signedBy", "Signed by", "textFormat", { description: "The officer who requested the payout and signed first." }],
-          ["stillToSign", "Still to sign", "textFormat", { description: "The officers who may sign second; never the first signer." }],
+          ["stillToSign", "Still to sign", "textFormat", { description: "The officers who may sign second; never the first signer, never the payee." }],
         ]),
       },
     ],

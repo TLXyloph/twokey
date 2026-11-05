@@ -1,0 +1,343 @@
+/*
+ * The pay page below the ticket: the club's letter on a red field, the evening hour by hour, and the
+ * back of the card. Every piece is more of the same stationery: gold paper with cut edges.
+ */
+
+/* ---- The letter: a sheet with a scalloped foot and a tear-off strip, beside an old banquet program ---- */
+.pay-letter {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+  row-gap: 2.5rem;
+  align-items: start;
+  margin-top: calc(var(--section) * 0.6);
+  padding: var(--section) var(--margin);
+  background: var(--field);
+}
+
+.pay-letter__plate {
+  grid-column: 1 / span 4;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.pay-letter__plate img {
+  width: 100%;
+  filter: var(--picture-treatment);
+}
+
+.pay-letter__plate figcaption {
+  color: var(--ink);
+}
+
+.sheet {
+  grid-column: 6 / span 7;
+}
+
+.sheet__paper {
+  padding: clamp(1.75rem, 1rem + 3vw, 4rem);
+  background: var(--paper);
+  color: var(--paper-ink);
+}
+
+.sheet__heading {
+  margin-bottom: 1.5rem;
+  font-family: var(--display);
+  font-size: var(--step-head);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.sheet__paper p {
+  max-width: 60ch;
+}
+
+.sheet__paper p + p {
+  margin-top: 1em;
+}
+
+.sheet__paper .sheet__sign {
+  margin-top: 2rem;
+  font-weight: 600;
+}
+
+.sheet__sign span {
+  display: block;
+  font-size: var(--step-small);
+  font-weight: 500;
+  color: var(--paper-soft);
+}
+
+.sheet__edge,
+.postcard__edge {
+  display: block;
+  color: var(--paper);
+}
+
+.sheet .perforation {
+  margin-top: 1rem;
+}
+
+.sheet__strip {
+  display: flex;
+  align-items: center;
+  min-height: 72px;
+  padding: 0 clamp(1.75rem, 1rem + 3vw, 4rem);
+  background: var(--paper);
+  color: var(--paper-ink);
+  font-weight: 600;
+}
+
+/* ---- The evening, hour by hour ---- */
+.pay-evening {
+  padding: var(--section) 0;
+}
+
+.evening__top {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 var(--margin);
+}
+
+.evening__heading {
+  font-family: var(--display);
+  font-size: var(--step-head);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.evening__buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.evening__button {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: var(--ink);
+  color: var(--bg);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.evening__button:disabled {
+  opacity: 0.32;
+  cursor: default;
+}
+
+.evening__bar {
+  position: relative;
+  height: 6px;
+  margin: 1.25rem var(--margin) 0;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.evening__bar span {
+  position: absolute;
+  inset: 0;
+  background: var(--ink);
+  transform-origin: left center;
+  scale: calc(0.18 + 0.82 * var(--progress, 0)) 1;
+}
+
+/* The row ends on the page's margins: a sliver of the next moment shows at its right edge. */
+.evening__row {
+  --row-gap: 2rem;
+  display: flex;
+  gap: var(--row-gap);
+  margin: 2.5rem var(--margin) 0;
+  padding: 0 0 0.5rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  list-style: none;
+}
+
+.evening__row::-webkit-scrollbar {
+  display: none;
+}
+
+.moment {
+  display: flex;
+  flex: 0 0 calc((100% - 3 * var(--row-gap)) / 4.3);
+  flex-direction: column;
+  scroll-snap-align: start;
+}
+
+@media (max-width: 1023px) {
+  .moment {
+    flex-basis: calc((100% - var(--row-gap)) / 2.3);
+  }
+}
+
+.moment__title {
+  font-family: var(--display);
+  font-size: var(--step-lead);
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.moment__text {
+  margin-top: 0.5rem;
+}
+
+.moment__picture {
+  display: grid;
+  gap: 0.625rem;
+  margin-top: var(--drop, 64px);
+}
+
+.moment__picture img {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  filter: var(--picture-treatment);
+}
+
+/* ---- The back of the card ---- */
+.pay-foot {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+  padding: 0 var(--margin) calc(var(--margin) * 1.5);
+}
+
+.postcard,
+.pay-foot__credits {
+  grid-column: 2 / span 10;
+}
+
+.postcard__paper {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2rem 3rem;
+  padding: clamp(1.75rem, 1rem + 3vw, 3.5rem);
+  background: var(--paper);
+  color: var(--paper-ink);
+}
+
+.postcard__message h2 {
+  font-family: var(--display);
+  font-size: var(--step-head);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.postcard__message p {
+  max-width: 40ch;
+  margin-top: 1rem;
+}
+
+.postcard__address {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 1.5rem;
+  align-items: start;
+}
+
+.pay .postcard__stamp {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  width: 88px;
+  height: 117px;
+  padding: 6px;
+  background: var(--paper-ink);
+  object-fit: cover;
+  object-position: 64% 64%;
+  filter: var(--picture-treatment);
+  rotate: 3deg;
+}
+
+.postcard__club {
+  grid-column: 1;
+  font-weight: 600;
+}
+
+.postcard__address ul {
+  display: grid;
+  grid-column: 1;
+  gap: 12px;
+  margin-top: 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.postcard__imprint {
+  grid-column: 1 / -1;
+  font-size: var(--step-small);
+  color: var(--paper-soft);
+  text-align: center;
+}
+
+.pay-foot__credits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem 1.5rem;
+  margin-top: 1.75rem;
+  padding: 0;
+  font-size: var(--step-small);
+  color: var(--muted);
+  list-style: none;
+}
+
+@media (max-width: 1023px) {
+  .pay-letter__plate {
+    grid-column: 1 / span 4;
+  }
+
+  .sheet {
+    grid-column: 5 / -1;
+  }
+
+  .postcard,
+  .pay-foot__credits {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 699px) {
+  /* On a phone the letter comes first and the program follows it, so no caption sits over the letter. */
+  .pay-letter__plate {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: center;
+    width: min(100%, 15rem);
+  }
+
+  .sheet {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .evening__buttons {
+    display: none;
+  }
+
+  .evening__row {
+    --row-gap: 1rem;
+  }
+
+  .moment {
+    flex-basis: 78%;
+  }
+
+  .moment__picture {
+    margin-top: calc(var(--drop, 64px) * 0.45);
+  }
+
+  .postcard__paper {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -1,0 +1,223 @@
+/*
+ * The pay page's motion. Transform, scale, opacity and clip-path only. Curves and durations are the
+ * landing's (src/ui/landing/motion.css), from the animate skill: --ease-out for entrances and presses,
+ * --ease-in-out for wipes. Opacity fades run for everyone; travel, scale and wipes join them only
+ * without the reduced-motion preference. The ticket's title is readable on the first frame.
+ */
+
+:root:has(.pay) {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --t-press: 150ms;
+  --t-hover: 150ms;
+  --t-ui: 200ms;
+  --t-fade: 300ms;
+  --t-reveal: 800ms;
+}
+
+/* ---- Feedback under the hand: a press on every control, hover only where a pointer hovers ---- */
+.stepper__button,
+.evening__button,
+.stub__copy,
+.button {
+  transition-property: scale, opacity;
+  transition-duration: var(--t-press), var(--t-hover);
+  transition-timing-function: var(--ease-out), ease;
+}
+
+.ticket__links a,
+.sheet__strip,
+.postcard a,
+.pay-foot__credits a {
+  transition: text-decoration-color var(--t-hover) ease;
+}
+
+.stub__copy-word {
+  transition: opacity var(--t-ui) var(--ease-out);
+}
+
+.moment > * {
+  transition: opacity var(--t-ui) ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .stepper__button:not(:disabled):active,
+  .evening__button:not(:disabled):active,
+  .stub__copy:active,
+  .button:active {
+    scale: 0.96;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ticket__links a:hover,
+  .sheet__strip:hover,
+  .postcard a:hover,
+  .pay-foot__credits a:hover {
+    text-decoration-color: currentColor;
+  }
+
+  .button--quiet:hover {
+    text-decoration-thickness: 0.12em;
+  }
+
+  /* The row of the evening: pointing at one moment brings it forward and quiets the rest. */
+  .evening__row:has(.moment:hover) .moment:not(:hover) > * {
+    opacity: 0.45;
+  }
+}
+
+/* ---- The total: each new figure arrives in place ---- */
+.checkout__total-value {
+  transition: opacity var(--t-ui) var(--ease-out);
+}
+
+@starting-style {
+  .checkout__total-value {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .checkout__total-value {
+    transition:
+      opacity var(--t-ui) var(--ease-out),
+      translate var(--t-ui) var(--ease-out);
+  }
+
+  @starting-style {
+    .checkout__total-value {
+      translate: 0 6px;
+    }
+  }
+}
+
+/* ---- Load: the ticket settles, its stripe is printed, the field comes into focus ---- */
+.ticket__when,
+.checkout > *,
+.stub,
+.ticket__links,
+.pay-hero__photo {
+  animation: pay-fade var(--t-fade) var(--ease-out) var(--d, 120ms) backwards;
+}
+
+.checkout > :nth-child(2) {
+  --d: 180ms;
+}
+
+.checkout > :nth-child(3) {
+  --d: 240ms;
+}
+
+.checkout > :nth-child(n + 4),
+.stub {
+  --d: 300ms;
+}
+
+.ticket__links {
+  --d: 360ms;
+}
+
+.checkout__stamp {
+  animation: pay-fade var(--t-fade) var(--ease-out) backwards;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pay [data-load] {
+    animation: pay-settle 700ms var(--ease-out) backwards;
+  }
+
+  .ticket__stripes span {
+    animation: pay-wipe 900ms var(--ease-in-out) calc(120ms + var(--i, 0) * 90ms) backwards;
+  }
+
+  .ticket__stripes span:nth-child(2) {
+    --i: 1;
+  }
+
+  .ticket__stripes span:nth-child(3) {
+    --i: 2;
+  }
+
+  .ticket__when,
+  .checkout > *,
+  .stub,
+  .ticket__links {
+    animation: pay-rise 600ms var(--ease-out) var(--d, 120ms) backwards;
+  }
+
+  .pay-hero__photo {
+    animation: pay-fade 500ms var(--ease-out) 80ms backwards;
+  }
+
+  .pay-hero__frame img {
+    animation: pay-focus 1800ms var(--ease-out) 80ms backwards;
+  }
+
+  /* After the capture: the stamp lands on the ticket. Once, so a keyframe. */
+  .checkout__stamp {
+    animation: pay-stamp 420ms var(--ease-out) backwards;
+  }
+}
+
+/* ---- Entrances, once, below the fold ---- */
+.pay-reveal-ready .pay [data-reveal] {
+  transition: opacity var(--t-fade) var(--ease-out) var(--delay, 0ms);
+}
+
+.pay-reveal-ready .pay [data-reveal]:not([data-visible]) {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pay-reveal-ready .pay [data-reveal="rise"] {
+    transition:
+      opacity 700ms var(--ease-out) var(--delay, 0ms),
+      transform var(--t-reveal) var(--ease-out) var(--delay, 0ms);
+  }
+
+  .pay-reveal-ready .pay [data-reveal="rise"]:not([data-visible]) {
+    transform: translateY(24px);
+  }
+}
+
+@keyframes pay-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes pay-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@keyframes pay-settle {
+  from {
+    transform: translateY(20px);
+  }
+}
+
+@keyframes pay-wipe {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes pay-focus {
+  from {
+    transform: scale(1.08);
+  }
+}
+
+@keyframes pay-stamp {
+  from {
+    opacity: 0;
+    transform: scale(1.35);
+  }
+}

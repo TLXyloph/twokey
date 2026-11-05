@@ -1,10 +1,17 @@
 /**
- * The one link between the board's own markup and AG Studio: it keeps the API Studio hands over in
- * `onApiReady`, so the header's "Review N payouts" button can select the "Waiting for a second key"
- * widget. A small external store, read with `useSyncExternalStore`, because Studio loads in the
- * browser after the header has rendered.
+ * The links between the board's own markup and AG Studio:
+ *
+ * - the API Studio hands over in `onApiReady`, so the board can select the "Waiting for a second
+ *   key" widget (a small external store, because Studio loads in the browser after the header);
+ * - the session's live board data. The judge UI pushes each new `BoardView.data` here; once Studio's
+ *   data engine is up (`onStudioReady`) it goes in through `api.setProperty("data", …)`, which Studio
+ *   applies to synchronous sources in place (types: api/agStudioProperties.d.ts, `data`) and answers
+ *   with a `dataChanged` refresh of every built-in widget. Custom widgets are not re-queried by that
+ *   refresh, so each push also bumps a revision the Live Balance strip listens to.
  */
 import type { AgReportState, AgStudioApi } from "ag-studio";
+import type { ClubDemoData } from "@/demo/riverbend";
+import { buildStudioData } from "@/demo/studio-data";
 import type { TwoKeyRegistry } from "./widgets";
 
 /** The widget id of the second-key queue in the initial state. The header's button targets it. */
@@ -59,6 +66,50 @@ function withQueueSelected(state: AgReportState<TwoKeyRegistry>): AgReportState<
     ...state,
     selectedPageId: page.id,
     pages: state.pages.map((p) => (p === page ? { ...p, selection: { type: "widget", id: SECOND_KEY_WIDGET_ID } } : p)),
+  };
+}
+
+// --- Live board data ----------------------------------------------------------------------------
+
+let dataApi: AgStudioApi<TwoKeyRegistry> | null = null;
+/** The latest data the judge UI pushed, and the one Studio holds now (null: its seed). */
+let latestData: ClubDemoData | null = null;
+let shownData: ClubDemoData | null = null;
+let dataRevision = 0;
+const dataListeners = new Set<() => void>();
+
+/**
+ * Wire from `<AgStudio onStudioReady>` (the data engine is up; a `data` change before that would
+ * start a second engine), and pass `null` on teardown. A new Studio starts from the seed, so the
+ * latest data goes in again.
+ */
+export function setStudioDataApi(api: AgStudioApi<TwoKeyRegistry> | null): void {
+  dataApi = api;
+  shownData = null;
+  flushBoardData();
+}
+
+/** The session's board data from the live view. Held until Studio can take it; pushed once per object. */
+export function pushBoardData(data: ClubDemoData): void {
+  latestData = data;
+  flushBoardData();
+}
+
+function flushBoardData(): void {
+  if (dataApi === null || latestData === null || latestData === shownData) return;
+  dataApi.setProperty("data", buildStudioData<TwoKeyRegistry>(latestData));
+  shownData = latestData;
+  dataRevision += 1;
+  for (const listener of [...dataListeners]) listener();
+}
+
+/** Bumped after each push, once Studio holds the new rows; the Live Balance strip re-queries on it. */
+export const getStudioDataRevision = () => dataRevision;
+
+export function subscribeStudioData(listener: () => void): () => void {
+  dataListeners.add(listener);
+  return () => {
+    dataListeners.delete(listener);
   };
 }
 

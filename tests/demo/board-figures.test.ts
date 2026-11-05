@@ -6,8 +6,10 @@ import {
   formatEventDate,
   monthNameOf,
   moneyInThisMonth,
+  payeeRoleOf,
   secondKeyQueue,
   stillToSign,
+  stillToSignFor,
 } from "@/demo/board-figures";
 import { riverbend, type ClubDemoData } from "@/demo/riverbend";
 import { ledgerRows } from "@/demo/studio-data";
@@ -46,18 +48,18 @@ describe("waiting for a second key", () => {
         date: "2026-11-02",
         payee: "Riverbend Team Supply",
         description: "Goalkeeper gloves",
-        amount: 129,
+        amount: 42,
         signedBy: "Treasurer",
         stillToSign: "President or Secretary",
       },
       {
         id: "L15",
         date: "2026-11-03",
-        payee: "Referee pool (league-appointed)",
-        description: "Referee fees, November",
-        amount: 360,
+        payee: "Esther Huang (Treasurer), reimbursement",
+        description: "Field-paint reimbursement",
+        amount: 36.5,
         signedBy: "Secretary",
-        stillToSign: "Treasurer or President",
+        stillToSign: "President",
       },
     ]);
   });
@@ -68,18 +70,31 @@ describe("waiting for a second key", () => {
     }
   });
 
+  it("never offers the payee as a key either (the payee can never sign)", () => {
+    expect(stillToSign("secretary", "treasurer")).toBe("President");
+    expect(stillToSign("treasurer", "treasurer")).toBe("President or Secretary");
+    expect(stillToSign("president", null)).toBe("Treasurer or Secretary");
+  });
+
+  it("finds an officer payee from the fixed payee list, by the row's counterparty", () => {
+    const l15 = riverbend.ledger.find((row) => row.id === "L15")!;
+    const l14 = riverbend.ledger.find((row) => row.id === "L14")!;
+    expect(payeeRoleOf(l15)).toBe("treasurer");
+    expect(payeeRoleOf(l14)).toBeNull();
+    expect(stillToSignFor(l15)).toBe("President");
+  });
+
   it("counts and totals the queue from its rows", () => {
     expect(queue.count).toBe(2);
-    expect(queue.total).toBe(489);
+    expect(queue.total).toBe(78.5);
   });
 
   it("agrees with the helper columns the balances strip sums inside Studio", () => {
     const rows = ledgerRows();
     expect(rows.reduce((t, r) => t + r.awaitingSecondKey, 0)).toBe(queue.count);
     expect(sumCents(rows.map((r) => r.pendingAmount))).toBe(cents(queue.total));
-    expect(rows.filter((r) => r.awaitingSecondKey === 1).map((r) => [r.signedBy, r.stillToSign])).toEqual(
-      queue.payouts.map((p) => [p.signedBy, p.stillToSign]),
-    );
+    expect(rows.filter((r) => r.awaitingSecondKey === 1).map((r) => r.signedBy)).toEqual(queue.payouts.map((p) => p.signedBy));
+    expect(rows.filter((r) => r.awaitingSecondKey === 1).map((r) => r.stillToSign)).toEqual(queue.payouts.map((p) => p.stillToSign));
   });
 
   it("is not part of the available balance (pending money has not left)", () => {

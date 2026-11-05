@@ -1,0 +1,64 @@
+{
+  "847fb912f16c397409e09326773d47648e5a6d7489587eb93b07bd7038bb5f4e": {
+    "label": "L14 goalkeeper gloves (seed)",
+    "model": "claude-opus-5-5",
+    "recordedAt": "2026-11-05T15:03:45.657Z",
+    "costUsd": 0.01402,
+    "answer": {
+      "vendor": "Riverbend Team Supply",
+      "date": "2026-11-01",
+      "items": [
+        {
+          "description": "Goalkeeper gloves sz 8, 2 @ $21.00",
+          "amountCents": 4200
+        }
+      ],
+      "totalCents": 4200,
+      "matchesRequest": true,
+      "findings": [],
+      "verdict": "clear",
+      "summary": "Receipt matches: $42.00 for two pairs of goalkeeper gloves from the payee, dated before the request."
+    }
+  },
+  "9f32794edb7a77d19a85e81c2b88dce2c0e6ca235694aeb6c24b2e18d64bdb79": {
+    "label": "L15 field-paint reimbursement (seed)",
+    "model": "claude-opus-5-5",
+    "recordedAt": "2026-11-05T15:03:52.108Z",
+    "costUsd": 0.019092,
+    "answer": {
+      "vendor": "Bluebird Hardware",
+      "date": "2026-11-02",
+      "items": [
+        {
+          "description": "Field marking paint white, 2 @ $12.25",
+          "amountCents": 2450
+        },
+        {
+          "description": "Patio string lights 24ft, 1 @ $12.00",
+          "amountCents": 1200
+        }
+      ],
+      "totalCents": 3650,
+      "matchesRequest": false,
+      "findings": [
+        {
+          "severity": "warn",
+          "text": "The receipt includes patio string lights, which don't look like a field maintenance cost and aren't field paint.",
+          "evidence": "Receipt line 2: patio string lights 24ft, $12.00"
+        },
+        {
+          "severity": "info",
+          "text": "The field marking paint fits the request and the budget line; that part comes to $24.50.",
+          "evidence": "Receipt line 1: field marking paint white, 2 @ $12.25, $24.50"
+        },
+        {
+          "severity": "info",
+          "text": "The receipt shows 3 items sold, but only two lines with 3 units in total are listed, which matches.",
+          "evidence": "Items sold: 3"
+        }
+      ],
+      "verdict": "check",
+      "summary": "Total matches $36.50, but $12.00 string lights aren't field paint; check before signing this Treasurer reimbursement."
+    }
+  }
+}
