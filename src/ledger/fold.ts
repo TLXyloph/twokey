@@ -6,8 +6,10 @@
  *   rows come from the seed; a judge's own requests are appended as live rows.
  * - Money in: each completed capture is a completed row (event "banquet", counterparty "Banquet
  *   tickets (PayPal)" or "(Venmo)"); the banquet's FundraisingEvent appears with the first one.
- * - The available balance is the seed's, plus captures, minus sent payouts, so completed rows
- *   still sum to it. Its as-of time is the latest event that moved it.
+ * - Each sent payout also gets PayPal's $0.25 payout fee as its own completed row, right after it
+ *   (measured in the sandbox: a $1 payout cost $1.25).
+ * - The available balance is the seed's, plus captures, minus sent payouts and their fees, so
+ *   completed rows still sum to it. Its as-of time is the latest event that moved it.
  * `src/demo/board-figures.ts` reads the folded `data` as it reads the seed.
  */
 import { budgetLineById } from "@/demo/riverbend-policy";
@@ -112,6 +114,24 @@ function requestRow(state: RequestState): LedgerEntry {
   };
 }
 
+/** PayPal's fee per US payout item (measured 2026-11-03: a $1 payout took $1.25). */
+export const PAYOUT_FEE_CENTS = 25;
+
+function feeRow(state: RequestState, payoutRow: LedgerEntry): LedgerEntry {
+  return {
+    id: `${state.request.requestId}:fee`,
+    date: payoutRow.date,
+    description: `PayPal payout fee: ${state.request.description}`,
+    counterparty: "PayPal",
+    category: "fees",
+    direction: "out",
+    amount: -dollars(PAYOUT_FEE_CENTS),
+    status: "completed",
+    eventId: null,
+    requestedBy: null,
+  };
+}
+
 function foldData(seed: ClubDemoData, events: readonly LedgerEvent[], states: readonly RequestState[]): ClubDemoData {
   const byId = new Map(states.map((state) => [state.request.requestId, state]));
   const seedIds = new Set(seed.ledger.map((row) => row.id));
@@ -119,10 +139,15 @@ function foldData(seed: ClubDemoData, events: readonly LedgerEvent[], states: re
   for (const row of seed.ledger) {
     const state = byId.get(row.id);
     if (state && isDropped(state)) continue;
-    ledger.push(state && isOut(state) ? { ...row, status: "completed" } : { ...row });
+    if (state && isOut(state)) ledger.push({ ...row, status: "completed" }, feeRow(state, row));
+    else ledger.push({ ...row });
   }
   const captured = capturesOf(events);
-  for (const state of states) if (!seedIds.has(state.request.requestId) && !isDropped(state)) ledger.push(requestRow(state));
+  for (const state of states) {
+    if (seedIds.has(state.request.requestId) || isDropped(state)) continue;
+    const row = requestRow(state);
+    ledger.push(row, ...(isOut(state) ? [feeRow(state, row)] : []));
+  }
   ledger.push(...captured.map(captureRow));
 
   const sent = states.filter(isOut);
@@ -135,7 +160,7 @@ function foldData(seed: ClubDemoData, events: readonly LedgerEvent[], states: re
           available: dollars(
             toCents(balance.available) +
               captured.reduce((total, c) => total + c.payload.amountCents, 0) -
-              sent.reduce((total, s) => total + s.request.amountCents, 0),
+              sent.reduce((total, s) => total + s.request.amountCents + PAYOUT_FEE_CENTS, 0),
           ),
           asOf: movedAt.at(-1) ?? balance.asOf,
         },

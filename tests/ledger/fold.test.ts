@@ -81,10 +81,17 @@ describe("foldBoard: payouts", () => {
   it("completes a seeded row once it is sent, takes it off the balance and out of the second-key queue", () => {
     const board = foldBoard(riverbend, eventsOf([...seeded(), ...sentL14]), extras);
     expect(board.data.ledger.find((r) => r.id === "L14")?.status).toBe("completed");
-    expect(board.data.balances[0]!.available).toBe(4998.75 - 42);
+    expect(board.data.balances[0]!.available).toBe(4998.75 - 42 - 0.25);
     expect(completedSum(board.data.ledger)).toBe(cents(board.data.balances[0]!.available));
     expect(secondKeyQueue(board.data).count).toBe(1);
     expect(board.limits.sessionPayoutsLeft).toBe(2);
+  });
+
+  it("records PayPal's $0.25 payout fee as its own completed row, beside the payout", () => {
+    const board = foldBoard(riverbend, eventsOf([...seeded(), ...sentL14]), extras);
+    const fee = board.data.ledger.find((r) => r.id === "L14:fee");
+    expect(fee).toMatchObject({ direction: "out", amount: -0.25, status: "completed", counterparty: "PayPal", category: "fees", requestedBy: null });
+    expect(fee?.description).toBe("PayPal payout fee: Goalkeeper gloves");
   });
 
   it("tells the payout's story in plain words", () => {
