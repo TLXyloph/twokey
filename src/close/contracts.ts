@@ -15,7 +15,7 @@ export type CloseMonth = typeof CLOSE_MONTH;
 export const CLOSE_MONTH_NAME = "October 2026";
 
 /** Bump when the shape of `CloseFigures` changes: it is inside the hash. */
-export const CLOSE_FIGURES_VERSION = "twokey-close-v1";
+export const CLOSE_FIGURES_VERSION = "twokey-close-v2";
 
 // ---------------------------------------------------------------------------------------------
 // The figures (computed in code; their canonical JSON's SHA-256 is the close hash).
@@ -106,6 +106,12 @@ export interface CloseFigures {
   budgetLines: CloseBudgetLine[];
   openItems: CloseOpenItem[];
   exceptions: CloseException[];
+  /**
+   * The month's payments out by their two-key record. `signed`: two officers signed them in TwoKey.
+   * `seedApproved`: the seed's payments, treated as approved by two officers because they are demo
+   * data and the seed holds no signatures. Any others are the `no_two_key_record` exception.
+   */
+  twoKeyRecord: { payments: number; signed: number; seedApproved: number };
   /**
    * The month end carried forward to the account's balance: closing + every completed row after the
    * month = the balance the seed records, as of its time.

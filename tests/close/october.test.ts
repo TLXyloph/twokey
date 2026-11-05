@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CLOSE_MONTH, type CloseException } from "@/close/contracts";
-import { closeHash, computeMonthClose, monthPeriod, octoberClose } from "@/close/october";
+import { closeHash, computeMonthClose, monthPeriod, octoberClose, SEED_TWO_KEY_ROW_IDS } from "@/close/october";
 import { canonicalJson } from "@/ledger/canonical";
 import { riverbend, type ClubDemoData } from "@/demo/riverbend";
 import { BUDGET_LINES } from "@/demo/riverbend-policy";
@@ -76,11 +76,44 @@ describe("October 2026's close, from the seed", () => {
     expect(kind(close.exceptions, "takings_gap")).toHaveLength(1);
   });
 
-  it("flags October's 7 payments as having no two-key record (TwoKey's first signed request is Nov 2)", () => {
-    expect(kind(close.exceptions, "no_two_key_record")).toEqual([
+  it("treats the seed's 7 October payments as two-key approved (demo data), so the car-wash gap is the only exception", () => {
+    expect([...SEED_TWO_KEY_ROW_IDS]).toEqual(["L03", "L05", "L06", "L08", "L09", "L11", "L12"]);
+    expect(close.exceptions.map((e) => e.kind)).toEqual(["takings_gap"]);
+    expect(kind(close.exceptions, "no_two_key_record")).toEqual([]);
+    expect(close.twoKeyRecord).toEqual({ payments: 7, signed: 0, seedApproved: 7 });
+  });
+
+  it("still flags a payout without both signatures: one that isn't in the seed and that two officers didn't sign", () => {
+    const data: ClubDemoData = {
+      ...riverbend,
+      ledger: [
+        ...riverbend.ledger,
+        { id: "S1", date: "2026-10-30", description: "Cones", counterparty: "Riverbend Team Supply", category: "equipment", direction: "out", amount: -20, status: "completed", eventId: null, requestedBy: null },
+      ],
+    };
+    const unsigned = computeMonthClose(data, CLOSE_MONTH, { seedApprovedRowIds: SEED_TWO_KEY_ROW_IDS });
+    expect(kind(unsigned.exceptions, "no_two_key_record")).toEqual([
+      { kind: "no_two_key_record", count: 1, totalCents: 2_000, rowIds: ["S1"], firstSignedRequestDate: "2026-11-02" },
+    ]);
+    expect(unsigned.twoKeyRecord).toEqual({ payments: 8, signed: 0, seedApproved: 7 });
+    expect(unsigned.exceptions.map((e) => e.kind)).toEqual(["takings_gap", "no_two_key_record"]);
+
+    const signed = computeMonthClose(data, CLOSE_MONTH, { seedApprovedRowIds: SEED_TWO_KEY_ROW_IDS, signedPayoutRowIds: new Set(["S1"]) });
+    expect(kind(signed.exceptions, "no_two_key_record")).toEqual([]);
+    expect(signed.twoKeyRecord).toEqual({ payments: 8, signed: 1, seedApproved: 7 });
+  });
+
+  it("counts a payment two officers signed as signed, even when the seed would treat it as approved", () => {
+    const result = computeMonthClose(riverbend, CLOSE_MONTH, { seedApprovedRowIds: SEED_TWO_KEY_ROW_IDS, signedPayoutRowIds: new Set(["L03"]) });
+    expect(result.twoKeyRecord).toEqual({ payments: 7, signed: 1, seedApproved: 6 });
+  });
+
+  it("flags every payment when nothing is on record as two-key approved (TwoKey's first signed request is Nov 2)", () => {
+    const bare = computeMonthClose(riverbend, CLOSE_MONTH);
+    expect(kind(bare.exceptions, "no_two_key_record")).toEqual([
       { kind: "no_two_key_record", count: 7, totalCents: 235_525, rowIds: ["L03", "L05", "L06", "L08", "L09", "L11", "L12"], firstSignedRequestDate: "2026-11-02" },
     ]);
-    expect(close.exceptions.map((e) => e.kind)).toEqual(["takings_gap", "no_two_key_record"]);
+    expect(bare.twoKeyRecord).toEqual({ payments: 7, signed: 0, seedApproved: 0 });
   });
 
   it("drops the two-key exception for payments two officers signed", () => {
@@ -122,9 +155,14 @@ describe("October 2026's close, from the seed", () => {
     expect(canonicalJson(octoberClose())).toBe(canonicalJson(close));
   });
 
-  it("changes its hash when any figure changes", async () => {
+  it("changes its hash when any figure changes, the two-key record included", async () => {
     const hash = await closeHash(close);
     expect(await closeHash({ ...close, closingCents: close.closingCents + 1 })).not.toBe(hash);
+    expect(await closeHash({ ...close, twoKeyRecord: { ...close.twoKeyRecord, seedApproved: 0 } })).not.toBe(hash);
+  });
+
+  it("is version 2 of the figures' shape (the two-key record was added)", () => {
+    expect(close.version).toBe("twokey-close-v2");
   });
 
   it("names the club as demo data inside the hashed figures", () => {

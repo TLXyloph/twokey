@@ -78,8 +78,17 @@ describe("the draft's prompt", () => {
     expect(facts).toContain("- Fundraising costs: $948.75 paid of $1,000.00 approved; $51.25 left.");
     expect(facts).toContain("- Field maintenance: nothing paid of $150.00 approved; $150.00 left.");
     expect(facts).toContain("- Car wash, Oct 24: 87 cars logged at $15.00 = $1,305.00 expected; $15.00 received; $1,290.00 has no record.");
-    expect(facts).toContain("No two-key record: 7 payments out ($2,355.25) have no two officers' signatures on record. TwoKey's first signed payout request is dated Nov 2.");
+    expect(facts).toContain("- Two keys: 7 of 7 payments out count as approved by two officers: 7 are demo data, taken as approved because the demo data holds no signatures.");
+    expect(facts).toMatch(/Exceptions found by code:\n- Car wash, Oct 24: [^\n]*\n\nWrite the draft/);
+    expect(facts).not.toContain("No two-key record");
     expect(facts).toMatch(/Open items at Oct 31 \(payouts waiting for a second key\):\n- None\./);
+  });
+
+  it("names a payout without two keys as an exception", () => {
+    const unsigned = { ...figures, twoKeyRecord: { payments: 7, signed: 0, seedApproved: 6 }, exceptions: [...figures.exceptions, { kind: "no_two_key_record" as const, count: 1, totalCents: 41_250, rowIds: ["L03"], firstSignedRequestDate: "2026-11-02" }] };
+    const text = closeFactsText(unsigned);
+    expect(text).toContain("- Two keys: 6 of 7 payments out count as approved by two officers: 6 are demo data, taken as approved because the demo data holds no signatures.");
+    expect(text).toContain("- No two-key record: 1 payment out ($412.50) has no two officers' signatures on record. TwoKey's first signed payout request is dated Nov 2.");
   });
 
   it("holds no session id, request hash, email or clock time, and is the same every time", () => {

@@ -55,7 +55,7 @@ function exceptionLine(exception: CloseException): string {
       );
     case "no_two_key_record":
       return (
-        `No two-key record: ${plural(exception.count, "payment", "payments")} out (${formatUsd(exception.totalCents)}) have no two officers' signatures on record.` +
+        `No two-key record: ${plural(exception.count, "payment", "payments")} out (${formatUsd(exception.totalCents)}) ${exception.count === 1 ? "has" : "have"} no two officers' signatures on record.` +
         (exception.firstSignedRequestDate ? ` TwoKey's first signed payout request is dated ${shortDate(exception.firstSignedRequestDate)}.` : "")
       );
     case "over_budget":
@@ -63,6 +63,17 @@ function exceptionLine(exception: CloseException): string {
     case "no_budget_line":
       return `${exception.description} (${formatUsd(exception.amountCents)}): its category "${exception.category}" is on no budget line.`;
   }
+}
+
+/** How many payments out count as two-key approved, and on what basis (the seed's are demo data). */
+function twoKeyFact({ payments, signed, seedApproved }: CloseFigures["twoKeyRecord"]): string {
+  if (payments === 0) return "- Two keys: no payments went out.";
+  const head = `- Two keys: ${signed + seedApproved} of ${plural(payments, "payment", "payments")} out count as approved by two officers`;
+  const parts = [
+    signed > 0 ? `${signed} signed by two officers in TwoKey` : null,
+    seedApproved > 0 ? `${seedApproved} ${seedApproved === 1 ? "is" : "are"} demo data, taken as approved because the demo data holds no signatures` : null,
+  ].filter((part): part is string => part !== null);
+  return parts.length > 0 ? `${head}: ${parts.join("; ")}.` : `${head}.`;
 }
 
 /** The close as the model reads it: plain lines, in a fixed order. */
@@ -98,6 +109,7 @@ export function closeFactsText(figures: CloseFigures): string {
     `- Carried forward: ${formatUsd(figures.closingCents)} plus ${formatUsd(carried.laterCents)} of completed rows after the month = ` +
       `${formatUsd(figures.closingCents + carried.laterCents)}; the account balance recorded on ${asOf} is ${formatUsd(carried.balanceCents)}. ` +
       `${carried.reconciles ? "They agree." : "They do not agree."}`,
+    twoKeyFact(figures.twoKeyRecord),
     "",
     "Money in:",
     ...moneyIn,

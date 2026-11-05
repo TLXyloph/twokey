@@ -14,11 +14,14 @@
  *   is approved minus everything paid from the line up to the month's end.
  * - Open items: payouts requested on or before the month's last day that still wait for a key.
  * - Exceptions: a fundraiser whose takings fall short of what was logged; payments out with no
- *   two-key record; a line overspent; a payment that is on no budget line.
+ *   two-key record (see below); a line overspent; a payment that is on no budget line.
  *
  * A payment's two-key record: `ClubDemoData` holds no second signature, so a caller that knows
- * which rows two officers signed (from the ledger's approval events) passes their ids. The seed's
- * October payments have none: TwoKey's first signed request is dated Nov 2.
+ * which rows two officers signed (from the ledger's approval events) passes their ids, and a payment
+ * from the seed itself is treated as two-key approved (`SEED_TWO_KEY_ROW_IDS`): the seed is demo
+ * data with no signatures, and flagging its October payments would only be noise. The figures say
+ * which is which (`twoKeyRecord`), so the screen and the AI's draft can say so. Any other payment out
+ * (one made in a judge session without both signatures, say) is the "no two-key record" exception.
  */
 import { canonicalJson, sha256Hex } from "@/ledger/canonical";
 import { BUDGET_LINES, type BudgetLine } from "@/demo/riverbend-policy";
@@ -59,12 +62,24 @@ const payment = (row: LedgerEntry): ClosePayment => ({
 export interface CloseOptions {
   /** Ledger row ids of payments two officers signed for (none in the seed's October). */
   signedPayoutRowIds?: ReadonlySet<string>;
+  /** Ledger row ids of the seed's payments, treated as two-key approved (demo data). */
+  seedApprovedRowIds?: ReadonlySet<string>;
   budget?: readonly BudgetLine[];
 }
+
+/**
+ * The seed's completed payments, treated as approved by two officers: they are demo data and the
+ * seed holds no signatures. Taken from the seed itself, never from the data being closed, so a
+ * payout added later (in a judge session) is not in it.
+ */
+export const SEED_TWO_KEY_ROW_IDS: ReadonlySet<string> = new Set(
+  riverbend.ledger.filter((row) => row.status === "completed" && row.direction === "out").map((row) => row.id),
+);
 
 export function computeMonthClose(data: ClubDemoData, month: CloseMonth, options: CloseOptions = {}): CloseFigures {
   const budget = options.budget ?? BUDGET_LINES;
   const signed = options.signedPayoutRowIds ?? new Set<string>();
+  const seedApproved = options.seedApprovedRowIds ?? new Set<string>();
   const period = monthPeriod(month);
   const rows = [...data.ledger].sort(byDate);
   const completed = rows.filter((row) => row.status === "completed");
@@ -143,7 +158,9 @@ export function computeMonthClose(data: ClubDemoData, month: CloseMonth, options
       missingCents,
     });
   }
-  const unsigned = paymentsOut.filter((p) => !signed.has(p.rowId));
+  const signedCount = paymentsOut.filter((p) => signed.has(p.rowId)).length;
+  const seedCount = paymentsOut.filter((p) => !signed.has(p.rowId) && seedApproved.has(p.rowId)).length;
+  const unsigned = paymentsOut.filter((p) => !signed.has(p.rowId) && !seedApproved.has(p.rowId));
   if (unsigned.length > 0) {
     const signedRequests = rows.filter((row) => row.requestedBy !== null).map((row) => row.date);
     exceptions.push({
@@ -177,6 +194,7 @@ export function computeMonthClose(data: ClubDemoData, month: CloseMonth, options
     budgetLines,
     openItems,
     exceptions,
+    twoKeyRecord: { payments: paymentsOut.length, signed: signedCount, seedApproved: seedCount },
     carriedForward: {
       laterCents,
       balanceCents,
@@ -186,9 +204,9 @@ export function computeMonthClose(data: ClubDemoData, month: CloseMonth, options
   };
 }
 
-/** October 2026 from the seed: the close this demo's Reviewer signs. */
+/** October 2026 from the seed: the close this demo's Reviewer signs (its payments treated as two-key approved). */
 export function octoberClose(): CloseFigures {
-  return computeMonthClose(riverbend, CLOSE_MONTH);
+  return computeMonthClose(riverbend, CLOSE_MONTH, { seedApprovedRowIds: SEED_TWO_KEY_ROW_IDS });
 }
 
 /** The close hash: SHA-256 (hex) of the figures' canonical JSON. What the Reviewer's key signs. */

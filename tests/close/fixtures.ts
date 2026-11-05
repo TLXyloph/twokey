@@ -22,10 +22,10 @@ export async function generateTestReviewerKey(): Promise<TestReviewerKey> {
 export const sampleDraft = (over: Partial<CloseDraft> = {}): CloseDraft => ({
   summary:
     "October adds up: $2,549.00 opening plus $4,175.00 in, less $2,355.25 out, leaves $4,368.75, which carries forward to the account balance. " +
-    "Every budget line is within its approval. Nothing was waiting at month end. Two exceptions need the Reviewer: the car wash and the payments with no two-key record.",
+    "Every budget line is within its approval. Nothing was waiting at month end. One exception needs the Reviewer: the car wash.",
   points: [
     { check: "Ask the car-wash volunteers how the other 86 cars paid and where that money is.", basis: "Car wash, Oct 24: 87 cars logged, $15.00 received" },
-    { check: "Check the 7 October payments against the officers' paper approvals.", basis: "7 payments, $2,355.25, no two-key record" },
+    { check: "Ask the Treasurer whether fundraising costs will stay within what is left.", basis: "Fundraising costs: $948.75 of $1,000.00" },
   ],
   ...over,
 });
