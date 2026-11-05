@@ -70,7 +70,7 @@ export function StartOverView({ snapshot, onAsk, onCancel, onConfirm, children }
 
   return (
     <div className="judge-actions">
-      <div className="judge-actions__set" data-shown={asking ? undefined : ""} inert={asking}>
+      <div className="judge-actions__set" data-shown={asking ? undefined : ""} inert={asking} aria-hidden={asking || undefined}>
         {children}
         <button ref={startRef} type="button" className="judge-quiet-button" onClick={onAsk}>
           {START_OVER_LABEL}
@@ -80,6 +80,7 @@ export function StartOverView({ snapshot, onAsk, onCancel, onConfirm, children }
         className="judge-actions__set"
         data-shown={asking ? "" : undefined}
         inert={!asking}
+        aria-hidden={!asking || undefined}
         role="group"
         aria-label="Start over"
         onKeyDown={(event) => {

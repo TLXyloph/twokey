@@ -4,6 +4,7 @@ import { fixtureWatchtower, STRANGER_SEND, TREASURER_SEND } from "@/ui/judge/dev
 import {
   balanceFigures,
   eventTakings,
+  flaggedLine,
   latestLines,
   ledgerNewestFirst,
   money,
@@ -157,5 +158,34 @@ describe("the Watchtower, as a parent sees it", () => {
     expect(seen.findings).toHaveLength(watch.findings.length);
     expect(seen.explained).toHaveLength(watch.explained.length);
     expect(parentWatch(null)).toBeNull();
+  });
+});
+
+describe("the newest open finding, pinned over the latest rows", () => {
+  const now = new Date("2026-11-05T17:00:00Z");
+
+  it("is the newest open finding, as a ledger-shaped row with PayPal's time", () => {
+    const line = flaggedLine(parentWatch(fixtureWatchtower("stale", now)));
+    expect(line).toEqual({
+      id: `watch-${TREASURER_SEND.transactionId}`,
+      day: "Nov 3",
+      description: "Sent from PayPal's website to Esther Huang (Treasurer)",
+      note: "Not two-key: the Watchtower flagged it. PayPal recorded it Nov 3, 2:27 PM CST.",
+      amount: "−$3.21",
+      more: 1,
+    });
+  });
+
+  it("names no one when PayPal names no one a parent may see", () => {
+    const line = flaggedLine({ ...fixtureWatchtower("ok", now)!, findings: [parentFinding(STRANGER_SEND)] });
+    expect(line?.description).toBe("Sent from PayPal's website");
+    expect(line?.day).toBe("Nov 2");
+    expect(line?.more).toBe(0);
+  });
+
+  it("is absent while loading, without a view, or with nothing open", () => {
+    expect(flaggedLine("loading")).toBeNull();
+    expect(flaggedLine(null)).toBeNull();
+    expect(flaggedLine({ ...fixtureWatchtower("ok", now)!, findings: [] })).toBeNull();
   });
 });

@@ -47,7 +47,7 @@ describe("the judge panel", () => {
 
   it("holds the two judge actions, with the start-over confirm closed and out of reach", () => {
     expect(text(html)).toContain("Replay an outside send Start over");
-    expect(html).toMatch(/<div class="judge-actions__set"[^>]*inert=""[^>]*role="group" aria-label="Start over"/);
+    expect(html).toMatch(/<div class="judge-actions__set"[^>]*inert="" aria-hidden="true"[^>]*role="group" aria-label="Start over"/);
     expect(html).not.toContain("confirm(");
   });
 });
@@ -76,7 +76,7 @@ describe("the start-over control", () => {
   it("asks inline, in the same cell, with Cancel where the first button was", () => {
     const html = view("confirming");
     expect(text(html)).toContain("Start from the seed? Start over Cancel");
-    expect(html).toMatch(/<div class="judge-actions__set" inert="">\s*<span>replay<\/span>/);
+    expect(html).toMatch(/<div class="judge-actions__set" inert="" aria-hidden="true">\s*<span>replay<\/span>/);
     expect(html).toMatch(/data-shown=""[^>]*role="group"/);
   });
 

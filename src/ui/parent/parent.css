@@ -368,6 +368,30 @@
   color: var(--p-muted);
 }
 
+/* The pinned finding: one tone step up, its words allowed to wrap, its figure the coral warning. */
+.latest__flag {
+  background: var(--p-surface);
+}
+
+.latest__flag .latest__desc {
+  white-space: normal;
+}
+
+.latest__note {
+  color: var(--p-ink);
+  font-size: var(--step-small);
+  line-height: 1.45;
+}
+
+.latest__more {
+  color: inherit;
+  text-underline-offset: 3px;
+}
+
+.latest__amount--flag {
+  color: var(--p-short);
+}
+
 .latest__foot {
   padding: 14px 24px 18px;
   border-top: 1px solid var(--rule-on-ground);

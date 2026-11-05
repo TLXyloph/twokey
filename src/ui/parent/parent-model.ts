@@ -11,6 +11,7 @@
 import { formatAsOf, formatEventDate, formatUsd, moneyInThisMonth, secondKeyQueue } from "@/demo/board-figures";
 import type { ClubDemoData, FundraisingEvent, LedgerEntry } from "@/demo/riverbend";
 import type { WatchFinding, WatchtowerView } from "@/watchtower/contracts";
+import { newestFirst } from "@/ui/watchtower/watch-model";
 import { parentStatus, type ParentRowStatus } from "./parent-data";
 
 const cents = (amount: number) => Math.round(amount * 100);
@@ -171,4 +172,32 @@ export function parentFinding(finding: WatchFinding): WatchFinding {
 export function parentWatch(view: WatchtowerView | null): WatchtowerView | null {
   if (!view) return null;
   return { ...view, findings: (view.findings ?? []).map(parentFinding), explained: (view.explained ?? []).map(parentFinding) };
+}
+
+/** The newest open finding, as a row pinned over the latest rows (spec §5.4: on the parent ledger, with PayPal's time). */
+export interface FlaggedLine {
+  id: string;
+  day: string;
+  description: string;
+  note: string;
+  amount: string;
+  /** Other open findings, shown in full in the Watchtower chapter. */
+  more: number;
+}
+
+const clubDay = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "America/Chicago" });
+
+export function flaggedLine(view: WatchtowerView | null | "loading"): FlaggedLine | null {
+  if (!view || view === "loading") return null;
+  const [newest, ...rest] = newestFirst(view.findings ?? []);
+  if (!newest) return null;
+  const route = newest.label.trim().replace(/\.$/, "");
+  return {
+    id: `watch-${newest.transactionId}`,
+    day: clubDay.format(new Date(newest.at)),
+    description: newest.counterparty ? `${route} to ${newest.counterparty}` : route,
+    note: `Not two-key: the Watchtower flagged it. PayPal recorded it ${formatAsOf(newest.at)}.`,
+    amount: signedMoney(-newest.amountCents / 100),
+    more: rest.length,
+  };
 }
