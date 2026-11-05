@@ -65,6 +65,24 @@ describe("Riverbend demo data", () => {
     expect(sumCents(completed.map((r) => r.amount))).toBe(cents(4998.75));
   });
 
+  it("waits on two payouts under the $50 cap: gloves ($42) and a field-paint reimbursement to the treasurer ($36.50)", () => {
+    const pending = riverbend.ledger.filter((r) => r.status === "pending");
+    expect(pending.map((r) => [r.id, r.amount, r.requestedBy])).toEqual([
+      ["L14", -42, "treasurer"],
+      ["L15", -36.5, "secretary"],
+    ]);
+    expect(pending.find((r) => r.id === "L15")).toMatchObject({
+      description: "Field-paint reimbursement",
+      counterparty: "Esther Huang (Treasurer), reimbursement",
+      category: "field maintenance",
+    });
+    for (const row of pending) expect(cents(-row.amount), row.id).toBeLessThanOrEqual(5000);
+  });
+
+  it("no longer carries the November referee-fees payout", () => {
+    expect(riverbend.ledger.some((r) => r.description === "Referee fees, November")).toBe(false);
+  });
+
   it("stamps the balance with an ISO as-of time", () => {
     const asOf = riverbend.balances[0]!.asOf;
     expect(asOf).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/);

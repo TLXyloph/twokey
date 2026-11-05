@@ -4,7 +4,8 @@
  * key, money in this month and the balance's as-of time. Each one that also appears inside Studio
  * (a widget aggregates the same rows) has a test proving the copies agree.
  */
-import { CLUB_TIME_ZONE, OFFICERS, riverbend, type ClubDemoData, type OfficerRole } from "./riverbend";
+import { PAYEES } from "@/disbursements/payees";
+import { CLUB_TIME_ZONE, OFFICERS, riverbend, type ClubDemoData, type LedgerEntry, type OfficerRole } from "./riverbend";
 
 const usd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
 const cents = (amount: number) => Math.round(amount * 100);
@@ -42,10 +43,23 @@ export function formatEventDate(isoDate: string): string {
 
 const titleOf = (role: OfficerRole) => OFFICERS.find((o) => o.role === role)?.title ?? role;
 
-/** "President or Secretary": every officer but the one who signed first. */
-export function stillToSign(requestedBy: OfficerRole): string {
-  const others = OFFICERS.filter((o) => o.role !== requestedBy).map((o) => o.title);
+/**
+ * "President or Secretary": every officer but the one who signed first, and never the payee (an
+ * officer can't sign a payout to themselves).
+ */
+export function stillToSign(requestedBy: OfficerRole, payeeRole: OfficerRole | null = null): string {
+  const others = OFFICERS.filter((o) => o.role !== requestedBy && o.role !== payeeRole).map((o) => o.title);
   return others.length <= 2 ? others.join(" or ") : `${others.slice(0, -1).join(", ")} or ${others.at(-1)}`;
+}
+
+/** The officer a ledger row pays, if its counterparty is one of the fixed payees that is an officer. */
+export function payeeRoleOf(row: Pick<LedgerEntry, "counterparty">): OfficerRole | null {
+  return PAYEES.find((payee) => payee.name === row.counterparty)?.role ?? null;
+}
+
+/** `stillToSign` for a pending ledger row: excludes its requester and its payee. */
+export function stillToSignFor(row: Pick<LedgerEntry, "counterparty" | "requestedBy">): string | null {
+  return row.requestedBy ? stillToSign(row.requestedBy, payeeRoleOf(row)) : null;
 }
 
 export interface WaitingPayout {
@@ -70,7 +84,7 @@ export function secondKeyQueue(data: ClubDemoData = riverbend) {
       description: row.description,
       amount: -row.amount,
       signedBy: titleOf(row.requestedBy as OfficerRole),
-      stillToSign: stillToSign(row.requestedBy as OfficerRole),
+      stillToSign: stillToSign(row.requestedBy as OfficerRole, payeeRoleOf(row)),
     }));
   return { payouts, count: payouts.length, total: sum(payouts.map((p) => p.amount)) };
 }
