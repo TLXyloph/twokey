@@ -1,0 +1,143 @@
+/*
+ * Receipts in the drawer: the thumbnail on a request card, its larger view (a small modal
+ * dialog over the drawer) and the till-slip stand-in when an image can't load. Tokens from .board;
+ * motion curves from .judge-drawer (./drawer.css).
+ */
+
+/* --- Receipts --------------------------------------------------------------------------------- */
+
+.judge-receipt {
+  display: block;
+  width: 56px;
+  height: 60px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-chip);
+  background: var(--raised);
+  cursor: zoom-in;
+  transition: border-color 150ms ease;
+}
+
+.judge-receipt img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+}
+
+@media (hover: hover) {
+  .judge-receipt:hover {
+    border-color: var(--control);
+  }
+}
+
+.judge-receipt__stand-in {
+  display: grid;
+  align-content: start;
+  gap: 5px;
+  height: 100%;
+  padding: 10px 9px;
+}
+
+.judge-receipt__stand-in span {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--control);
+}
+
+.judge-receipt__stand-in span:nth-child(2) {
+  width: 70%;
+}
+
+.judge-receipt__stand-in span:nth-child(3) {
+  width: 45%;
+}
+
+.judge-receipt-view {
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  color: var(--text);
+  opacity: 0;
+  transform: scale(0.96);
+  transition:
+    opacity 150ms var(--ease-out),
+    transform 150ms var(--ease-out),
+    overlay 150ms allow-discrete,
+    display 150ms allow-discrete;
+}
+
+.judge-receipt-view[open] {
+  opacity: 1;
+  transform: scale(1);
+  transition-duration: 200ms;
+}
+
+@starting-style {
+  .judge-receipt-view[open] {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+.judge-receipt-view::backdrop {
+  background: rgb(27 20 22 / 0.4);
+}
+
+.judge-receipt-view__panel {
+  display: grid;
+  gap: 12px;
+  padding: 12px 16px 16px;
+}
+
+.judge-receipt-view__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.judge-receipt-view__title {
+  margin: 0;
+  font-weight: 600;
+}
+
+.judge-receipt-view__image {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-chip);
+  outline: 1px solid oklch(0 0 0 / 0.1);
+  outline-offset: -1px;
+}
+
+.judge-receipt-view__frame {
+  display: block;
+  border-radius: var(--radius-chip);
+  background: var(--raised);
+}
+
+/* The till-slip stand-in, at the large view's size. */
+.judge-receipt-view__frame .judge-receipt__stand-in {
+  height: 320px;
+  gap: 14px;
+  padding: 40px 48px;
+}
+
+.judge-receipt-view__frame .judge-receipt__stand-in span {
+  height: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .judge-receipt-view,
+  .judge-receipt-view[open] {
+    transform: none;
+  }
+}

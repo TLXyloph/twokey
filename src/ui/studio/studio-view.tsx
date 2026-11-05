@@ -6,8 +6,10 @@
  *
  * On a wide screen it opens in edit mode, with the "AI Assistant" panel open on the left; narrower
  * screens fold or drop the panels (./board-viewport.ts). Studio reads `ai`, the mode, the panels and
- * `initialState` once, so they live at module scope. The API it hands over goes to
- * ./studio-handle, so the board header's "Review N payouts" button can select the queue.
+ * `initialState` once, so they live at module scope. The API it hands over goes to ./studio-handle:
+ * on `onApiReady` for selecting widgets, and on `onStudioReady` (data engine up) for the session's
+ * live board data, which the judge UI pushes there. Until the first live view arrives Studio shows
+ * the seed data it starts with, so the first paint is unchanged.
  */
 import {
   AgStudioAiModule,
@@ -15,6 +17,7 @@ import {
   type AgStudioApi,
   type AgStudioApiReadyEvent,
   type AgStudioPreDestroyedEvent,
+  type AgStudioReadyEvent,
 } from "ag-studio";
 import { AgStudio, AgStudioProvider } from "ag-studio-react";
 import { useCallback, useEffect, useRef } from "react";
@@ -24,7 +27,7 @@ import { createTwoKeyAi } from "@/agents/studio/harness";
 import { buildStudioData } from "@/demo/studio-data";
 import { boardLocaleText } from "./board-layout";
 import { boardStudioSetup, boardViewport } from "./board-viewport";
-import { setStudioApi } from "./studio-handle";
+import { setStudioApi, setStudioDataApi } from "./studio-handle";
 import { twoKeyCompactStudioTheme, twoKeyStudioTheme } from "./theme";
 import { twoKeyWidgets, type TwoKeyRegistry } from "./widgets";
 import "./studio-grid.css";
@@ -61,15 +64,29 @@ export function StudioView({ licenseKey }: StudioViewProps) {
     setStudioApi(api);
   }, []);
 
+  // The data engine is up: from here the session's live data can replace the seed rows.
+  const readyApiRef = useRef<TwoKeyApi | null>(null);
+  const onStudioReady = useCallback((event: AgStudioReadyEvent) => {
+    const api = event.api as unknown as TwoKeyApi;
+    readyApiRef.current = api;
+    setStudioDataApi(api);
+  }, []);
+
   const onStudioPreDestroyed = useCallback((event: AgStudioPreDestroyedEvent) => {
     if ((event.api as unknown as TwoKeyApi) !== apiRef.current) return;
     apiRef.current = null;
+    readyApiRef.current = null;
     setStudioApi(null);
+    setStudioDataApi(null);
   }, []);
 
   useEffect(() => {
     if (apiRef.current) setStudioApi(apiRef.current);
-    return () => setStudioApi(null);
+    if (readyApiRef.current) setStudioDataApi(readyApiRef.current);
+    return () => {
+      setStudioApi(null);
+      setStudioDataApi(null);
+    };
   }, []);
 
   return (
@@ -87,6 +104,7 @@ export function StudioView({ licenseKey }: StudioViewProps) {
         mode={setup.mode}
         panels={setup.panels}
         onApiReady={onApiReady}
+        onStudioReady={onStudioReady}
         onStudioPreDestroyed={onStudioPreDestroyed}
       />
     </AgStudioProvider>
