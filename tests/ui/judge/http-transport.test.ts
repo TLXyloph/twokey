@@ -105,6 +105,25 @@ describe("actions", () => {
     expect(JSON.parse(String(fetch.mock.calls[1]![1]!.body))).toEqual({});
   });
 
+  it("POSTs a send-back with its reason, and returns the server's refusal as data", async () => {
+    const request = { ...glovesRequest(), status: "sent_back" as const };
+    const fetch = scriptedFetch(json(200, { request }), json(409, { error: { code: "payee_cannot_sign", message: "The Treasurer is the payee." } }));
+    const transport = createHttpTransport({ fetch });
+
+    await expect(transport.sendBack("req 1", { actingAs: "president", reason: "Not a league item." })).resolves.toEqual({ ok: true, request });
+    const [url, init] = fetch.mock.calls[0]!;
+    expect(url).toBe(API.sendBack("req 1"));
+    expect(init).toMatchObject({ method: "POST", credentials: "same-origin" });
+    expect(JSON.parse(String(init!.body))).toEqual({ actingAs: "president", reason: "Not a league item." });
+
+    await expect(transport.sendBack("req 1", { actingAs: "treasurer", reason: "Not a league item." })).resolves.toEqual({
+      ok: false,
+      status: 409,
+      code: "payee_cannot_sign",
+      message: "The Treasurer is the payee.",
+    });
+  });
+
   it("retries an action once after getting a session", async () => {
     const request = glovesRequest();
     const fetch = scriptedFetch(json(401, {}), json(200, {}), json(200, { request }));

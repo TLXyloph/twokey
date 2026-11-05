@@ -50,3 +50,14 @@ export function sentRequest(extra: TimelineStep[] = []): PayoutRequestView {
     ],
   };
 }
+
+/** The paint reimbursement after the President sent it back, with the reason on its timeline. */
+export function sentBackRequest(reason = "One line on the receipt is not a league item."): PayoutRequestView {
+  const base = paintRequest();
+  return {
+    ...base,
+    status: "sent_back",
+    eligibleSigners: [],
+    timeline: [...base.timeline, { step: "sent_back", label: "Sent back by the President", at: "2026-11-05T16:45:10Z", detail: reason }],
+  };
+}

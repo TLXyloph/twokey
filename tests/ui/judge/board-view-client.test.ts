@@ -10,7 +10,7 @@ import {
   withRequest,
 } from "@/ui/judge/board-view-client";
 import type { ActionResult, BoardTransport, ReplayResult } from "@/ui/judge/http-transport";
-import { boardView, glovesRequest, paintRequest, sentRequest } from "../../fixtures/board-view";
+import { boardView, glovesRequest, paintRequest, sentBackRequest, sentRequest } from "../../fixtures/board-view";
 
 /** A server in miniature: reads return `views` in turn (then the last), and actions change it. */
 function mockTransport(views: BoardView[] = [boardView()]) {
@@ -26,14 +26,16 @@ function mockTransport(views: BoardView[] = [boardView()]) {
   const sign = vi.fn(async (): Promise<ActionResult> => act(sentRequest()));
   const createRequest = vi.fn(async (): Promise<ActionResult> => act({ ...glovesRequest(), requestId: "new" }));
   const assessRisk = vi.fn(async (): Promise<ActionResult> => act({ ...paintRequest(), riskPending: false }));
+  const sendBack = vi.fn(async (): Promise<ActionResult> => act(sentBackRequest()));
   // The board-view client never replays: the Watchtower's replay store does (tests/ui/watchtower).
   const replayOutsideSend = vi.fn(async (): Promise<ReplayResult> => ({ ok: false, status: 500, code: "unused", message: "unused" }));
   return {
-    transport: { getView, sign, createRequest, assessRisk, replayOutsideSend } satisfies BoardTransport,
+    transport: { getView, sign, createRequest, assessRisk, sendBack, replayOutsideSend } satisfies BoardTransport,
     getView,
     sign,
     createRequest,
     assessRisk,
+    sendBack,
   };
 }
 
@@ -262,6 +264,35 @@ describe("actions", () => {
       refusalsBefore: 0,
       result: { ok: false, code: "payee_cannot_sign", message: "The payee can't sign." },
     });
+  });
+
+  it("shows a sent-back payout at once, out of the queue, then refreshes the board behind it", async () => {
+    const { transport, sendBack, getView } = mockTransport();
+    const client = createBoardViewClient({ transport });
+    await client.refresh();
+
+    const body = { actingAs: "president" as const, reason: "One line on the receipt is not a league item." };
+    await expect(client.sendBack("req_seed_paint", body)).resolves.toEqual({ ok: true, request: sentBackRequest() });
+    expect(sendBack).toHaveBeenCalledWith("req_seed_paint", body);
+    const paint = client.getSnapshot().view!.requests.find((r) => r.requestId === "req_seed_paint")!;
+    expect(paint.status).toBe("sent_back");
+    await flush();
+    expect(getView).toHaveBeenCalledTimes(2);
+  });
+
+  it("keeps a refused send-back as the request's latest outcome, so the card shows it inline", async () => {
+    const { transport, sendBack } = mockTransport();
+    sendBack.mockResolvedValueOnce({ ok: false, status: 409, code: "request_closed", message: "This payout has already been sent to PayPal." });
+    const client = createBoardViewClient({ transport });
+    await client.refresh();
+
+    await client.sendBack("req_seed_paint", { actingAs: "president", reason: "Not a league item." });
+    expect(client.getSnapshot().outcomes["req_seed_paint"]).toMatchObject({
+      role: "president",
+      refusalsBefore: 0,
+      result: { ok: false, code: "request_closed", message: "This payout has already been sent to PayPal." },
+    });
+    expect(client.getSnapshot().view!.requests.find((r) => r.requestId === "req_seed_paint")!.status).toBe("waiting");
   });
 
   it("adds a new request first", async () => {
