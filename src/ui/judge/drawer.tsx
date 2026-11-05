@@ -9,7 +9,7 @@
  * Waiting requests come first, then the ones that left the queue. Officers can request a payout
  * from the header; a parent's drawer is read-only. The board behind updates as the client polls.
  */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type SyntheticEvent } from "react";
 import type { ActingRole, BoardView } from "@/ledger/contracts";
 import { unrecordedOutcome, type BoardViewSnapshot } from "./board-view-client";
 import { boardViewClient } from "./board-view-source";
@@ -115,7 +115,9 @@ export function PayoutDrawer() {
     return () => clearTimeout(timer);
   }, [fresh]);
 
-  const onClose = () => {
+  const onClose = (event: SyntheticEvent<HTMLDialogElement>) => {
+    // A receipt's own dialog sits inside this one; its close is not the drawer's.
+    if (event.target !== event.currentTarget) return;
     const opener = drawerStore.opener();
     drawerStore.close();
     setFormOpen(false);

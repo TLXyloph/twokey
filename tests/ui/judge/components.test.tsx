@@ -81,11 +81,15 @@ describe("a request card", () => {
     expect(text(flagged)).toContain("You're the payee");
   });
 
-  it("is read-only for a parent", () => {
-    const t = text(renderToStaticMarkup(<RequestCard request={paintRequest()} role="parent" now={now} />));
+  it("is read-only for a parent, and still shows the recorded refusals", () => {
+    const refused = {
+      ...paintRequest(),
+      refusals: [{ role: "treasurer" as const, code: "payee_cannot_sign" as const, message: "The Treasurer is the payee.", at: "2026-11-05T16:39:13Z" }],
+    };
+    const t = text(renderToStaticMarkup(<RequestCard request={refused} role="parent" now={now} />));
     expect(t).not.toContain("Sign as");
     expect(t).not.toContain("I've read the flags");
-    expect(t).toContain("Parents can see payouts. Only officers sign them.");
+    expect(t).toContain("The Treasurer is the payee.");
   });
 
   it("shows a refusal calmly, as a recorded event", () => {

@@ -51,7 +51,8 @@ function Refusal({ role, message, at, recorded }: { role: ActingRole; message: s
 
 function SignAction({ request, role, now, busy, outcome, onSign }: RequestCardProps) {
   const [acknowledged, setAcknowledged] = useState(false);
-  const hint = signHint(request, role);
+  // A parent's drawer says once, at the top, that it is read-only; the cards don't repeat it.
+  const hint = isOfficer(role) ? signHint(request, role) : null;
   const flagged = needsAcknowledgement(request.risk);
   const checkboxId = `ack-${request.requestId}`;
   const refusals = [...request.refusals].reverse();
