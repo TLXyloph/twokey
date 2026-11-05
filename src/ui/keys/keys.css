@@ -1,0 +1,407 @@
+/*
+ * Key setup (/demo/keys): the board's achromatic ledger (tokens from boardCssVars on .keys-page),
+ * radii 8/6/4, no shadows, Geist. Two white cards on the stone ground, 1px edges, row rules. Colour
+ * is status only: maroon marks what the setup still leaves exposed, ink what is held as the
+ * rulebook wants, a hollow grey ring no access.
+ *
+ * Type: 24 title (the board's) / 20 the panel's answer / 16 card titles / 15 step titles / 14 body /
+ * 13 meta / 12 labels. Grid at 1440: 24 + 528 + 24 + 840 + 24 = 1440. This file holds the page,
+ * the cards and the steps; "Who holds the keys" has its own rules in ./keys-panel.css.
+ */
+
+.keys-page {
+  --keys-ease: cubic-bezier(0.23, 1, 0.32, 1);
+  --keys-flash: color-mix(in oklab, var(--data) 13%, var(--surface));
+  min-height: 100dvh;
+  padding-bottom: 48px;
+  background: var(--ground);
+  color: var(--text);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+
+.keys-header .board-header__finding {
+  max-width: 120ch;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 22px;
+}
+
+.keys-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 528fr) minmax(0, 840fr);
+  align-items: start;
+  gap: 24px;
+  padding: 0 24px;
+}
+
+/* --- Cards ---------------------------------------------------------------------------------------- */
+
+.keys-card {
+  min-width: 0;
+  padding: 20px 24px 22px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+}
+
+.keys-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+}
+
+.keys-card__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.keys-card__meta {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+.keys-card__note {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+  text-wrap: pretty;
+}
+
+.keys-panel .keys-card__note {
+  margin-top: 16px;
+}
+
+.keys-link {
+  border-radius: 2px;
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-color: var(--control);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 150ms ease;
+}
+
+.keys-text-button {
+  padding: 0;
+  border: 0;
+  border-radius: 2px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  line-height: 18px;
+  text-decoration: underline;
+  text-decoration-color: var(--control);
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition: text-decoration-color 150ms ease;
+}
+
+@media (hover: hover) {
+  .keys-link:hover,
+  .keys-text-button:hover {
+    text-decoration-color: currentColor;
+  }
+}
+
+/* The one primary on the screen: near-black fill, white label, the 36px control height. */
+.keys-primary {
+  flex: none;
+  height: 36px;
+  padding: 0 16px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  background: var(--primary);
+  color: var(--surface);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition-property: background-color, scale;
+  transition-duration: 150ms;
+  transition-timing-function: ease-out;
+}
+
+@media (hover: hover) {
+  .keys-primary:hover {
+    background: color-mix(in oklab, var(--primary) 84%, var(--surface));
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .keys-primary:active {
+    scale: 0.96;
+  }
+}
+
+.keys-link:focus-visible,
+.keys-text-button:focus-visible,
+.keys-primary:focus-visible,
+.keys-step__toggle:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
+/* --- The steps ------------------------------------------------------------------------------------ */
+
+.keys-steps {
+  margin: 12px 0 0;
+  padding: 0;
+  border-top: 1px solid var(--rule);
+  list-style: none;
+}
+
+.keys-step {
+  border-bottom: 1px solid var(--rule);
+}
+
+.keys-step__heading {
+  margin: 0;
+  font: inherit;
+}
+
+.keys-step__toggle {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+  width: 100%;
+  padding: 13px 0;
+  border: 0;
+  border-radius: var(--radius-chip);
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.keys-step__title {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 22px;
+  text-wrap: pretty;
+}
+
+.keys-step__state {
+  padding-top: 2px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.keys-step[data-state="next"] .keys-step__state {
+  color: var(--text);
+  font-weight: 500;
+}
+
+@media (hover: hover) {
+  .keys-step__toggle:hover .keys-step__title {
+    text-decoration: underline;
+    text-decoration-color: var(--control);
+    text-underline-offset: 3px;
+  }
+}
+
+/* The mark: a ring for a step to make (ink for the next one), filled ink with a tick once done. */
+.keys-mark {
+  position: relative;
+  display: grid;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  place-items: center;
+}
+
+.keys-mark__ring {
+  position: absolute;
+  inset: 0;
+  border: 1.5px solid var(--control);
+  border-radius: 50%;
+  transition-property: background-color, border-color;
+  transition-duration: 200ms;
+  transition-timing-function: ease;
+}
+
+.keys-mark[data-state="next"] .keys-mark__ring {
+  border-color: var(--text);
+}
+
+.keys-mark[data-state="done"] .keys-mark__ring {
+  border-color: var(--text);
+  background: var(--text);
+}
+
+.keys-mark__tick {
+  position: relative;
+  display: grid;
+  color: var(--surface);
+  opacity: 0;
+  scale: 0.25;
+  filter: blur(4px);
+  transition-property: opacity, scale, filter;
+  transition-duration: 300ms;
+  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
+.keys-mark__tick svg {
+  width: 13px;
+  height: 13px;
+  stroke-width: 2;
+}
+
+.keys-mark[data-state="done"] .keys-mark__tick {
+  opacity: 1;
+  scale: 1;
+  filter: blur(0);
+}
+
+/* The details open and close as one accordion: rows from 0fr to 1fr, the words fading with them. */
+.keys-step__body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 200ms var(--keys-ease);
+}
+
+.keys-step[data-open] .keys-step__body {
+  grid-template-rows: 1fr;
+}
+
+.keys-step__inner {
+  min-height: 0;
+  padding-left: 32px;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 200ms var(--keys-ease);
+}
+
+.keys-step[data-open] .keys-step__inner {
+  opacity: 1;
+}
+
+.keys-step__inner > :last-child {
+  margin-bottom: 18px;
+}
+
+.keys-step__part + .keys-step__part {
+  margin-top: 12px;
+}
+
+.keys-step__label {
+  margin: 0 0 2px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.keys-step__text {
+  max-width: 62ch;
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  text-wrap: pretty;
+}
+
+.keys-step__help {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.keys-step__help-item {
+  white-space: nowrap;
+}
+
+.keys-step__action {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 16px;
+}
+
+.keys-step__demo {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.keys-step__action .keys-step__demo {
+  margin: 0;
+}
+
+.keys-checklist__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  min-height: 18px;
+  margin-top: 14px;
+}
+
+.keys-checklist__all {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.keys-checklist__undo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-left: auto;
+}
+
+/* Reduced motion: no travel, no growth. Words and marks fade; the accordion opens at once. */
+@media (prefers-reduced-motion: reduce) {
+  .keys-step__body {
+    transition: none;
+  }
+
+  .keys-mark__tick {
+    scale: 1;
+    filter: none;
+    transition-property: opacity;
+  }
+}
+
+/* --- Narrower ------------------------------------------------------------------------------------- */
+
+@media (max-width: 1099px) {
+  .keys-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .keys-grid {
+    gap: 16px;
+    padding: 0 16px;
+  }
+
+  .keys-card {
+    padding: 16px;
+  }
+
+  .keys-header .board-header__finding {
+    font-size: 14px;
+    line-height: 20px;
+  }
+}
