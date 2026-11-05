@@ -154,6 +154,23 @@ export function exceptionView(exception: CloseException, figures: CloseFigures):
   }
 }
 
+/**
+ * Beside the exceptions: what else code checked and found clear, so the Reviewer sees what was
+ * looked at, not only what was found. The two keys are left out: the statement already says it.
+ */
+export function clearChecks(figures: CloseFigures): string | null {
+  const found = new Set(figures.exceptions.map((exception) => exception.kind));
+  const fundraisers = figures.moneyIn.filter((row) => row.takings !== null);
+  const complete = fundraisers.filter((row) => row.takings!.receivedCents >= row.takings!.expectedCents).length;
+  const parts: string[] = [];
+  if (complete > 0) {
+    if (!found.has("takings_gap")) parts.push("every fundraiser's takings");
+    else parts.push(complete === 1 ? "the other fundraiser's takings" : `the other ${complete} fundraisers' takings`);
+  }
+  if (!found.has("over_budget") && !found.has("no_budget_line")) parts.push("every payment's budget line");
+  return parts.length === 0 ? null : `Checked and clear: ${parts.join(" and ")}.`;
+}
+
 // --- October, row by row, and the budget lines ----------------------------------------------------
 
 export interface LedgerRow {

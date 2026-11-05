@@ -3,7 +3,26 @@
  * in two columns, the draft stacked, the table as two-line rows) and at 640px and under (phone
  * margins and 44px targets). Loaded last: it overrides ./close.css, ./close-draft.css and
  * ./close-signoff.css.
+ *
+ * The statement is also a size container: its labels ("Closing balance · Oct 31", about 142px)
+ * fit on one line only while each of the four cells has about 182px, so below 760px of strip the
+ * note goes on its own line and every label takes two. The values stay level and a date never
+ * breaks inside itself, whatever the viewport.
  */
+
+.close-statement {
+  container: close-statement / inline-size;
+}
+
+@container close-statement (max-width: 759px) {
+  .close-strip__note {
+    display: block;
+  }
+
+  .close-strip__dot {
+    display: none;
+  }
+}
 
 /* --- Narrow widths ------------------------------------------------------------------------------- */
 

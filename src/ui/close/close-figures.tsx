@@ -8,7 +8,7 @@
  */
 import type { CloseFigures } from "@/close/contracts";
 import { AlertGlyph, TickGlyph } from "@/ui/judge/glyphs";
-import { approvedTotal, budgetRows, carriedForwardLine, exceptionView, ledgerSections, money, openItemsLine, statementCells, twoKeyLine } from "./close-model";
+import { approvedTotal, budgetRows, carriedForwardLine, clearChecks, exceptionView, ledgerSections, money, openItemsLine, statementCells, twoKeyLine } from "./close-model";
 
 export function Statement({ figures }: { figures: CloseFigures }) {
   const carried = carriedForwardLine(figures);
@@ -23,7 +23,10 @@ export function Statement({ figures }: { figures: CloseFigures }) {
           <div key={cell.key} className="close-strip__cell" data-cell={cell.key}>
             <dt className="close-strip__label">
               {cell.label}
-              <span className="close-strip__note"> · {cell.note}</span>
+              <span className="close-strip__note">
+                <span className="close-strip__dot"> · </span>
+                {cell.note}
+              </span>
             </dt>
             <dd className="close-strip__value num">{cell.value}</dd>
           </div>
@@ -49,6 +52,7 @@ export function Statement({ figures }: { figures: CloseFigures }) {
 
 export function Exceptions({ figures }: { figures: CloseFigures }) {
   const items = figures.exceptions.map((exception) => exceptionView(exception, figures));
+  const clear = items.length > 0 ? clearChecks(figures) : null;
   return (
     <section className="close-panel close-exceptions-panel" aria-labelledby="close-exceptions-title">
       <header className="close-panel__head">
@@ -78,6 +82,7 @@ export function Exceptions({ figures }: { figures: CloseFigures }) {
           ))}
         </ul>
       )}
+      {clear && <p className="close-exceptions__clear">{clear}</p>}
     </section>
   );
 }

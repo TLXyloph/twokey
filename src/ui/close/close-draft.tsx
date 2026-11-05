@@ -1,8 +1,8 @@
 /**
  * The AI's draft of the close: the reconciliation in plain words beside the points for the Reviewer
  * to check, labelled "Drafted by the AI (recorded)": it was made once, in development, from the
- * figures on this page. Until it is recorded, the panel keeps its frame and says so. It names no AI
- * vendor.
+ * figures on this page. Until it is recorded, the panel keeps its frame and says so, without the
+ * "recorded" label. It names no AI vendor.
  */
 import type { CloseDraftView } from "@/close/contracts";
 import { formatAsOf } from "@/demo/board-figures";
@@ -15,10 +15,12 @@ export function DraftPanel({ draft }: { draft: CloseDraftView }) {
         <h2 id="close-draft-title" className="close-panel__title">
           Reconciliation summary
         </h2>
-        <p className="close-draft__origin">
-          <span className="close-chip">{DRAFT_LABEL}</span>
-          {draft.state === "recorded" && <span className="close-draft__when">{formatAsOf(draft.recordedAt)}</span>}
-        </p>
+        {draft.state === "recorded" && (
+          <p className="close-draft__origin">
+            <span className="close-chip">{DRAFT_LABEL}</span>
+            <span className="close-draft__when">{formatAsOf(draft.recordedAt)}</span>
+          </p>
+        )}
       </header>
       {draft.state === "recorded" ? (
         <div className="close-draft__body">

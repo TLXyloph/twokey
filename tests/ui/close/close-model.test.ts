@@ -5,6 +5,7 @@ import {
   approvedTotal,
   budgetRows,
   carriedForwardLine,
+  clearChecks,
   closeFinding,
   DRAFT_LABEL,
   exceptionView,
@@ -169,6 +170,29 @@ describe("the exceptions", () => {
       shortfall: false,
       lines: ["Gift cards: its category, gifts, is on no budget line."],
     });
+  });
+});
+
+describe("what code checked and found clear", () => {
+  const over: CloseException = { kind: "over_budget", budgetLine: "facilities", label: "Facilities", approvedCents: 40_000, spentCents: 45_000, overCents: 5_000 };
+
+  it("names the other fundraisers' takings and the budget lines beside October's one exception", () => {
+    expect(clearChecks(october)).toBe("Checked and clear: the other 2 fundraisers' takings and every payment's budget line.");
+  });
+
+  it("drops a check that found something, and counts one other fundraiser in the singular", () => {
+    expect(clearChecks(withFigures({ exceptions: [...october.exceptions, over] }))).toBe("Checked and clear: the other 2 fundraisers' takings.");
+    const oneOther = withFigures({ moneyIn: october.moneyIn.filter((row) => row.rowId !== "L07") });
+    expect(clearChecks(oneOther)).toBe("Checked and clear: the other fundraiser's takings and every payment's budget line.");
+  });
+
+  it("says every fundraiser's takings when none fell short", () => {
+    expect(clearChecks(withFigures({ exceptions: [over] }))).toBe("Checked and clear: every fundraiser's takings.");
+  });
+
+  it("has nothing to say when every check found something", () => {
+    const onlyTheGap = withFigures({ moneyIn: october.moneyIn.filter((row) => row.takings === null || row.takings.receivedCents < row.takings.expectedCents) });
+    expect(clearChecks({ ...onlyTheGap, exceptions: [...october.exceptions, over] })).toBeNull();
   });
 });
 

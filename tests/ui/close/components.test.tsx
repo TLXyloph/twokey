@@ -90,6 +90,10 @@ describe("the statement", () => {
     expect(html).toContain('data-cell="closing"');
   });
 
+  it("keeps each note's separator in its own span, so a narrow statement can put the note on its own line", () => {
+    expect(html).toContain('<span class="close-strip__note"><span class="close-strip__dot"> · </span>Oct 31</span>');
+  });
+
   it("ticks the three checks: it carries forward, nothing was open, and every payment has two keys (demo data)", () => {
     const t = text(html);
     expect(t).toContain("Carries forward: $4,368.75 + $630.00 completed after Oct 31 = $4,998.75, the club account's balance as of Nov 3, 10:30 AM CST.");
@@ -110,7 +114,8 @@ describe("the exceptions", () => {
   it("show October's one exception, the car-wash gap, with its shortfall in the data maroon", () => {
     const html = renderToStaticMarkup(<Exceptions figures={figures} />);
     expect(text(html)).toBe(
-      "Exceptions Found by code, from the ledger Car wash, Oct 24 −$1,290.00 87 cars logged × $15.00 = $1,305.00 expected. $15.00 received; $1,290.00 has no record.",
+      "Exceptions Found by code, from the ledger Car wash, Oct 24 −$1,290.00 87 cars logged × $15.00 = $1,305.00 expected. $15.00 received; $1,290.00 has no record. " +
+        "Checked and clear: the other 2 fundraisers' takings and every payment's budget line.",
     );
     expect(html).toMatch(/close-exception__figure num" data-shortfall="true">−\$1,290\.00/);
     expect(text(html)).not.toContain("no two-key record");
@@ -181,9 +186,10 @@ describe("the AI's draft", () => {
     expect(t).toContain("The AI prepares the close. A person signs it: the club's insurer says financial software doesn't qualify.");
   });
 
-  it("keeps its frame and says the draft isn't recorded yet, and that the close doesn't need it", () => {
+  it("keeps its frame and says the draft isn't recorded yet, and that the close doesn't need it, without the recorded label", () => {
     const t = text(renderToStaticMarkup(<DraftPanel draft={{ state: "not_recorded" }} />));
-    expect(t).toContain("Drafted by the AI (recorded) The AI's draft isn't recorded yet.");
+    expect(t).toContain("Reconciliation summary The AI's draft isn't recorded yet.");
+    expect(t).not.toContain("Drafted by the AI (recorded)");
     expect(t).toContain("so the Reviewer can check and sign the close without it.");
     expect(t).not.toContain("Points to check");
   });

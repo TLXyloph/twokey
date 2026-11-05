@@ -259,6 +259,17 @@
   color: var(--muted);
 }
 
+/* What else code checked and found clear: a quiet footnote under its own rule, as the draft's rule. */
+.close-exceptions__clear {
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+  text-wrap: pretty;
+}
+
 /* --- October's rows: a ledger table, rules and alignment, no bands -------------------------------- */
 
 .close-table {
@@ -308,7 +319,8 @@
   padding-top: 12px;
 }
 
-.close-table__group td {
+/* Group rows carry no rule: their 20px top padding separates them (this beats `.close-table tbody td`). */
+.close-table .close-table__group td {
   border-top: 0;
 }
 
