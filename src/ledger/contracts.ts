@@ -9,6 +9,7 @@
  * existing shape, in dollars) is the one exception, because Studio and the board already read it.
  */
 import type { ClubDemoData, OfficerRole } from "@/demo/riverbend";
+import type { WatchtowerView } from "@/watchtower/contracts";
 
 export type { OfficerRole };
 /** Who a judge is acting as. A parent can pay, but can't request or sign. */
@@ -289,6 +290,8 @@ export interface BoardView {
   sharedBalance: { availableCents: number; currency: Currency; asOf: string } | null;
   limits: { payoutCapCents: number; sessionPayoutsLeft: number; dailyCentsLeft: number };
   chain: { length: number; head: string };
+  /** The global Watchtower's state (the same for every session); null when it can't be read. */
+  watchtower: WatchtowerView | null;
 }
 
 // ---------------------------------------------------------------------------------------------

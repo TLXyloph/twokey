@@ -33,6 +33,8 @@ export interface FoldExtras {
   dailySentCents: number;
   /** The chain's head when the session has no events yet. */
   seedHash: string;
+  /** The global Watchtower's state, read beside the session (src/watchtower/); null when unread. */
+  watchtower?: BoardView["watchtower"];
 }
 
 export const BANQUET_EVENT_ID = "banquet";
@@ -189,5 +191,6 @@ export function foldBoard(seed: ClubDemoData, events: readonly LedgerEvent[], ex
       dailyCentsLeft: Math.max(0, DAILY_PAYOUT_LIMIT_CENTS - extras.dailySentCents),
     },
     chain: { length: events.length, head: events.at(-1)?.hash ?? extras.seedHash },
+    watchtower: extras.watchtower ?? null,
   };
 }

@@ -1,4 +1,5 @@
 - Spec for step 4 (the two-key path, Nov 5): .plans/step4-two-key-path-spec.md — read before planning or building; ask the user before deviating from it.
+- Spec for the Watchtower (Nov 5): .plans/watchtower-spec.md — read before planning or building; ask the user before deviating from it.
 
 <!-- BEGIN:nextjs-agent-rules -->
 
