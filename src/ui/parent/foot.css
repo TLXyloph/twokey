@@ -32,8 +32,10 @@
   grid-column: 5 / span 3;
 }
 
+/* The clock's tile is a size container, so the clock can fit its line at any width (below). */
 .foot__tile--time {
   grid-column: 8 / span 2;
+  container-type: inline-size;
 }
 
 .foot__tile--credits {
@@ -41,7 +43,7 @@
 }
 
 .foot__statement {
-  font-size: 1.375rem;
+  font-size: var(--step-lead);
   line-height: 1.35;
   text-wrap: pretty;
 }
@@ -67,12 +69,15 @@
   text-underline-offset: 4px;
 }
 
+/* One line, always: "10:08 AM CST", the widest, is 6.4em, so 15% of the tile's inside fits it; the
+   lead step (the statement's size) once there is room. */
 .foot__clock {
   font-family: var(--p-display);
-  font-size: 1.75rem;
+  font-size: min(var(--step-lead), 15cqi);
   font-weight: 600;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .foot__credits {
@@ -100,7 +105,7 @@
   grid-column: 9 / span 4;
   position: relative;
   display: grid;
-  grid-template-columns: 112px minmax(0, 1fr);
+  grid-template-columns: 160px minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr) auto;
   gap: 20px;
   background: var(--p-field);
@@ -109,15 +114,22 @@
 
 .foot__program {
   grid-row: 1 / -1;
-  width: 112px;
+  width: 160px;
   height: auto;
   align-self: start;
   filter: grayscale(1) sepia(0.32) contrast(1.06) brightness(0.9);
 }
 
+/* The title and its date read as one block at the top of the tile, however tall the tile is. */
 .foot__banquet-words {
   display: grid;
-  gap: 6px;
+  align-content: start;
+  gap: 8px;
+}
+
+/* The date and price in the full gold: the muted gold is 4.2:1 on the crimson, under AA. */
+.foot__tile--banquet .foot__small {
+  color: var(--p-ink);
 }
 
 .foot__banquet-title {

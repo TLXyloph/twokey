@@ -27,8 +27,11 @@
 }
 
 /* ---- Books: the maroon ground Studio sits on ---- */
+/* Under the books, a short step down to the Watchtower: Studio's canvas padding (20px at 1100px and
+   up, 12px below) and its 12px widget inset add to this, so the last table ends about 72px above the
+   crimson. */
 .books {
-  padding: var(--section) 0 calc(var(--section) - 32px);
+  padding: var(--section) 0 40px;
   background: var(--p-ground);
 }
 
@@ -136,16 +139,66 @@
   --watch-rule: var(--p-rule);
 }
 
-.watch-room__status {
-  font-size: var(--step-body);
-}
-
 .watch-room .watch-status {
   margin: 0;
 }
 
 .watch-room__quiet {
   color: var(--p-muted);
+}
+
+/*
+ * The board sets its Watchtower at its 13-14px meta size; a parent reads this room as the page's
+ * text: findings at the body size, PayPal's times and the controls at the small size. The marks grow
+ * with the words and stay centred on the first line (a 25.5px line, an 8px mark).
+ */
+.watch-room .watch-status,
+.watch-room .watch-alerts {
+  font-size: var(--step-body);
+  line-height: 1.5;
+}
+
+.watch-room .watch-facts,
+.watch-room .watch-explained__note,
+.watch-room .watch-alert__label,
+.watch-room .watch-quiet,
+.watch-room .watch-toggle {
+  font-size: var(--step-small);
+  line-height: 1.45;
+}
+
+.watch-room .watch-status .watch-mark,
+.watch-room .watch-alert .watch-mark,
+.watch-room .watch-explained .watch-mark {
+  width: 8px;
+  height: 8px;
+  margin-top: 9px;
+}
+
+.watch-room .watch-alert__row,
+.watch-room .watch-explained__item {
+  grid-template-columns: 8px minmax(0, 1fr);
+  gap: 12px;
+}
+
+.watch-room .watch-alert {
+  padding: 14px 18px 16px;
+}
+
+.watch-room .watch-alert__list {
+  gap: 12px;
+}
+
+.watch-room .watch-alert__list > li + li {
+  padding-top: 12px;
+}
+
+.watch-room .watch-explained {
+  padding: 0 18px;
+}
+
+.watch-room .watch-explained__item {
+  padding: 12px 0;
 }
 
 @media (max-width: 1099px) {
@@ -162,6 +215,14 @@
 @media (max-width: 699px) {
   .watch-room {
     padding: 20px 16px;
+  }
+
+  .watch-room .watch-alert {
+    padding: 12px 14px 14px;
+  }
+
+  .watch-room .watch-explained {
+    padding: 0 14px;
   }
 }
 

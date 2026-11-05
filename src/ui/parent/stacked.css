@@ -33,7 +33,7 @@
 
 .stacked__figure {
   font-family: var(--p-display);
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 600;
   line-height: 1.1;
   letter-spacing: -0.03em;
@@ -41,7 +41,7 @@
 }
 
 .stacked__cell[data-lead] .stacked__figure {
-  font-size: 2.75rem;
+  font-size: var(--step-display);
 }
 
 .stacked__caption {
@@ -51,7 +51,7 @@
 .stacked__title {
   margin-bottom: 14px;
   font-family: var(--p-display);
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: 600;
   letter-spacing: -0.02em;
 }

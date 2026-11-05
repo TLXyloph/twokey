@@ -85,6 +85,8 @@
 /* ---- The judge band: the board's own look, a layer for judges above the club's page ---- */
 .parent__judge .judge-bar {
   padding-inline: var(--margin);
+  /* On the board a 1px rule parts the band from the stone ground; here the maroon below parts it. */
+  border-bottom: 0;
 }
 
 /* ---- Navigation: wordmark, the club, three links, one action ---- */
@@ -258,8 +260,9 @@
     padding-top: 40px;
   }
 
+  /* The chapters' display size, so the phone keeps the page's five steps. */
   .hero__title {
-    font-size: 12vw;
+    font-size: var(--step-display);
   }
 
   .hero__words {
@@ -371,8 +374,15 @@
   font-size: var(--step-small);
 }
 
+/* The Watchtower's line at the page's small size, not the board's 13px; its mark stays on line one. */
 .latest__foot .watch-status {
   margin: 0;
+  font-size: var(--step-small);
+  line-height: 1.45;
+}
+
+.latest__foot .watch-status .watch-mark {
+  margin-top: 8px;
 }
 
 @media (max-width: 699px) {
@@ -380,6 +390,16 @@
   .latest__row,
   .latest__foot {
     padding-inline: 16px;
+  }
+
+  /* The title keeps one line and the link its two words: the link steps under the title. */
+  .latest__head {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+
+  .latest__all {
+    white-space: nowrap;
   }
 
   .latest__row {

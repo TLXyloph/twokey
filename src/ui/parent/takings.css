@@ -80,10 +80,20 @@
   outline-offset: 2px;
 }
 
+/*
+ * Nine columns, so "$15 of $1,305 expected" reads as one line at 1100px and up. The figure and its
+ * unit are a wrapping row on one baseline: the unit never breaks inside itself, and when a long figure
+ * leaves it no room it drops whole beneath the figure, a small step down rather than a figure-sized
+ * line box.
+ */
 .takings__figure {
-  grid-column: 1 / span 8;
+  grid-column: 1 / span 9;
   grid-row: 4;
   align-self: end;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.1em 0.12em;
   font-family: var(--p-display);
   font-size: var(--step-figure);
   font-weight: 700;
@@ -92,18 +102,15 @@
   font-variant-numeric: tabular-nums;
 }
 
-.takings__received {
-  display: inline-block;
-}
-
 .takings__unit {
   font-size: 0.2em;
   font-weight: 600;
   letter-spacing: -0.02em;
+  white-space: nowrap;
 }
 
 .takings__working {
-  grid-column: 9 / span 4;
+  grid-column: 10 / span 3;
   grid-row: 4;
   align-self: end;
   max-width: 34ch;
@@ -152,21 +159,30 @@
   .picker,
   .takings__figure {
     grid-column: 1 / -1;
-    grid-row: auto;
+  }
+
+  .takings__title {
+    grid-row: 1;
   }
 
   .picker {
+    grid-row: 3;
     margin-top: 0;
   }
 
+  .takings__figure {
+    grid-row: 4;
+  }
+
+  /* The photograph and the working-out share a row, so neither half of it stands empty. */
   .takings__photo {
     grid-column: 1 / span 6;
-    grid-row: auto;
+    grid-row: 2;
   }
 
   .takings__working {
     grid-column: 7 / -1;
-    grid-row: auto;
+    grid-row: 2;
     align-self: end;
   }
 
@@ -176,19 +192,22 @@
 }
 
 @media (max-width: 699px) {
+  .takings__title,
   .takings__photo,
+  .picker,
+  .takings__figure,
   .takings__working {
     grid-column: 1 / -1;
+    grid-row: auto;
   }
 
   .takings__figure {
     font-size: 30vw;
   }
 
-  /* The unit drops under the figure on a phone. */
+  /* The unit always takes its own line under the figure on a phone. */
   .takings__unit {
-    display: block;
-    margin-top: 12px;
+    flex-basis: 100%;
     font-size: 1.25rem;
   }
 
