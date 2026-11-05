@@ -97,7 +97,9 @@ export function WatchAlertsView({ watch, replay = null, onDismissReplay = () => 
   const [explainedOpen, setExplainedOpen] = useState(initiallyOpen.explained ?? false);
   const listId = useId();
   const explainedId = useId();
-  const { statusAlert, open, explained } = watchAlerts(watch === "loading" ? null : watch, now);
+  const { statusAlert, open: allOpen, explained } = watchAlerts(watch === "loading" ? null : watch, now);
+  // While a replay shows, the real finding it replays isn't repeated beneath it.
+  const open = replay ? allOpen.filter((finding) => finding.transactionId !== replay.finding.transactionId) : allOpen;
   const [newest, ...rest] = open;
 
   const explainedToggle =

@@ -121,3 +121,15 @@ describe("the board header", () => {
     expect(html).toMatch(/board-header__scope[\s\S]*watch-status[\s\S]*board-header__title-row[\s\S]*watch-alerts/);
   });
 });
+
+describe("a replay never repeats the alert it replays", () => {
+  it("hides the open finding with the replay's transaction id while the replay shows", () => {
+    const replay = replayed();
+    const open = watchtowerView();
+    expect(open.findings.some((f) => f.transactionId === replay.finding.transactionId)).toBe(true);
+    const html = renderToStaticMarkup(<WatchAlertsView watch={open} replay={replay} now={NOW} />);
+    const mentions = text(html).split("Esther Huang").length - 1;
+    expect(mentions).toBe(1);
+    expect(text(html)).toContain(replay.label);
+  });
+});
