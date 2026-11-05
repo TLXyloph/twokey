@@ -1,14 +1,17 @@
 /*
- * The judge-mode band and the role switch (achromatic ledger: tokens from boardCssVars on .board).
- * The band is the one white strip on the stone ground, split from the board by a 1px rule, so it
- * reads as a layer for judges rather than part of the club's board. 13px, the board's meta size.
+ * The judge-mode band: the mode, the demo's screens, the role switch, the parent's page and the
+ * two judge actions (achromatic ledger: tokens from boardCssVars on the page root). The band is the
+ * one white strip on the stone ground, split from the screen by a 1px rule, so it reads as a layer
+ * for judges rather than part of the club's board. 13px, the board's meta size. One line at 1440
+ * (about 1400px of content); narrower, two designed lines (the mode, the screens and the parent's
+ * page; then the role and the actions); on a phone it stacks.
  */
 
 .judge-bar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px 16px;
+  gap: 8px 12px;
   padding: 8px 24px;
   border-bottom: 1px solid var(--border);
   background: var(--surface);
@@ -32,6 +35,7 @@
   text-decoration: underline;
   text-decoration-color: var(--control);
   text-underline-offset: 3px;
+  white-space: nowrap;
   transition: text-decoration-color 150ms ease;
 }
 
@@ -46,12 +50,52 @@
   outline-offset: 2px;
 }
 
-.judge-bar__note {
-  flex: 1 1 280px;
+/* --- The screens: plain links; the current one takes the grey pill ----------------------------- */
+
+.judge-nav {
+  flex: none;
+}
+
+.judge-nav__list {
+  display: flex;
+  gap: 2px;
   margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.judge-nav__link {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 7px;
+  border-radius: var(--radius-chip);
   color: var(--muted);
-  text-align: right;
-  text-wrap: pretty;
+  text-decoration: none;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  /* Pressed many times a session: colour only, no movement. */
+  transition-property: background-color, color;
+  transition-duration: 120ms;
+  transition-timing-function: ease;
+}
+
+.judge-nav__link[aria-current="page"] {
+  background: var(--active);
+  color: var(--text);
+  font-weight: 500;
+}
+
+@media (hover: hover) {
+  .judge-nav__link:not([aria-current="page"]):hover {
+    background: var(--raised);
+    color: var(--text);
+  }
+}
+
+.judge-nav__link:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 1px;
 }
 
 /* --- The role switch: a segmented track, as wide as its options ---------------------------------- */
@@ -64,6 +108,11 @@
   font-family: var(--font);
   font-size: 13px;
   line-height: 18px;
+}
+
+/* In the band, the role and everything after it sit at the right end. */
+.judge-bar > .judge-role {
+  margin-inline-start: auto;
 }
 
 .judge-role__label {
@@ -87,7 +136,7 @@
   place-items: center;
   min-width: 0;
   height: 28px;
-  padding: 0 12px;
+  padding: 0 8px;
   border: 1px solid transparent;
   border-radius: var(--radius-chip);
   color: var(--muted);
@@ -126,28 +175,136 @@
   outline-offset: 1px;
 }
 
-/* Narrower than the band's one line: the note takes its own line, left-aligned. */
-@media (max-width: 1279px) {
-  .judge-bar__note {
-    text-align: left;
+/* --- The judge actions: replay and start over, or the start-over confirm, in one cell ---------- */
+
+.judge-actions {
+  display: grid;
+  flex: none;
+  align-items: center;
+  justify-items: end;
+}
+
+.judge-actions__set {
+  display: flex;
+  grid-area: 1 / 1;
+  align-items: center;
+  gap: 8px;
+  transition: opacity 150ms ease-out;
+}
+
+/* The closed set keeps its width (so the band never moves) but can't be seen, read or reached. */
+.judge-actions__set:not([data-shown]) {
+  visibility: hidden;
+  opacity: 0;
+  transition:
+    opacity 150ms ease-out,
+    visibility 0s linear 150ms;
+}
+
+.judge-actions__question {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.judge-actions__error {
+  grid-area: 2 / 1;
+  max-width: 360px;
+  margin: 6px 0 0;
+  color: var(--data);
+  font-size: 12px;
+  line-height: 16px;
+  text-align: right;
+  text-wrap: pretty;
+}
+
+/* Outlined like the replay button beside it; the confirm is the near-black primary. */
+.judge-quiet-button,
+.judge-confirm-button {
+  flex: none;
+  height: 32px;
+  padding: 0 11px;
+  border: 1px solid var(--control);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition-property: background-color, scale;
+  transition-duration: 150ms;
+  transition-timing-function: ease-out;
+}
+
+.judge-confirm-button {
+  border-color: transparent;
+  background: var(--primary);
+  color: var(--surface);
+}
+
+.judge-quiet-button[aria-disabled="true"],
+.judge-confirm-button[aria-disabled="true"] {
+  cursor: progress;
+}
+
+@media (hover: hover) {
+  .judge-quiet-button:not([aria-disabled="true"]):hover {
+    background: var(--raised);
+  }
+
+  .judge-confirm-button:not([aria-disabled="true"]):hover {
+    background: color-mix(in oklab, var(--primary) 84%, var(--surface));
   }
 }
 
-/* Phone: the switch spans the width (four 44px targets), then the link, then the note. */
-@media (max-width: 639px) {
-  .judge-bar {
-    gap: 8px 16px;
-    padding: 10px 16px 12px;
+@media (prefers-reduced-motion: no-preference) {
+  .judge-quiet-button:not([aria-disabled="true"]):active,
+  .judge-confirm-button:not([aria-disabled="true"]):active {
+    scale: 0.96;
+  }
+}
+
+.judge-quiet-button:focus-visible,
+.judge-confirm-button:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
+/* --- Narrower than one line: two designed lines ------------------------------------------------
+   Line 1: the mode, the screens, then the parent's page at the right end. Line 2: the role, then
+   the actions at the right end. A zero-height break item (the band's ::after, ordered between them)
+   forces the second line; its negative margin takes back the extra row gap. */
+
+@media (max-width: 1419px) {
+  .judge-bar::after {
+    content: "";
+    flex-basis: 100%;
+    order: 1;
+    height: 0;
+    margin-top: -8px;
   }
 
-  .judge-role {
-    flex: 1 1 100%;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 6px;
+  .judge-bar > .judge-role {
+    order: 2;
+    margin-inline-start: 0;
   }
 
-  /* Under "Judge mode", the four roles explain themselves; the label still names the group. */
+  .judge-bar__link {
+    margin-inline-start: auto;
+  }
+
+  .judge-actions {
+    order: 2;
+    margin-inline-start: auto;
+  }
+}
+
+/* Tablet: the five roles explain themselves, so the role and the actions share the second line;
+   the label still names the group for screen readers. */
+@media (max-width: 899px) {
   .judge-bar .judge-role__label {
     position: absolute;
     width: 1px;
@@ -155,6 +312,41 @@
     overflow: hidden;
     clip-path: inset(50%);
     white-space: nowrap;
+  }
+}
+
+/* Phone: the mode and the parent's page, then the screens (scrolling sideways in their row if they
+   must), the roles across the width (five 40px targets), then the actions. */
+@media (max-width: 639px) {
+  .judge-bar {
+    gap: 10px 12px;
+    padding: 10px 16px 12px;
+  }
+
+  .judge-bar::after {
+    display: none;
+  }
+
+  .judge-nav {
+    flex: 1 1 100%;
+    order: 1;
+    min-width: 0;
+    margin: 0 -16px;
+    padding: 0 16px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .judge-nav__link {
+    height: 36px;
+  }
+
+  .judge-role {
+    flex: 1 1 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
   }
 
   .judge-role__track {
@@ -166,18 +358,18 @@
     padding: 0 4px;
   }
 
-  .judge-bar__title {
-    order: -2;
+  .judge-actions {
+    flex: 1 1 100%;
+    order: 3;
+    margin-inline-start: 0;
+    justify-items: start;
   }
 
-  .judge-bar__link {
-    order: -1;
-    margin-left: auto;
+  .judge-actions__set {
+    flex-wrap: wrap;
   }
 
-  .judge-bar__note {
-    flex-basis: 100%;
-    font-size: 12px;
-    line-height: 16px;
+  .judge-actions__error {
+    text-align: left;
   }
 }

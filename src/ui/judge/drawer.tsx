@@ -168,6 +168,7 @@ export function PayoutDrawer() {
               {limitsLine(view.limits)} · up to {formatCents(view.limits.payoutCapCents)} each
             </p>
           )}
+          <p className="judge-drawer__limits">Signatures use the server&apos;s demo keys. A real club would use passkeys.</p>
         </header>
 
         <div ref={bodyRef} className="judge-drawer__body">
@@ -187,7 +188,13 @@ export function PayoutDrawer() {
               <span className="judge-loading__card" />
             </div>
           )}
-          {view && !officer && <p className="judge-readonly">You&apos;re viewing as a parent: you can see every payout, but only officers request and sign them.</p>}
+          {view && !officer && (
+            <p className="judge-readonly">
+              {role === "reviewer"
+                ? "You're viewing as the Reviewer: you can see every payout. The Reviewer signs the monthly close, never a payout."
+                : "You're viewing as a parent: you can see every payout, but only officers request and sign them."}
+            </p>
+          )}
           {showForm && view && officer && (
             <RequestForm
               role={role}
