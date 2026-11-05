@@ -4,6 +4,8 @@ import { describe, expect, it } from "vitest";
 import { RiskBlock } from "@/ui/judge/drawer-risk";
 import { RequestCard } from "@/ui/judge/drawer-request";
 import { JudgePanel, PARENT_PAGE_HREF } from "@/ui/judge/judge-panel";
+import { currentPage, SiteNav } from "@/ui/judge/site-nav";
+import { StartOverView } from "@/ui/judge/start-over";
 import { ReviewButton } from "@/ui/studio/review-button";
 import { glovesRequest, paintRequest, riskCard, sentRequest } from "../../fixtures/board-view";
 
@@ -29,12 +31,61 @@ describe("the judge panel", () => {
     expect(html).toContain('role="radiogroup"');
   });
 
-  it("links to the parent's ticket page in judge mode, and says what the keys are", () => {
+  it("links to the parent's ticket page in judge mode", () => {
     expect(PARENT_PAGE_HREF).toBe("/demo/pay/banquet?judge=1");
     expect(html).toContain('href="/demo/pay/banquet?judge=1"');
-    expect(text(html)).toContain("Buy banquet tickets (parent page)");
-    expect(text(html)).toContain("the server's demo keys");
-    expect(text(html)).toContain("passkeys");
+    expect(text(html)).toContain("Buy tickets (parent page)");
+  });
+
+  it("names the four demo screens, in order, before the role switch", () => {
+    expect(html).toContain('aria-label="Demo screens"');
+    const hrefs = [...html.matchAll(/class="judge-nav__link"[^>]*href="([^"]+)"|href="([^"]+)"[^>]*class="judge-nav__link"/g)].map((m) => m[1] ?? m[2]);
+    expect(hrefs).toEqual(["/demo", "/demo/ledger", "/demo/close", "/demo/keys"]);
+    expect(text(html)).toContain("Board Parent ledger Monthly close Key setup");
+    expect(html.indexOf("Key setup")).toBeLessThan(html.indexOf("Acting as"));
+  });
+
+  it("holds the two judge actions, with the start-over confirm closed and out of reach", () => {
+    expect(text(html)).toContain("Replay an outside send Start over");
+    expect(html).toMatch(/<div class="judge-actions__set"[^>]*inert=""[^>]*role="group" aria-label="Start over"/);
+    expect(html).not.toContain("confirm(");
+  });
+});
+
+describe("the site nav", () => {
+  it("marks the current screen, and none on a page that isn't one of the four", () => {
+    const current = (pathname: string | null) => (renderToStaticMarkup(<SiteNav pathname={pathname} />).match(/aria-current="page"[^>]*>([^<]+)</) ?? [])[1] ?? null;
+    expect(current("/demo")).toBe("Board");
+    expect(current("/demo/keys")).toBe("Key setup");
+    expect(current("/demo/ledger/")).toBe("Parent ledger");
+    expect(current("/demo/close")).toBe("Monthly close");
+    expect(current("/demo/pay/banquet")).toBeNull();
+    expect(current(null)).toBeNull();
+    expect(currentPage("/demo/keys/anything")?.label).toBe("Key setup");
+  });
+});
+
+describe("the start-over control", () => {
+  const view = (phase: "idle" | "confirming" | "running" | "failed", error: string | null = null) =>
+    renderToStaticMarkup(
+      <StartOverView snapshot={{ phase, error }} onAsk={() => {}} onCancel={() => {}} onConfirm={() => {}}>
+        <span>replay</span>
+      </StartOverView>,
+    );
+
+  it("asks inline, in the same cell, with Cancel where the first button was", () => {
+    const html = view("confirming");
+    expect(text(html)).toContain("Start from the seed? Start over Cancel");
+    expect(html).toMatch(/<div class="judge-actions__set" inert="">\s*<span>replay<\/span>/);
+    expect(html).toMatch(/data-shown=""[^>]*role="group"/);
+  });
+
+  it("says it's working, then shows the server's sentence if it was refused", () => {
+    expect(text(view("running"))).toContain("Starting over…");
+    expect(view("running")).toContain('aria-busy="true"');
+    const failed = view("failed", "This network has started the most new demo sessions allowed in an hour.");
+    expect(failed).toContain('role="status"');
+    expect(text(failed)).toContain("most new demo sessions allowed in an hour");
   });
 });
 
@@ -150,7 +201,7 @@ describe("the risk block", () => {
 
 describe("the judge UI stays model-agnostic", () => {
   it("never names a specific AI model or vendor", () => {
-    const dirs = ["src/ui/judge", "src/ui/judge/dev"];
+    const dirs = ["src/ui/judge", "src/ui/judge/dev", "src/ui/keys", "src/judge"];
     const source = dirs
       .flatMap((dir) => readdirSync(dir).filter((f) => /\.(ts|tsx|css)$/.test(f)).map((f) => readFileSync(`${dir}/${f}`, "utf8")))
       .join("\n");

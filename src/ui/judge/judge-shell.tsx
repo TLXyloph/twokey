@@ -4,8 +4,8 @@
  * Judge mode around the board: the judge panel above it, the payout drawer beside it, and the
  * wiring between the live board view and everything that reads it.
  *
- * - Starts the board-view client (the first read) and tells it when the drawer opens or closes, when
- *   the window gains focus and when the page is hidden or shown, which is all its polling needs.
+ * - Starts the board-view client (./use-live-board.ts: the first read, focus and visibility) and
+ *   tells it when the drawer opens or closes, which is all its polling needs.
  * - Hands each new board data object to Studio (./../studio/studio-handle.ts holds it until Studio's
  *   data engine is ready), so the strip, the chart and the waiting queue follow the session.
  *
@@ -17,8 +17,10 @@ import { boardViewClient, wantsDrawerOpen } from "./board-view-source";
 import { PayoutDrawer } from "./drawer";
 import { drawerStore } from "./drawer-store";
 import { JudgePanel } from "./judge-panel";
+import { useLiveBoardView } from "./use-live-board";
 
 export function JudgeShell({ children }: { children: ReactNode }) {
+  useLiveBoardView();
   useEffect(() => {
     const client = boardViewClient();
     if (!client) return;
@@ -28,16 +30,11 @@ export function JudgeShell({ children }: { children: ReactNode }) {
       if (data) pushBoardData(data);
     };
     const syncDrawer = () => client.setDrawerOpen(drawerStore.isOpen());
-    const onFocus = () => client.windowFocused();
-    const onVisibility = () => client.setPageVisible(document.visibilityState !== "hidden");
 
     const unsubscribeView = client.subscribe(pushData);
     const unsubscribeDrawer = drawerStore.subscribe(syncDrawer);
-    window.addEventListener("focus", onFocus);
-    document.addEventListener("visibilitychange", onVisibility);
     pushData();
     syncDrawer();
-    void client.refresh();
 
     if (process.env.NODE_ENV !== "production") {
       if (wantsDrawerOpen(window.location.search)) drawerStore.open();
@@ -46,8 +43,6 @@ export function JudgeShell({ children }: { children: ReactNode }) {
     return () => {
       unsubscribeView();
       unsubscribeDrawer();
-      window.removeEventListener("focus", onFocus);
-      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, []);
 

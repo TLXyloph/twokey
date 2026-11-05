@@ -1,0 +1,318 @@
+/*
+ * "Who holds the keys" (src/ui/keys/who-holds-the-keys.tsx): the people table, the facts under it
+ * and the swap that marks what a step changed. Tokens from boardCssVars; --keys-ease and
+ * --keys-flash come from .keys-page (./keys.css). The table keeps its semantics on a phone through
+ * explicit ARIA roles, while its rows stack.
+ */
+
+.keys-panel {
+  scroll-margin-top: 16px;
+}
+
+.keys-stage {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: var(--radius-chip);
+  background: var(--active);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.keys-stage[data-stage="before"] {
+  background: var(--short-tint);
+  color: var(--data);
+}
+
+.keys-stage[data-stage="after"] {
+  background: #e4efe6;
+  color: #1f5130;
+}
+
+.keys-panel__lead {
+  margin: 10px 0 18px;
+}
+
+.keys-panel__headline {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.keys-panel__subline {
+  max-width: 72ch;
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 20px;
+  text-wrap: pretty;
+}
+
+.keys-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.keys-table thead th {
+  padding: 0 16px 8px 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.keys-table thead th:nth-child(1) {
+  width: 24%;
+}
+
+.keys-table thead th:nth-child(2) {
+  width: 31%;
+}
+
+.keys-table thead th:nth-child(3) {
+  width: 21%;
+}
+
+.keys-table tbody th,
+.keys-table tbody td {
+  padding: 12px 16px 12px 0;
+  border-bottom: 1px solid var(--rule);
+  font-weight: 400;
+  text-align: left;
+  vertical-align: top;
+}
+
+.keys-table th:last-child,
+.keys-table td:last-child {
+  padding-right: 0;
+}
+
+.keys-cell,
+.keys-row__person,
+.keys-row__role,
+.keys-key,
+.keys-key__note,
+.keys-signed__time,
+.keys-signed__detail {
+  display: block;
+}
+
+.keys-row__person {
+  font-weight: 500;
+}
+
+.keys-row__role,
+.keys-key__note,
+.keys-signed__detail {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.keys-signed__detail {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.keys-key,
+.keys-signed__time {
+  font-variant-numeric: tabular-nums;
+}
+
+.keys-dash {
+  color: var(--muted);
+}
+
+/* Loading: the value's own size in a flat bar, no shimmer. */
+.keys-loading {
+  display: inline-block;
+  width: 128px;
+  height: 14px;
+  margin-top: 3px;
+  border-radius: var(--radius-chip);
+  background: var(--active);
+}
+
+.keys-row__lines {
+  display: grid;
+  gap: 4px;
+}
+
+.keys-access {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.keys-access__mark {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid var(--comparison);
+  border-radius: 50%;
+  translate: 0 -1px;
+}
+
+.keys-access[data-tone="risk"] .keys-access__mark {
+  border-color: var(--data);
+  background: var(--data);
+}
+
+.keys-access[data-tone="held"] .keys-access__mark {
+  border-color: var(--text);
+  background: var(--text);
+}
+
+.keys-access[data-tone="none"] {
+  color: var(--muted);
+}
+
+.keys-facts {
+  margin: 16px 0 0;
+}
+
+.keys-facts__row {
+  display: grid;
+  grid-template-columns: 24% minmax(0, 1fr);
+  padding: 10px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+/* Its right padding is the table's cell padding, so the values start on the access column's edge. */
+.keys-facts dt {
+  padding-right: 16px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.keys-facts dd {
+  min-width: 0;
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.keys-facts .watch-status {
+  margin: 0;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.keys-facts .watch-mark {
+  margin-top: 7px;
+}
+
+.keys-facts__more {
+  margin: 2px 0 0 14px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+/* --- What changed: the new words rise in over a tint that fades (after the page has settled) ---- */
+
+.keys-swap[data-flash] {
+  margin: 0 -4px;
+  padding: 0 4px;
+  border-radius: var(--radius-chip);
+}
+
+[data-settled] .keys-swap {
+  display: inline-block;
+  max-width: 100%;
+  transition:
+    opacity 240ms var(--keys-ease),
+    translate 240ms var(--keys-ease),
+    background-color 1400ms ease-out;
+}
+
+@starting-style {
+  [data-settled] .keys-swap {
+    opacity: 0;
+  }
+
+  [data-settled] .keys-swap[data-flash] {
+    background-color: var(--keys-flash);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @starting-style {
+    [data-settled] .keys-swap {
+      translate: 0 6px;
+    }
+  }
+}
+
+/* Phone: the table becomes a list of people, each field on its own labelled line. */
+@media (max-width: 760px) {
+  .keys-table,
+  .keys-table tbody,
+  .keys-table tr,
+  .keys-table tbody th,
+  .keys-table td {
+    display: block;
+  }
+
+  .keys-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .keys-table tr {
+    display: grid;
+    gap: 6px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .keys-table tbody th,
+  .keys-table tbody td {
+    padding: 0;
+    border: 0;
+  }
+
+  .keys-table td {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .keys-table td::before {
+    content: attr(data-label);
+    content: attr(data-label) / "";
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 20px;
+  }
+
+  .keys-facts__row {
+    grid-template-columns: 96px minmax(0, 1fr);
+  }
+
+  .keys-facts dt {
+    padding-right: 8px;
+  }
+}
