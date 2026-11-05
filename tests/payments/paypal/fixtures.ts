@@ -120,6 +120,8 @@ export interface FakePaypalOptions {
   token?: string;
   verifyBody?: unknown;
   networkError?: boolean;
+  /** Answers any other call (payouts, balances); undefined falls through to 404. */
+  handle?: (call: FakeCall) => Response | undefined;
 }
 
 /** A fake PayPal sandbox behind a `fetch`: token and verify endpoints only. No network. */
@@ -147,7 +149,7 @@ export function fakePaypal(options: FakePaypalOptions = {}): FakePaypal {
       const body = options.verifyBody ?? (status === 200 ? { verification_status: options.verification ?? "SUCCESS" } : { name: "VALIDATION_ERROR" });
       return Response.json(body, { status });
     }
-    return Response.json({ name: "NOT_FOUND" }, { status: 404 });
+    return options.handle?.(call) ?? Response.json({ name: "NOT_FOUND" }, { status: 404 });
   };
   const byPath = (path: string) => () => calls.filter((call) => call.url === `${SANDBOX}${path}`);
   return { fetch, calls, tokenCalls: byPath("/v1/oauth2/token"), verifyCalls: byPath("/v1/notifications/verify-webhook-signature") };
