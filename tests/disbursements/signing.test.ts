@@ -56,10 +56,21 @@ describe("demo keys", () => {
     expect(await verifier.verify("president", signed, "not-a-signature", keyId)).toBe(false);
   });
 
-  it("verifies nothing against the committed placeholders", async () => {
+  it("never verifies a throwaway key against the committed public keys", async () => {
     const { keyId, signature } = await (await signer()).sign("president", signed);
-    expect(COMMITTED_PUBLIC_KEYS.president.publicKey).toBe("unset");
     expect(await createSignatureVerifier().verify("president", signed, signature, keyId)).toBe(false);
+  });
+
+  it("commits one well-formed public key per officer, each with its own key id", async () => {
+    const ids = new Set<string>();
+    for (const role of ["president", "treasurer", "secretary"] as const) {
+      const { keyId, publicKey } = COMMITTED_PUBLIC_KEYS[role];
+      const raw = Uint8Array.from(atob(publicKey), (c) => c.charCodeAt(0));
+      expect(raw.length).toBe(32);
+      expect(await keyIdOf(raw)).toBe(keyId);
+      ids.add(keyId);
+    }
+    expect(ids.size).toBe(3);
   });
 });
 

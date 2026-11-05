@@ -6,7 +6,7 @@
  * while the credentials are the same.
  */
 import { createD1LedgerTable } from "@/ledger/d1-ledger-table";
-import { createInMemoryLedgerTable, type InMemoryLedgerTable } from "@/ledger/ledger-table";
+import { createInMemoryLedgerTable, type InMemoryLedgerTable, type LedgerTable } from "@/ledger/ledger-table";
 import { createSharedBalanceReader, type SharedBalance } from "@/payments/paypal/balances";
 import { createPaypalClient, resolveSandboxApiBase, type PaypalClient } from "@/payments/paypal/client";
 import { workerContext } from "@/platform/worker-context";
@@ -37,11 +37,17 @@ function paypalFor(clientId: string | undefined, clientSecret: string | undefine
   return paypalCache;
 }
 
+/** The ledger table: D1 on the Worker; under plain `next dev` (no D1), one in-memory table per process. */
+export function ledgerTableFor(env: CloudflareEnv): LedgerTable | undefined {
+  if (env.DB) return createD1LedgerTable(env.DB);
+  return process.env.NODE_ENV === "development" ? (devTable ??= createInMemoryLedgerTable()) : undefined;
+}
+
 export function judgeDepsFromWorker(): JudgeApiDeps {
   const { env } = workerContext();
   const read = (name: StringEnvName): string | undefined => env[name] ?? process.env[name];
   const development = process.env.NODE_ENV === "development";
-  const table = env.DB ? createD1LedgerTable(env.DB) : development ? (devTable ??= createInMemoryLedgerTable()) : undefined;
+  const table = ledgerTableFor(env);
   const paypal = paypalFor(read("PAYPAL_CLIENT_ID"), read("PAYPAL_CLIENT_SECRET"), read("PAYPAL_API_BASE"));
   return {
     env: {

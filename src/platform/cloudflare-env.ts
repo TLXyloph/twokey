@@ -63,5 +63,8 @@ declare global {
     TWOKEY_DEMO_KEY_PRESIDENT?: string;
     TWOKEY_DEMO_KEY_TREASURER?: string;
     TWOKEY_DEMO_KEY_SECRETARY?: string;
+    /** Worker vars: the PayPal sandbox test-buyer login shown on the parent pay page (never committed). */
+    TWOKEY_TEST_BUYER_EMAIL?: string;
+    TWOKEY_TEST_BUYER_PASSWORD?: string;
   }
 }
