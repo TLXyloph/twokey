@@ -135,3 +135,18 @@ describe("toStripFigures", () => {
     expect(toStripFigures({ value: 1, asOf }, mapped)).toMatchObject({ waiting: { count: null, total: null }, moneyIn: null });
   });
 });
+
+describe("the shared sandbox balance under the available balance", () => {
+  const shared = { availableCents: 499_750, currency: "USD" as const, asOf: "2026-11-05T14:30:00Z" };
+
+  it("adds PayPal's real balance for the shared account, with its own time", () => {
+    const [balance, waiting] = balancesStripCells({ ...demo, shared });
+    expect(balance!.note).toBe("Shared sandbox balance $4,997.50 · as of Nov 5, 8:30 AM CST");
+    expect(waiting!.note).toBeUndefined();
+  });
+
+  it("says nothing when PayPal's balance can't be read", () => {
+    expect(balancesStripCells({ ...demo, shared: null })[0]).not.toHaveProperty("note");
+    expect(balancesStripCells(demo)[0]).not.toHaveProperty("note");
+  });
+});

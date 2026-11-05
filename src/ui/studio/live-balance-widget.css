@@ -54,6 +54,12 @@
   line-clamp: 2;
 }
 
+/* The shared sandbox balance under the available balance: one line, never two. */
+.tk-strip__note {
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+}
+
 .tk-strip__label {
   font-size: 14px;
   line-height: 20px;

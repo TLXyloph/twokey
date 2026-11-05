@@ -20,6 +20,11 @@ export interface StripFigures {
   waiting?: { total: number | null; count?: number | null };
   /** Absent when `moneyIn` is unmapped. */
   moneyIn?: number | null;
+  /**
+   * PayPal's real balance for the shared sandbox account (from the live board view, not from
+   * Studio): every judge session draws on one account, so it differs from this session's ledger.
+   */
+  shared?: { availableCents: number; asOf: AsOf } | null;
 }
 
 export interface StripCell {
@@ -27,6 +32,8 @@ export interface StripCell {
   label: string;
   value: string;
   caption: string;
+  /** A second caption line: the shared sandbox balance, under the available balance only. */
+  note?: string;
   /** A zero figure: drawn in grey, with a caption that says so. */
   zero: boolean;
 }
@@ -38,12 +45,14 @@ const plural = (count: number, word: string) => `${count} ${word}${count === 1 ?
 export function balancesStripCells(figures: StripFigures, formatMoney: FormatMoney = formatUsd): StripCell[] {
   const asOf = figures.asOf == null ? "" : formatAsOf(figures.asOf);
   const month = figures.asOf == null ? "" : monthNameOf(figures.asOf);
+  const shared = figures.shared;
   const cells: StripCell[] = [
     {
       id: "balance",
       label: "Available balance",
       value: formatMoney(figures.balance, "value"),
       caption: asOf ? `PayPal sandbox · as of ${asOf}` : "PayPal sandbox",
+      ...(shared && { note: `Shared sandbox balance ${formatUsd(shared.availableCents / 100)} · as of ${formatAsOf(shared.asOf)}` }),
       zero: figures.balance === 0,
     },
   ];
