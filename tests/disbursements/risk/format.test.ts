@@ -22,8 +22,8 @@ describe("clubDate", () => {
   });
 
   it("handles daylight saving time (CDT, UTC-5) in October", () => {
-    expect(clubDate("2026-10-01T04:59:00Z").iso).toBe("2026-09-30");
-    expect(clubDate("2026-10-01T05:00:00Z").iso).toBe("2026-10-01");
+    expect(clubDate("2026-10-01T04:59:00Z")?.iso).toBe("2026-09-30");
+    expect(clubDate("2026-10-01T05:00:00Z")?.iso).toBe("2026-10-01");
   });
 
   it("returns null for a timestamp it can't read", () => {
