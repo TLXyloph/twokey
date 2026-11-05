@@ -1,8 +1,12 @@
 /**
- * The board's header, above AG Studio: the product and the club it is scoped to, the screen's name,
- * the auditor's finding and the one primary action. A server component; only the button is client.
+ * The board's header, above AG Studio: the product and the club it is scoped to, the Watchtower's
+ * status line at the scope row's end, the screen's name, the auditor's finding, the one primary
+ * action, and the Watchtower's alerts across the full width under the finding (every role sees
+ * them). A server component; the button and the Watchtower parts are client components.
  */
 import Link from "next/link";
+import { WatchtowerAlerts } from "@/ui/watchtower/watch-alerts";
+import { WatchtowerStatus } from "@/ui/watchtower/watch-status";
 import { boardHeaderModel, type BoardHeaderModel } from "./board-header-model";
 import { ReviewButton } from "./review-button";
 import "./board.css";
@@ -36,6 +40,7 @@ export function BoardHeader({ model = boardHeaderModel() }: { model?: BoardHeade
           {model.club}
           <span className="board-chip">Demo data</span>
         </span>
+        <WatchtowerStatus />
       </div>
       <div className="board-header__title-row">
         <div className="board-header__titles">
@@ -44,6 +49,7 @@ export function BoardHeader({ model = boardHeaderModel() }: { model?: BoardHeade
         </div>
         <ReviewButton seedCount={model.review?.count ?? 0} />
       </div>
+      <WatchtowerAlerts />
     </header>
   );
 }

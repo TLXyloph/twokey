@@ -1,0 +1,511 @@
+/*
+ * The Watchtower on the board (achromatic ledger; tokens from boardCssVars on .board). Colour stays
+ * on meaning: the club maroon marks what left the account outside TwoKey (the mark, the amount, the
+ * pale maroon band the board already uses under "Stop" and "Refused"); amber marks late reports, as
+ * on a "Check this" card; grey marks what is fine or explained. Flat: 1px edges, radii 6/4, no shadow.
+ *
+ * Motion (animate): only what the judge causes moves. A replayed alert arrives (opacity and 8px of
+ * travel, 280ms, strong ease-out, its tint settling over 900ms); rows that a disclosure opens fade up
+ * 4px in 200ms; a chevron turns in 150ms. All transitions, so a quick second click retargets. The
+ * real alerts appear without an entrance. Under reduced motion the travel and the turn go; the fades
+ * stay.
+ */
+
+.watch-alerts,
+.watch-status,
+.watch-replay {
+  --watch-ease: cubic-bezier(0.23, 1, 0.32, 1);
+  --watch-notice: #b45309;
+  --watch-edge: color-mix(in oklab, var(--data) 18%, var(--short-tint));
+  --watch-rule: color-mix(in oklab, var(--data) 12%, var(--short-tint));
+}
+
+/* --- The status line (the scope row's right end) ----------------------------------------------- */
+
+.watch-mark {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: var(--comparison);
+}
+
+.watch-status {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  margin: 0 0 0 auto;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 18px;
+  font-variant-numeric: tabular-nums;
+  text-wrap: pretty;
+}
+
+/* The times stay quiet; what a late or lost status means is in ink. */
+.watch-status[data-tone="notice"] .watch-status__sentence,
+.watch-status[data-tone="alert"] .watch-status__sentence {
+  color: var(--text);
+}
+
+.watch-status[data-tone="notice"] .watch-mark {
+  background: var(--watch-notice);
+}
+
+.watch-status[data-tone="alert"] .watch-mark {
+  background: var(--data);
+}
+
+/* Loading: the line's place, held by a flat bar at its height (no shimmer). */
+.watch-status__bar {
+  display: block;
+  width: 320px;
+  max-width: 60vw;
+  height: 12px;
+  margin-top: 3px;
+  border-radius: var(--radius-chip);
+  background: var(--active);
+}
+
+/* --- The alerts (under the finding line) ------------------------------------------------------- */
+
+.watch-alerts {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.watch-alerts[data-empty] {
+  margin-top: 0;
+}
+
+/*
+ * In the board header (a grid with a 14px gap, 20px of padding under it): 10px under the title row,
+ * and 14px under the alerts, so the header grows by the band and little else and Studio keeps its
+ * height at 1440x900. Nothing at all when there is nothing to say.
+ */
+.board-header > .watch-alerts {
+  margin-top: -4px;
+}
+
+.board-header > .watch-alerts[data-empty] {
+  margin-top: -14px;
+}
+
+.board-header:has(> .watch-alerts:not([data-empty])) {
+  padding-bottom: 14px;
+}
+
+/* The live region stays in the accessibility tree while empty, so a replay is announced. */
+.watch-alerts__live:empty {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.watch-alert {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 6px 24px;
+  padding: 7px 14px 8px;
+  border: 1px solid var(--watch-edge);
+  border-radius: var(--radius-control);
+  background: var(--short-tint);
+  color: var(--text);
+}
+
+.watch-alert .watch-mark {
+  margin-top: 7px;
+  background: var(--data);
+}
+
+.watch-alert__list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.watch-alert__row {
+  display: grid;
+  grid-template-columns: 6px minmax(0, 1fr);
+  gap: 10px;
+  min-width: 0;
+}
+
+.watch-alert__list > li + li {
+  padding-top: 8px;
+  border-top: 1px solid var(--watch-rule);
+}
+
+.watch-finding {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.watch-sentence {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+.watch-facts {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+  text-wrap: pretty;
+}
+
+.watch-sentence__amount {
+  color: var(--data);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.watch-sentence__verb {
+  font-weight: 500;
+}
+
+.watch-alert__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px 16px;
+  min-height: 20px;
+}
+
+/* A replay: its label row across the band, the dismiss at its end. */
+.watch-alert[data-replay] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.watch-alert__label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: -3px -6px 0 0;
+}
+
+.watch-alert__label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+}
+
+/* The label is read before the alert, so nobody takes the replay for a new event. */
+.watch-alert__label svg {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  color: var(--muted);
+}
+
+/* --- Explained findings ------------------------------------------------------------------------- */
+
+.watch-explained {
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+}
+
+.watch-explained__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.watch-explained__item {
+  display: grid;
+  grid-template-columns: 6px minmax(0, 1fr);
+  gap: 10px;
+  padding: 10px 0;
+}
+
+.watch-explained__item + .watch-explained__item {
+  border-top: 1px solid var(--rule);
+}
+
+.watch-explained .watch-mark {
+  margin-top: 7px;
+}
+
+/* Explained money is still money that left: in ink, not in the alert's maroon. */
+.watch-explained .watch-sentence__amount {
+  color: var(--text);
+}
+
+.watch-explained__note {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+  text-wrap: pretty;
+}
+
+.watch-explained__tag {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.watch-quiet {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 16px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.watch-quiet__text {
+  margin: 0;
+}
+
+/* --- Controls ----------------------------------------------------------------------------------- */
+
+/* "1 more", "Explained (3)": text buttons with a chevron; a 32px hit area around a 20px line. */
+.watch-toggle {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 3px;
+  margin: -6px 0;
+  padding: 6px 0;
+  border: 0;
+  border-radius: var(--radius-chip);
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 20px;
+  text-decoration: underline;
+  text-decoration-color: var(--control);
+  text-underline-offset: 3px;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: text-decoration-color 150ms ease;
+}
+
+.watch-toggle svg {
+  flex: none;
+}
+
+.watch-toggle[aria-expanded="true"] svg {
+  rotate: 180deg;
+}
+
+.watch-dismiss {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-chip);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition-property: background-color, color, scale;
+  transition-duration: 150ms;
+  transition-timing-function: ease-out;
+}
+
+/* The judge band's button: the board's secondary control (white, 1px control edge, 32px). */
+.watch-replay {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+}
+
+.watch-replay__button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px 0 10px;
+  border: 1px solid var(--control);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition-property: background-color, scale;
+  transition-duration: 150ms;
+  transition-timing-function: ease-out;
+}
+
+.watch-replay__button[aria-disabled="true"] {
+  cursor: progress;
+}
+
+.watch-replay__error {
+  margin: 0;
+  color: var(--data);
+  font-size: 12px;
+  line-height: 16px;
+  text-wrap: pretty;
+}
+
+@media (hover: hover) {
+  .watch-toggle:hover {
+    text-decoration-color: currentColor;
+  }
+
+  .watch-dismiss:hover {
+    background: color-mix(in oklab, var(--data) 8%, var(--short-tint));
+    color: var(--text);
+  }
+
+  .watch-replay__button:not([aria-disabled="true"]):hover {
+    background: var(--raised);
+  }
+}
+
+.watch-toggle:focus-visible,
+.watch-dismiss:focus-visible,
+.watch-replay__button:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
+/* --- Motion ------------------------------------------------------------------------------------- */
+
+/* A replay arrives: it fades in and its tint settles from a shade deeper. */
+.watch-alert[data-replay] {
+  transition:
+    opacity 280ms var(--watch-ease),
+    translate 280ms var(--watch-ease),
+    background-color 900ms var(--watch-ease);
+}
+
+@starting-style {
+  .watch-alert[data-replay] {
+    opacity: 0;
+    background-color: color-mix(in oklab, var(--data) 14%, var(--short-tint));
+  }
+}
+
+/* Rows a disclosure opens: the second and later findings, and the explained list. */
+.watch-alert__list > li + li,
+.watch-explained {
+  transition:
+    opacity 200ms var(--watch-ease),
+    translate 200ms var(--watch-ease);
+}
+
+@starting-style {
+  .watch-alert__list > li + li,
+  .watch-explained {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @starting-style {
+    .watch-alert[data-replay] {
+      translate: 0 -8px;
+    }
+
+    .watch-alert__list > li + li,
+    .watch-explained {
+      translate: 0 -4px;
+    }
+  }
+
+  .watch-toggle svg {
+    transition: rotate 150ms var(--watch-ease);
+  }
+
+  .watch-dismiss:active,
+  .watch-replay__button:not([aria-disabled="true"]):active {
+    scale: 0.96;
+  }
+
+  .watch-replay__button[aria-busy="true"] svg {
+    animation: watch-turn 900ms linear infinite;
+  }
+}
+
+@keyframes watch-turn {
+  to {
+    rotate: -360deg;
+  }
+}
+
+/* --- Widths ------------------------------------------------------------------------------------- */
+
+/*
+ * Below 1400px the status takes its own line under the scope, left-aligned (at 1440 it fits beside
+ * the scope; a longer one wraps to its own line there, still at the right).
+ */
+@media (max-width: 1399px) {
+  .watch-status {
+    flex-basis: 100%;
+    margin-left: 0;
+  }
+}
+
+/* Phone: the band's toggles go under the sentence; targets grow to 44px. */
+@media (max-width: 639px) {
+  /* The scope row is a column here: the status is one more line in it, as wide as the page. */
+  .watch-status {
+    flex-basis: auto;
+    align-self: stretch;
+  }
+
+  .watch-alert {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 10px 12px;
+  }
+
+  .watch-alert__actions {
+    justify-content: flex-start;
+    padding-left: 16px;
+  }
+
+  .watch-toggle {
+    margin: -12px 0;
+    padding: 12px 0;
+  }
+
+  .watch-dismiss {
+    width: 44px;
+    height: 44px;
+    margin: -8px -8px -8px 0;
+  }
+
+  .watch-replay__button {
+    height: 40px;
+  }
+}
