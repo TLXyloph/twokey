@@ -46,7 +46,7 @@ const sign = (deps: CloseApiDeps, cookie: string, actingAs = "reviewer", month =
 
 describe("GET /api/close", () => {
   it("answers the October figures, their hash, the draft's state and no sign-off yet, never cached", async () => {
-    const { deps, cookie, lines, reviewer } = await setup();
+    const { deps, cookie, lines, reviewer } = await setup({ recordedDraft: {} });
     const response = await handleCloseView(get(cookie), deps);
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toBe("no-store");

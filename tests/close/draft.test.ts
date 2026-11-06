@@ -37,9 +37,14 @@ describe("the draft's shape", () => {
 });
 
 describe("the recorded draft", () => {
-  it("is committed as 'not recorded yet'", async () => {
-    expect(committed).toEqual({});
-    expect(recordedDraftFor(committed, await closeHash(octoberClose()))).toEqual({ state: "not_recorded" });
+  it("is recorded for this close's hash (Nov 6), and is 'not recorded' for any other hash", async () => {
+    const hash = await closeHash(octoberClose());
+    expect(Object.keys(committed)).toEqual([hash]);
+    const view = recordedDraftFor(committed, hash);
+    expect(view.state).toBe("recorded");
+    expect(JSON.stringify(view)).toContain("$4,368.75");
+    expect(JSON.stringify(view)).not.toMatch(/claude|anthropic|opus/i);
+    expect(recordedDraftFor(committed, "0".repeat(64))).toEqual({ state: "not_recorded" });
   });
 
   it("is served for its own close hash, without the model's name", () => {

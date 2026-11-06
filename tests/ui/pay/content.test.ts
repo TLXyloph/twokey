@@ -26,6 +26,14 @@ describe("the pay page's words", () => {
     expect(content.TEST_BUYER.note).toMatch(/PayPal sandbox test login, not a real account/);
   });
 
+  it("says what to copy before PayPal's window opens, since PayPal covers this page while it's open", () => {
+    // Measured Nov 6: PayPal's SDK dims the whole page under its own cover; the Copy buttons can't be reached,
+    // and the cover's × closes PayPal's window.
+    expect(content.TEST_BUYER.note).toMatch(/copy the email before you pay/i);
+    expect(content.TEST_BUYER.note).toMatch(/type the password/i);
+    expect(content.TICKET.opening).toMatch(/Click to Continue/);
+  });
+
   it("keeps headings short enough for two lines at every width", () => {
     const headings = [content.EVENING_HEADING, content.LETTER.heading, content.FOOTER.signOff, content.TICKET.paidHeading];
     for (const heading of headings) expect(heading.length).toBeLessThanOrEqual(32);

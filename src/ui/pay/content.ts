@@ -16,7 +16,7 @@ export const TICKET = {
   paidTo: "Paid straight into the club's own PayPal account.",
   unavailable: "Payments are unavailable right now. Please try again a little later.",
   loading: "Getting PayPal ready…",
-  opening: "Finish paying in PayPal's window.",
+  opening: "Finish paying in PayPal's window. If it's hidden, PayPal's “Click to Continue” brings it back.",
   capturing: "PayPal approved it. Recording your tickets…",
   cancelled: "You closed PayPal before paying. Nothing was charged.",
   paidHeading: "Paid. See you on the 21st.",
@@ -29,7 +29,7 @@ export const TICKET = {
 
 export const TEST_BUYER = {
   heading: "Sandbox test buyer",
-  note: "A PayPal sandbox test login, not a real account. Use it in PayPal's window to pay with test money.",
+  note: "A PayPal sandbox test login, not a real account. Copy the email before you pay: PayPal's window covers this page until you finish, so type the password from here.",
   emailLabel: "Email",
   passwordLabel: "Password",
 } as const;

@@ -301,13 +301,14 @@ describe("the close screen", () => {
 });
 
 describe("the close page", () => {
-  it("renders the judge band with no props, then the close from the seed, with the draft not recorded yet", async () => {
+  it("renders the judge band with no props, then the close from the seed, with the recorded draft", async () => {
     const { default: ClosePage } = await import("@/app/demo/close/page");
     const html = renderToStaticMarkup(await ClosePage());
     const t = text(html);
     expect(t).toContain("Judge mode");
     expect(t).toContain("Monthly close: October 2026");
-    expect(t).toContain("The AI's draft isn't recorded yet.");
+    expect(t).toContain("Drafted by the AI (recorded)");
+    expect(t).not.toContain("The AI's draft isn't recorded yet.");
     expect(html.indexOf("Judge mode")).toBeLessThan(html.indexOf("Monthly close: October 2026"));
   });
 });
