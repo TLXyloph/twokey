@@ -36,3 +36,10 @@ docs/demo-video-plan.md
 
 # design-taste-frontend working files
 .taste-skill/
+
+# Local agent skills installed with `npx skills add` (third-party; not part of TwoKey)
+.agents/
+.claude/skills/
+skills-lock.json
+# The OpenScreen demo hand-over (local)
+docs/openscreen-demo-plan.md
