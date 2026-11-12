@@ -12,7 +12,9 @@ TwoKey
 
 ## Elevator pitch (194 of 200 characters)
 
-The treasurer shouldn't hold the keys. TwoKey keeps a club's money in its own PayPal account: two officers sign every payout, an AI checks each receipt, and a Watchtower flags any other way out.
+The treasurer shouldn't hold the keys. TwoKey takes the club's PayPal login away from any one officer, puts two signatures and an AI-checked receipt on every payout, and flags any other way out.
+
+(Earlier version, also 194: "The treasurer shouldn't hold the keys. TwoKey keeps a club's money in its own PayPal account: two officers sign every payout, an AI checks each receipt, and a Watchtower flags any other way out.")
 
 ---
 
@@ -26,7 +28,7 @@ The rules to stop this already exist. PTA and league rulebooks require two signa
 
 ### What it does
 
-TwoKey moves a club's money into a PayPal Business account in the club's name, and makes the rulebook the default. The demo club is a fictional youth league, "Riverbend Youth Football League (demo data)".
+TwoKey moves a club's money into a PayPal Business account in the club's name, and makes the rulebook the default. A second signature only helps if no one can go around it, so TwoKey starts with who holds the account's keys, then puts two keys on every payout, then watches PayPal's own records for anything that left another way. The demo club is a fictional youth league, "Riverbend Youth Football League (demo data)".
 
 - **Key setup.** A checklist walks the board through the PayPal settings no API can change: the owner login moves to the President with two-step login, the Treasurer becomes a limited user who can't send or withdraw, TwoKey becomes the only app with Payouts, and the club's personal Venmo is retired. A public "Who holds the keys" panel shows who holds which access, each officer's signing key, and the last signature each key made.
 - **Money in.** Parents buy tickets on the club's own page (the demo sells end-of-season banquet tickets) with PayPal or Venmo buttons. The money goes straight into the club's PayPal account and onto the ledger; PayPal's webhook then confirms it (19 seconds after the capture, measured).
