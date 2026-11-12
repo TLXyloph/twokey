@@ -81,7 +81,7 @@ It never detects from the balance. In a measured test, a website send came with 
 | AI | **Claude Opus 5.5** through the **Anthropic API**: it reads receipt images and returns structured risk cards; it drafts the monthly reconciliation; it powers the board's AI assistant as a custom primary agent that delegates to AG Studio's built-in agents. The public demo's AI calls go through per-session cookies, rate limits, reservations against a hard budget, and recorded fallbacks |
 | AG Studio (AG Grid) | The officers' board and the parent ledger: custom widgets, two themes (an achromatic ledger for officers, the club's colours for parents), and the Studio agent framework |
 | Platform | Next.js 16 on **Cloudflare Workers** (OpenNext), **Cloudflare D1** for the event store, a **Cron Trigger** for the Watchtower |
-| Code | TypeScript (strict), zod at every boundary, bounded contexts (Ledger, Disbursements, Collections, Watchtower, Agents), event sourcing, about 1,300 Vitest tests |
+| Code | TypeScript (strict), zod at every boundary, bounded contexts (Ledger, Disbursements, Collections, Watchtower, Agents), event sourcing, about 1,500 Vitest tests |
 
 ### AI tools used
 
