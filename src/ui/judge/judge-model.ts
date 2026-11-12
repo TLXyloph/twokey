@@ -144,6 +144,14 @@ export function defaultSendBackReason(card: RiskCard | null): string {
   return text.length <= SEND_BACK_REASON_MAX ? text : `${text.slice(0, SEND_BACK_REASON_MAX - 1).trimEnd()}…`;
 }
 
+/**
+ * The send-back reason while the officer hasn't typed in it: it follows the card, because the
+ * drawer first shows the rules-only card and the AI's flags arrive a moment later. Once edited,
+ * the officer's words stay.
+ */
+export const followCardReason = (edited: boolean, current: string, card: RiskCard | null): string =>
+  edited ? current : defaultSendBackReason(card);
+
 export type ReasonCheck = { ok: true; reason: string } | { ok: false; message: string };
 
 export function checkSendBackReason(input: string): ReasonCheck {

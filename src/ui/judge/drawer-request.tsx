@@ -27,6 +27,7 @@ import {
   canSendBack,
   checkSendBackReason,
   defaultSendBackReason,
+  followCardReason,
   formatCents,
   formatStepTime,
   isOfficer,
@@ -57,6 +58,15 @@ export interface RequestCardProps {
 function useSendBack(request: PayoutRequestView, onSendBack: RequestCardProps["onSendBack"]) {
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState(() => defaultSendBackReason(request.risk));
+  const edited = useRef(false);
+  // Until the officer types, the reason follows the card: its AI flags arrive after the rules' card.
+  useEffect(() => {
+    setReason((current) => followCardReason(edited.current, current, request.risk));
+  }, [request.risk]);
+  const editReason = (value: string) => {
+    edited.current = true;
+    setReason(value);
+  };
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
@@ -87,7 +97,7 @@ function useSendBack(request: PayoutRequestView, onSendBack: RequestCardProps["o
     if (result && !result.ok) close();
   };
 
-  return { open, setOpen, reason, setReason, error, submitting, toggleRef, fieldRef, close, submit };
+  return { open, setOpen, reason, setReason: editReason, error, submitting, toggleRef, fieldRef, close, submit };
 }
 
 function Refusal({ role, message, at, recorded }: { role: ActingRole; message: string; at: string; recorded: boolean }) {

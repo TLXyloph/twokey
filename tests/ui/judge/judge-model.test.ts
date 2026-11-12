@@ -5,6 +5,7 @@ import {
   canSendBack,
   checkSendBackReason,
   defaultSendBackReason,
+  followCardReason,
   formatCents,
   formatClubTime,
   formatStepTime,
@@ -202,6 +203,21 @@ describe("sending a payout back", () => {
     const stop = { severity: "stop" as const, text: "The receipt total doesn't match.", evidence: "", source: "ai" as const };
     const warn = { severity: "warn" as const, text: "A warning.", evidence: "", source: "rule" as const };
     expect(defaultSendBackReason(riskCard({ findings: [warn, stop] }))).toBe("The receipt total doesn't match.");
+  });
+
+  it("follows the card until the officer edits it: the AI's flags arrive after the rules' card", () => {
+    // Measured Nov 12: the drawer first shows the rules-only card, then the recorded AI card a moment later.
+    const rulesOnly = riskCard({ findings: [{ severity: "warn", text: "This pays an officer, the Treasurer.", evidence: "", source: "rule" }] });
+    const withAi = riskCard({
+      findings: [
+        { severity: "warn", text: "This pays an officer, the Treasurer.", evidence: "", source: "rule" },
+        { severity: "warn", text: "The receipt includes patio string lights.", evidence: "", source: "ai" },
+      ],
+    });
+    const first = followCardReason(false, "", rulesOnly);
+    expect(first).toBe("This pays an officer, the Treasurer.");
+    expect(followCardReason(false, first, withAi)).toBe("The receipt includes patio string lights.");
+    expect(followCardReason(true, "My own words.", withAi)).toBe("My own words.");
   });
 
   it("starts empty when the card has no flag, only notes or nothing", () => {
